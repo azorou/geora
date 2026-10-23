@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Geora - Das Geografie-Quiz</title>
 
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0b1017">
-    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0b1017">
 
     <style>
         :root {
@@ -34,7 +33,20 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; user-select: none; }
+        
+        /* Basis-Setup für Höhe und Hintergrund */
         body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* OPTIMIERUNG FÜR 1440p & 4K: Verhindert zu viel freie Fläche auf riesigen Bildschirmen */
+        @media (min-width: 1400px) {
+            body {
+                max-width: 1600px;
+                margin: 0 auto;
+                box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+                border-left: 2px solid var(--border-color);
+                border-right: 2px solid var(--border-color);
+            }
+        }
 
         .screen { display: none; width: 100%; height: 100%; flex-direction: column; }
         .screen.active { display: flex; }
@@ -129,6 +141,18 @@
         .resize-handle.bl { bottom: 0; left: 0; cursor: nesw-resize; }
         .resize-handle.br { bottom: 0; right: 0; cursor: nwse-resize; }
 
+        /* NICHT BLENDEND WEISS: Benutzerdefinierter Leaflet-Tooltip im Dunkel-Design */
+        .leaflet-tooltip.country-label {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: rgba(255, 255, 255, 0.75) !important;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.9);
+            pointer-events: none;
+        }
+
         .modal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(11, 16, 23, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -161,40 +185,15 @@
 
         .reopen-end-btn { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 1002; display: none; }
 
-        /* ========================================================= */
-        /* MOBILE / TABLET SPEZIFISCHES CSS (MEDIA QUERY FOR MOBILE) */
-        /* ========================================================= */
         @media (max-width: 768px) {
-            /* Fokus-Boxen auf Mobile komplett verbergen */
-            .inset-map-box {
-                display: none !important;
-            }
-
-            /* Anpassung des Prompt-Balkens auf kleinen Bildschirmen */
+            .inset-map-box { display: none !important; }
             .game-prompt-bar {
-                top: 12px;
-                min-width: calc(100% - 30px);
-                padding: 8px 14px;
-                border-radius: 16px;
-                gap: 10px;
+                top: 12px; min-width: calc(100% - 30px); padding: 8px 14px; border-radius: 16px; gap: 10px;
             }
-
-            .prompt-text {
-                font-size: 0.95rem;
-            }
-
-            .hero-title {
-                font-size: 2.5rem;
-            }
-
-            .stat-badge {
-                padding: 4px 8px;
-                font-size: 0.8rem;
-            }
-
-            .top-bar {
-                padding: 0 12px;
-            }
+            .prompt-text { font-size: 0.95rem; }
+            .hero-title { font-size: 2.5rem; }
+            .stat-badge { padding: 4px 8px; font-size: 0.8rem; }
+            .top-bar { padding: 0 12px; }
         }
     </style>
 </head>
@@ -303,14 +302,6 @@
             }
         };
 
-        if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then((reg) => console.log('Service Worker registriert!', reg))
-            .catch((err) => console.log('Service Worker Fehler:', err));
-    });
-}
-        
         const top50ISO = ["AFG","DZA","AGO","ARG","BGD","BRA","CHN","COD","DEU","FRA","GHA","IND","IDN","IRQ","IRN","ITA","JPN","YEM","CAN","KEN","COL","MYS","MAR","MEX","MOZ","MMR","NPL","NGA","PAK","PER","PHL","POL","RUS","SAU","ESP","SDN","ZAF","KOR","TZA","THA","TUR","USA","UGA","UKR","UZB","VEN","GBR","VNM","EGY","ETH"];
 
         let currentLang = 'de', selectedMode = 'click', selectedDifficulty = 'easy';
@@ -320,6 +311,7 @@
         let totalDeckSize = 0, completedCount = 0;
         let currentAttempts = 0;
         let solvedCountries = {}; 
+        let clickedLabels = {}; // Speichert geklickte Länder für die permanente Namensanzeige
         let totalAttemptsSpent = 0;
         let geoJsonLayers = [];
         let activeCircleMarkers = [];
@@ -441,6 +433,16 @@
                         layer.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature); });
 
                         const id = getFeatureID(feature);
+                        
+                        // Wenn das Land bereits angeklickt wurde, Namen direkt anzeigen
+                        if (clickedLabels[id]) {
+                            layer.bindTooltip(clickedLabels[id], {
+                                permanent: true,
+                                direction: 'center',
+                                className: 'country-label'
+                            }).openTooltip();
+                        }
+
                         if (validModeIDs.has(id)) {
                             const bounds = layer.getBounds();
                             if (bounds.isValid()) {
@@ -472,6 +474,7 @@
 
         function resetDeck() {
             solvedCountries = {};
+            clickedLabels = {};
             totalAttemptsSpent = 0;
             completedCount = 0;
 
@@ -517,7 +520,6 @@
             
             document.getElementById('game-stats-container').style.display = 'flex';
             
-            // Nur auf Desktops/Tablets einblenden (> 768px)
             if (window.innerWidth > 768) {
                 document.getElementById('box-caribbean').style.display = 'flex';
                 document.getElementById('box-oceania').style.display = 'flex';
@@ -574,6 +576,9 @@
             const targetID = getFeatureID(currentTarget);
             const clickedID = getFeatureID(feature);
 
+            // Name für das angeklickte Land merken und Label anzeigen
+            clickedLabels[clickedID] = getDisplayName(feature);
+
             if (solvedCountries[targetID]) return;
 
             currentAttempts++;
@@ -582,10 +587,10 @@
             const isCorrect = (clickedID === targetID);
 
             if (isCorrect) {
-                let color = '#ffffff'; // 1. Versuch (Weiß)
-                if (currentAttempts === 2) color = '#ffeb3b'; // 2. Versuch (Gelb)
-                else if (currentAttempts === 3) color = '#ff9800'; // 3. Versuch (Orange)
-                else if (currentAttempts >= 4) color = '#ff4b4b'; // 4. Versuch (Rot)
+                let color = '#ffffff'; 
+                if (currentAttempts === 2) color = '#ffeb3b'; 
+                else if (currentAttempts === 3) color = '#ff9800'; 
+                else if (currentAttempts >= 4) color = '#ff4b4b'; 
 
                 solvedCountries[targetID] = color;
                 completedCount++;
@@ -599,6 +604,8 @@
                     updateCounter();
                     refreshAllMapStyles();
                     setTimeout(() => { nextRound(); }, 900);
+                } else {
+                    refreshAllMapStyles(); // Aktualisiert die Karte direkt, damit das Label des geklickten (falschen) Landes sofort erscheint
                 }
             }
         }
@@ -613,6 +620,15 @@
                             col = validModeIDs.has(id) ? '#162235' : '#0d1117';
                         }
                         if (layer.setStyle) layer.setStyle({ fillColor: col });
+
+                        // Sicherstellen, dass angeklickte Länder ihr Label behalten
+                        if (clickedLabels[id] && !layer.getTooltip()) {
+                            layer.bindTooltip(clickedLabels[id], {
+                                permanent: true,
+                                direction: 'center',
+                                className: 'country-label'
+                            }).openTooltip();
+                        }
                     }
                 });
             });
