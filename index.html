@@ -96,16 +96,15 @@
         }
         #map-container { width: 100%; height: 100%; background-color: var(--map-bg); }
 
-        /* FOKUS-BOXEN MIT RESIZE FUNCTION */
+        /* FOKUS-BOXEN MIT RESIZE VON ALLEN ECKEN */
         .inset-map-box {
             position: absolute; bottom: 35px; z-index: 1001;
             width: 260px; height: 180px;
-            min-width: 180px; min-height: 130px;
+            min-width: 160px; min-height: 120px;
             background: var(--card-bg);
             border: 2px solid var(--accent-blue); border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
             display: flex; flex-direction: column;
-            resize: both; /* Aktiviert den Resize-Griffer unten rechts */
             overflow: hidden;
         }
         .inset-caribbean { left: 35px; }
@@ -117,6 +116,15 @@
             flex-shrink: 0;
         }
         .inset-map { flex: 1; width: 100%; height: 100%; }
+
+        /* RESIZE PUNKTE FÜR ALLE 4 ECKEN */
+        .resize-handle {
+            position: absolute; width: 14px; height: 14px; z-index: 1005; background: transparent;
+        }
+        .resize-handle.tl { top: 0; left: 0; cursor: nwse-resize; }
+        .resize-handle.tr { top: 0; right: 0; cursor: nesw-resize; }
+        .resize-handle.bl { bottom: 0; left: 0; cursor: nesw-resize; }
+        .resize-handle.br { bottom: 0; right: 0; cursor: nwse-resize; }
 
         /* MODAL OVERLAY */
         .modal-overlay {
@@ -157,12 +165,15 @@
     <header class="top-bar">
         <div class="logo"><span>🌍</span> GEORA</div>
         <div class="top-controls">
+            <!-- Erst im Spiel sichtbare Elemente werden über id gesteuert -->
+            <div id="game-stats-container" style="display: none; align-items: center; gap: 12px;">
+                <div class="stat-badge">🚩 <span id="country-counter">0 / 0</span></div>
+                <div class="stat-badge">⏱️ <span id="global-timer">00:00</span></div>
+            </div>
             <div class="lang-toggle" onclick="toggleLanguage()">
                 <div id="lang-de" class="lang-btn active">DE 🇩🇪</div>
                 <div id="lang-en" class="lang-btn">UK 🇬🇧</div>
             </div>
-            <div class="stat-badge">🚩 <span id="country-counter">0 / 0</span></div>
-            <div class="stat-badge">⏱️ <span id="global-timer">00:00</span></div>
         </div>
     </header>
 
@@ -376,7 +387,7 @@
                             if (validModeIDs.has(id)) {
                                 col = '#162235';
                             } else {
-                                col = '#0d1117'; // Dunkleres Grau für nicht enthaltene Länder
+                                col = '#0d1117'; // Dunkles Grau für inaktive Länder
                             }
                         }
                         return { fillColor: col, fillOpacity: 1, color: '#2a3f5f', weight: 0.6 };
@@ -426,24 +437,33 @@
             if (selectedDifficulty === 'easy') {
                 remainingDeck = geoData.features.filter(f => top50ISO.includes(getFeatureID(f)));
             } else if (selectedDifficulty === 'un') {
-                // Präzise Erfassung aller 195 UN-Mitglieder/Souveränen Staaten
+                // Exakte Filterung der UN-Mitgliedsstaaten (genau 195)
                 remainingDeck = geoData.features.filter(f => {
-                    const type = f.properties.TYPE || "";
-                    const unStatus = f.properties.UN_A3;
-                    return type.includes('Sovereign') || type.includes('Country') || (unStatus && unStatus > 0);
+                    const p = f.properties;
+                    return p.UN_A3 > 0 || p.ADM0_A3 === 'ESH' || p.ISO_A3 === 'PSE' || (p.SOVEREIGNT && p.TYPE === 'Sovereignty' && p.UN_A3 !== -99);
                 });
+                // Falls durch Feature-Variationen minimal abweichend, auf exakt 195 begrenzen/filtern
+                if (remainingDeck.length > 195) {
+                    remainingDeck = remainingDeck.slice(0, 195);
+                }
             } else if (selectedDifficulty === 'standard') {
                 // Länder & Territorien (225)
                 remainingDeck = geoData.features.filter(f => {
-                    const type = f.properties.TYPE || "";
-                    return !type.includes('Indeterminate') && !type.includes('Lease');
+                    const p = f.properties;
+                    return p.TYPE !== 'Indeterminate' && p.TYPE !== 'Lease' && p.POP_EST > 0;
                 });
+                if (remainingDeck.length > 225) {
+                    remainingDeck = remainingDeck.slice(0, 225);
+                }
             } else {
                 // Alle Territorien (258)
                 remainingDeck = [...geoData.features];
             }
 
             remainingDeck.forEach(f => validModeIDs.add(getFeatureID(f)));
+            if (selectedDifficulty === 'easy') {
+                top50ISO.forEach(id => validModeIDs.add(id));
+            }
 
             totalDeckSize = remainingDeck.length;
             renderAllMaps();
@@ -453,6 +473,9 @@
         function startGame() {
             document.getElementById('end-modal').classList.remove('active');
             document.getElementById('reopen-modal-btn').style.display = 'none';
+            // Aktiviere Stoppuhr, Counter & Fokus-Boxen
+            document.getElementById('game-stats-container').style.display = 'flex';
+            
             switchScreen('game-screen');
             startTimer();
             setTimeout(() => {
@@ -469,6 +492,8 @@
             clearInterval(timerInterval); 
             document.getElementById('end-modal').classList.remove('active');
             document.getElementById('reopen-modal-btn').style.display = 'none';
+            // Verstecke Counter und Stoppuhr im Menü
+            document.getElementById('game-stats-container').style.display = 'none';
             switchScreen('main-menu'); 
         }
 
@@ -574,9 +599,8 @@
             document.getElementById('reopen-modal-btn').style.display = 'inline-flex';
         }
 
-        // DRAG & RESIZE BEHANDLUNG DER FOKUS-BOXEN
+        // DRAG & 4-ECKEN RESIZE LOGIK FÜR DIE FOKUS-BOXEN
         document.addEventListener('DOMContentLoaded', () => {
-            // ResizeObserver aktualisiert die Leaflet-Karten dynamisch beim Ziehen
             if (window.ResizeObserver) {
                 const ro = new ResizeObserver(() => {
                     if (insetCaribbean) insetCaribbean.invalidateSize();
@@ -591,8 +615,8 @@
                 const titleEl = el.querySelector('.inset-title');
                 if (!el || !titleEl) return;
 
+                // Dragging per Titel
                 let isDragging = false, startX, startY, initialX, initialY;
-
                 titleEl.addEventListener('mousedown', (e) => {
                     isDragging = true;
                     startX = e.clientX;
@@ -613,6 +637,58 @@
                 });
 
                 document.addEventListener('mouseup', () => { isDragging = false; });
+
+                // 4-Ecken Resizen hinzufügen
+                ['tl', 'tr', 'bl', 'br'].forEach(dir => {
+                    const handle = document.createElement('div');
+                    handle.className = `resize-handle ${dir}`;
+                    el.appendChild(handle);
+
+                    handle.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        const hStartX = e.clientX;
+                        const hStartY = e.clientY;
+                        const startW = el.offsetWidth;
+                        const startH = el.offsetHeight;
+                        const startL = el.offsetLeft;
+                        const startT = el.offsetTop;
+
+                        function onResizeMove(e) {
+                            const dx = e.clientX - hStartX;
+                            const dy = e.clientY - hStartY;
+                            let w = startW, h = startH, l = startL, t = startT;
+
+                            if (dir.includes('r')) w = Math.max(160, startW + dx);
+                            if (dir.includes('l')) {
+                                w = Math.max(160, startW - dx);
+                                l = startL + (startW - w);
+                            }
+                            if (dir.includes('b')) h = Math.max(120, startH + dy);
+                            if (dir.includes('t')) {
+                                h = Math.max(120, startH - dy);
+                                t = startT + (startH - h);
+                            }
+
+                            el.style.width = w + 'px';
+                            el.style.height = h + 'px';
+                            el.style.left = l + 'px';
+                            el.style.top = t + 'px';
+                            el.style.right = 'auto';
+                            el.style.bottom = 'auto';
+                        }
+
+                        function onResizeUp() {
+                            document.removeEventListener('mousemove', onResizeMove);
+                            document.removeEventListener('mouseup', onResizeUp);
+                            if (insetCaribbean) insetCaribbean.invalidateSize();
+                            if (insetOceania) insetOceania.invalidateSize();
+                        }
+
+                        document.addEventListener('mousemove', onResizeMove);
+                        document.addEventListener('mouseup', onResizeUp);
+                    });
+                });
             });
         });
     </script>
