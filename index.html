@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Geora - Das Geografie-Quiz</title>
 
-    <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
@@ -32,426 +29,164 @@
             --map-stroke: #2e405a;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            user-select: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; user-select: none; }
+        body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; }
+        .screen.active { display: flex; }
 
-        .screen {
-            display: none;
-            width: 100%;
-            height: 100%;
-            flex-direction: column;
-        }
-
-        .screen.active {
-            display: flex;
-        }
-
-        /* 3D BUTTONS */
         .btn-3d {
-            background-color: var(--accent-green);
-            color: #fff;
-            border: none;
-            border-radius: 16px;
-            padding: 14px 22px;
-            font-size: 1rem;
-            font-weight: 800;
-            cursor: pointer;
-            box-shadow: 0 4px 0 var(--accent-green-shadow);
-            transition: all 0.1s ease;
-            text-transform: uppercase;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            background-color: var(--accent-green); color: #fff; border: none; border-radius: 16px;
+            padding: 14px 22px; font-size: 1rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 4px 0 var(--accent-green-shadow); text-transform: uppercase;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
         }
-
-        .btn-3d:active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 var(--accent-green-shadow);
-        }
-
+        .btn-3d:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--accent-green-shadow); }
         .btn-blue { background-color: var(--accent-blue); box-shadow: 0 4px 0 var(--accent-blue-shadow); }
-        .btn-blue:active { box-shadow: 0 1px 0 var(--accent-blue-shadow); }
-
         .btn-gold { background-color: var(--accent-gold); color: #2b1f00; box-shadow: 0 4px 0 var(--accent-gold-shadow); }
-        .btn-gold:active { box-shadow: 0 1px 0 var(--accent-gold-shadow); }
-
         .btn-red { background-color: var(--accent-red); box-shadow: 0 4px 0 var(--accent-red-shadow); }
-        .btn-red:active { box-shadow: 0 1px 0 var(--accent-red-shadow); }
 
-        /* HEADER */
         .top-bar {
-            height: 60px;
-            background: var(--card-bg);
-            border-bottom: 2px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 1000;
+            height: 60px; background: var(--card-bg); border-bottom: 2px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000;
         }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: var(--accent-blue);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .top-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .logo { font-size: 1.5rem; font-weight: 900; color: var(--accent-blue); display: flex; align-items: center; gap: 8px; }
+        .top-controls { display: flex; align-items: center; gap: 12px; }
 
         .lang-toggle {
-            background: rgba(255, 255, 255, 0.06);
-            border: 2px solid var(--border-color);
-            border-radius: 14px;
-            padding: 3px;
-            display: flex;
-            gap: 4px;
-            cursor: pointer;
+            background: rgba(255, 255, 255, 0.06); border: 2px solid var(--border-color);
+            border-radius: 14px; padding: 3px; display: flex; gap: 4px; cursor: pointer;
         }
-
-        .lang-btn {
-            padding: 4px 10px;
-            border-radius: 10px;
-            font-weight: 800;
-            font-size: 0.85rem;
-            color: var(--text-sub);
-            transition: all 0.2s ease;
-        }
-
-        .lang-btn.active {
-            background: var(--accent-blue);
-            color: #fff;
-        }
+        .lang-btn { padding: 4px 10px; border-radius: 10px; font-weight: 800; font-size: 0.85rem; color: var(--text-sub); }
+        .lang-btn.active { background: var(--accent-blue); color: #fff; }
 
         .stat-badge {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color);
+            padding: 6px 12px; border-radius: 12px; font-weight: 800; font-size: 0.9rem;
         }
 
-        /* HAUPTMENÜ */
         #main-menu {
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            text-align: center;
+            align-items: center; justify-content: center; padding: 20px; text-align: center;
             background: radial-gradient(circle at center, #172436 0%, #0b1017 100%);
         }
+        .hero-title { font-size: 3.5rem; font-weight: 900; background: linear-gradient(135deg, #1cb0f6, #58cc02); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-subtitle { color: var(--text-sub); font-size: 1.1rem; max-width: 450px; margin-bottom: 35px; }
 
-        .hero-title {
-            font-size: 3.5rem;
-            font-weight: 900;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #1cb0f6, #58cc02);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .config-container { max-width: 600px; margin: 0 auto; width: 100%; padding: 20px; overflow-y: auto; }
+        .section-title { font-size: 1.1rem; font-weight: 800; margin: 20px 0 10px 0; color: var(--text-sub); text-transform: uppercase; }
+        .option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+        .option-card { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 16px; padding: 14px; cursor: pointer; text-align: center; font-weight: 700; }
+        .option-card.selected { border-color: var(--accent-blue); background: rgba(28, 176, 246, 0.1); }
 
-        .hero-subtitle {
-            color: var(--text-sub);
-            font-size: 1.1rem;
-            max-width: 450px;
-            margin-bottom: 35px;
-        }
-
-        /* CONFIG MENU */
-        .config-container {
-            max-width: 600px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 800;
-            margin: 20px 0 10px 0;
-            color: var(--text-sub);
-            text-transform: uppercase;
-        }
-
-        .option-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 12px;
-        }
-
-        .option-card {
-            background: var(--card-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 16px;
-            padding: 14px;
-            cursor: pointer;
-            text-align: center;
-            font-weight: 700;
-            transition: all 0.2s ease;
-        }
-
-        .option-card:hover, .option-card.selected {
-            border-color: var(--accent-blue);
-            background: rgba(28, 176, 246, 0.1);
-        }
-
-        /* GAMEPLAY SCREEN */
-        #game-screen {
-            position: relative;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
+        #game-screen { position: relative; flex: 1; display: flex; flex-direction: column; }
         .game-prompt-bar {
-            position: absolute;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            background: rgba(21, 29, 42, 0.95);
-            backdrop-filter: blur(8px);
-            border: 2px solid var(--border-color);
-            border-radius: 20px;
-            padding: 10px 22px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            min-width: 300px;
-            justify-content: space-between;
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 1000;
+            background: rgba(21, 29, 42, 0.95); border: 2px solid var(--border-color); border-radius: 20px;
+            padding: 10px 22px; display: flex; align-items: center; gap: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            min-width: 320px; justify-content: space-between;
         }
+        .prompt-text { font-size: 1.25rem; font-weight: 800; }
 
-        .prompt-text {
-            font-size: 1.2rem;
-            font-weight: 800;
-        }
+        #map-container { width: 100%; height: 100%; background-color: var(--map-bg); flex: 1; }
 
-        #map-container {
-            width: 100%;
-            height: 100%;
-            background-color: var(--map-bg);
-            flex: 1;
+        /* NEUE OPTIK FÜR KARTENAUSSCHNITTE (MINI MAPS IN DEN ECKEN) */
+        .inset-map-box {
+            position: absolute; bottom: 20px; z-index: 999;
+            width: 180px; height: 130px; background: var(--card-bg);
+            border: 2px solid var(--border-color); border-radius: 14px; overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
         }
+        .inset-caribbean { left: 20px; }
+        .inset-oceania { right: 20px; }
+        .inset-title {
+            position: absolute; top: 4px; left: 6px; z-index: 1001;
+            font-size: 0.75rem; font-weight: 900; background: rgba(11, 16, 23, 0.8);
+            padding: 2px 6px; border-radius: 6px; color: var(--accent-blue);
+        }
+        .inset-map { width: 100%; height: 100%; }
 
-        /* KARTENUMRISSE & KLICKBARE PUNKTE */
-        .country-polygon {
-            fill: var(--map-land);
-            fill-opacity: 1;
-            stroke: var(--map-stroke);
-            stroke-width: 1;
-            transition: fill 0.15s ease, stroke 0.15s ease;
-        }
-
-        .country-polygon:hover {
-            fill: #27384f;
-            stroke: var(--accent-blue);
-            stroke-width: 1.5;
-            cursor: pointer;
-        }
-
-        /* EINGEABETTETE MINI-KARTE / REGIONS-LEISTE UNTEN */
-        .embedded-mini-panel {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            display: flex;
-            gap: 10px;
-            background: rgba(21, 29, 42, 0.9);
-            backdrop-filter: blur(8px);
-            border: 2px solid var(--border-color);
-            padding: 8px 14px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-
-        .mini-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--text-main);
-            padding: 6px 12px;
-            font-size: 0.8rem;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .mini-card:hover {
-            background: var(--accent-blue);
-            border-color: var(--accent-blue);
-        }
+        .country-polygon { fill: var(--map-land); fill-opacity: 1; stroke: var(--map-stroke); stroke-width: 1; }
+        .country-polygon:hover { fill: #27384f; stroke: var(--accent-blue); stroke-width: 1.5; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <!-- TOP BAR -->
     <header class="top-bar">
         <div class="logo"><span>🌍</span> GEORA</div>
-
         <div class="top-controls">
             <div class="lang-toggle" onclick="toggleLanguage()">
                 <div id="lang-de" class="lang-btn active">DE 🇩🇪</div>
                 <div id="lang-en" class="lang-btn">UK 🇬🇧</div>
             </div>
-
             <div class="stat-badge">⏱️ <span id="global-timer">00:00</span></div>
             <div class="stat-badge">⚡ <span id="global-xp">0 XP</span></div>
         </div>
     </header>
 
-    <!-- 1. HAUPTMENÜ -->
     <section id="main-menu" class="screen active">
         <h1 class="hero-title">GEORA</h1>
-        <p class="hero-subtitle" id="i18n-subtitle">Erkunde die Welt, meistere Geografie & lerne alle Länder und Territorien.</p>
-
-        <div style="display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 320px;">
-            <button class="btn-3d" onclick="switchScreen('mode-selection')">
-                🎮 <span id="i18n-startbtn">Spiel starten</span>
-            </button>
-        </div>
+        <p class="hero-subtitle" id="i18n-subtitle">Erkunde die Welt, meistere Geografie & lerne alle Länder.</p>
+        <button class="btn-3d" style="width: 280px;" onclick="switchScreen('mode-selection')">🎮 <span id="i18n-startbtn">Spiel starten</span></button>
     </section>
 
-    <!-- 2. AUSWAHL MENÜ -->
     <section id="mode-selection" class="screen">
         <div class="config-container">
-            <button class="btn-3d btn-blue" style="padding: 6px 14px; font-size: 0.85rem;" onclick="switchScreen('main-menu')">
-                ← <span id="i18n-back">Hauptmenü</span>
-            </button>
+            <button class="btn-3d btn-blue" style="padding: 6px 14px; font-size: 0.85rem;" onclick="switchScreen('main-menu')">← <span id="i18n-back">Hauptmenü</span></button>
 
             <div class="section-title" id="i18n-sec1">1. Spielmodus wählen</div>
             <div class="option-grid">
-                <div class="option-card selected" onclick="selectMode('click', this)">
-                    <div style="font-size: 1.6rem;">👆</div>
-                    <div id="i18n-mode1">Suchen & Klicken</div>
-                </div>
-                <div class="option-card" onclick="selectMode('type', this)">
-                    <div style="font-size: 1.6rem;">✍️</div>
-                    <div id="i18n-mode2">Erkennen & Benennen</div>
-                </div>
+                <div class="option-card selected" onclick="selectMode('click', this)"><div style="font-size: 1.6rem;">👆</div><div id="i18n-mode1">Suchen & Klicken</div></div>
+                <div class="option-card" onclick="selectMode('type', this)"><div style="font-size: 1.6rem;">✍️</div><div id="i18n-mode2">Erkennen & Benennen</div></div>
             </div>
 
             <div class="section-title" id="i18n-sec2">2. Schwierigkeitsgrad</div>
             <div class="option-grid">
-                <div class="option-card selected" onclick="selectDifficulty('easy', this)">
-                    <div id="i18n-diff1">Bekannteste (Top 50)</div>
-                </div>
-                <div class="option-card" onclick="selectDifficulty('un', this)">
-                    <div id="i18n-diff2">UN-Staaten (195)</div>
-                </div>
-                <div class="option-card" onclick="selectDifficulty('standard', this)">
-                    <div id="i18n-diff3">Seterra (225+)</div>
-                </div>
-                <div class="option-card" onclick="selectDifficulty('all', this)">
-                    <div id="i18n-diff4">Alle Territorien (270+)</div>
-                </div>
+                <div class="option-card selected" onclick="selectDifficulty('easy', this)"><div id="i18n-diff1">Bekannteste (Top 50)</div></div>
+                <div class="option-card" onclick="selectDifficulty('un', this)"><div id="i18n-diff2">UN-Staaten (195)</div></div>
+                <div class="option-card" onclick="selectDifficulty('standard', this)"><div id="i18n-diff3">Seterra (225+)</div></div>
+                <div class="option-card" onclick="selectDifficulty('all', this)"><div id="i18n-diff4">Alle Territorien (270+)</div></div>
             </div>
 
             <div style="margin-top: 25px; text-align: center;">
-                <button class="btn-3d btn-gold" style="width: 100%; max-width: 280px;" onclick="startGame()">
-                    🚀 <span id="i18n-playbtn">JETZT SPIELEN</span>
-                </button>
+                <button class="btn-3d btn-gold" style="width: 280px;" onclick="startGame()">🚀 <span id="i18n-playbtn">JETZT SPIELEN</span></button>
             </div>
         </div>
     </section>
 
-    <!-- 3. GAMEPLAY SCREEN -->
     <section id="game-screen" class="screen">
         <div class="game-prompt-bar">
             <div id="target-prompt" class="prompt-text">Finde: Deutschland</div>
-            <button class="btn-3d btn-red" style="padding: 6px 12px; font-size: 0.8rem;" onclick="quitGame()">
-                ✖️ <span id="i18n-quit">Abbrechen</span>
-            </button>
+            <button class="btn-3d btn-red" style="padding: 6px 12px; font-size: 0.8rem;" onclick="quitGame()">✖️ <span id="i18n-quit">Abbrechen</span></button>
         </div>
 
         <div id="map-container"></div>
 
-        <!-- EINGEABETTETES MINI-PANEL FÜR REGIONEN -->
-        <div class="embedded-mini-panel">
-            <div class="mini-card" onclick="zoomRegion('caribbean')">🏝️ Karibik</div>
-            <div class="mini-card" onclick="zoomRegion('europe')">🇪🇺 Europa</div>
-            <div class="mini-card" onclick="zoomRegion('asia')">🌏 SE-Asien</div>
-            <div class="mini-card" onclick="zoomRegion('oceania')">🌊 Ozeanien</div>
+        <!-- ECHTE KARTENAUSSCHNITTE IN DEN ECKEN -->
+        <div class="inset-map-box inset-caribbean">
+            <div class="inset-title">🏝️ KARIBIK</div>
+            <div id="inset-caribbean-map" class="inset-map"></div>
+        </div>
+        <div class="inset-map-box inset-oceania">
+            <div class="inset-title">🌊 OZEANIEN</div>
+            <div id="inset-oceania-map" class="inset-map"></div>
         </div>
     </section>
 
     <script>
         const i18n = {
-            de: {
-                subtitle: "Erkunde die Welt, meistere Geografie & lerne alle Länder.",
-                startbtn: "Spiel starten", back: "Hauptmenü",
-                sec1: "1. Spielmodus wählen", sec2: "2. Schwierigkeitsgrad",
-                mode1: "Suchen & Klicken", mode2: "Erkennen & Benennen",
-                diff1: "Bekannteste (Top 50)", diff2: "UN-Staaten (195)",
-                diff3: "Seterra Style (225+)", diff4: "Alle Territorien (270+)",
-                playbtn: "JETZT SPIELEN", quit: "Abbrechen", find: "Finde: "
-            },
-            en: {
-                subtitle: "Explore the world, master geography & learn all countries.",
-                startbtn: "Start Game", back: "Main Menu",
-                sec1: "1. Select Game Mode", sec2: "2. Difficulty",
-                mode1: "Search & Click", mode2: "Recognise & Type",
-                diff1: "Top 50 Known", diff2: "UN States (195)",
-                diff3: "Seterra Style (225+)", diff4: "All Territories (270+)",
-                playbtn: "PLAY NOW", quit: "Quit", find: "Find: "
-            }
+            de: { subtitle: "Erkunde die Welt, meistere Geografie & lerne alle Länder.", startbtn: "Spiel starten", back: "Hauptmenü", sec1: "1. Spielmodus wählen", sec2: "2. Schwierigkeitsgrad", mode1: "Suchen & Klicken", mode2: "Erkennen & Benennen", diff1: "Bekannteste (Top 50)", diff2: "UN-Staaten (195)", diff3: "Seterra Style (225+)", diff4: "Alle Territorien (270+)", playbtn: "JETZT SPIELEN", quit: "Abbrechen", find: "Finde: " },
+            en: { subtitle: "Explore the world, master geography & learn all countries.", startbtn: "Start Game", back: "Main Menu", sec1: "1. Select Game Mode", sec2: "2. Difficulty", mode1: "Search & Click", mode2: "Recognise & Type", diff1: "Top 50 Known", diff2: "UN States (195)", diff3: "Seterra Style (225+)", diff4: "All Territories (270+)", playbtn: "PLAY NOW", quit: "Quit", find: "Find: " }
         };
 
-        const officialNamesDE = {
-            "DEU": "Deutschland", "FRA": "Frankreich", "ESP": "Spanien", "ITA": "Italien",
-            "GBR": "Vereinigtes Königreich", "USA": "Vereinigte Staaten", "CAN": "Kanada",
-            "BRA": "Brasilien", "RUS": "Russische Föderation", "CHN": "China", "IND": "Indien",
-            "AUS": "Australien", "EGY": "Ägypten", "JPN": "Japan", "MEX": "Mexiko",
-            "NLD": "Niederlande", "ARE": "Vereinigte Arabische Emirate", "CHE": "Schweiz",
-            "AUT": "Österreich", "SWE": "Schweden", "NOR": "Norwegen", "FIN": "Finnland"
-        };
+        const officialNamesDE = { "DEU": "Deutschland", "FRA": "Frankreich", "ESP": "Spanien", "ITA": "Italien", "GBR": "Vereinigtes Königreich", "USA": "Vereinigte Staaten", "CAN": "Kanada", "BRA": "Brasilien", "RUS": "Russische Föderation", "CHN": "China", "IND": "Indien", "AUS": "Australien", "EGY": "Ägypten", "JPN": "Japan", "MEX": "Mexiko" };
+        const officialNamesUK = { "USA": "United States", "GBR": "United Kingdom", "NLD": "Netherlands", "ARE": "United Arab Emirates", "RUS": "Russian Federation" };
 
-        const officialNamesUK = {
-            "USA": "United States", "GBR": "United Kingdom", "NLD": "Netherlands",
-            "ARE": "United Arab Emirates", "RUS": "Russian Federation"
-        };
-
-        let currentLang = 'de';
-        let selectedMode = 'click';
-        let selectedDifficulty = 'easy';
-        let timerInterval = null;
-        let secondsElapsed = 0;
-        let map = null;
-        let geojsonLayer = null;
-        let currentTarget = null;
-        let geoData = null;
-        let remainingDeck = [];
-        let currentAttempts = 0; // Versuche-Zähler (max 4)
+        let currentLang = 'de', selectedMode = 'click', selectedDifficulty = 'easy';
+        let timerInterval = null, secondsElapsed = 0;
+        let map = null, insetCaribbean = null, insetOceania = null;
+        let geojsonLayer = null, currentTarget = null, geoData = null, remainingDeck = [];
+        let currentAttempts = 0;
+        let solvedCountries = {}; // Speichert die erreichten Farben
 
         const top50ISO = ["DEU", "FRA", "ESP", "ITA", "GBR", "POL", "SWE", "NOR", "FIN", "UKR", "ROU", "GRC", "PRT", "AUT", "CHE", "NLD", "BEL", "DNK", "IRL", "TUR", "USA", "CAN", "MEX", "BRA", "ARG", "CHL", "COL", "PER", "AUS", "NZL", "CHN", "IND", "JPN", "KOR", "IDN", "EGY", "ZAF", "NGA", "KEN", "MAR", "RUS", "KAZ", "SAU", "ARE", "THA", "VNM", "MYS", "PHL", "PAK", "DZA"];
 
@@ -459,7 +194,6 @@
             currentLang = currentLang === 'de' ? 'en' : 'de';
             document.getElementById('lang-de').classList.toggle('active', currentLang === 'de');
             document.getElementById('lang-en').classList.toggle('active', currentLang === 'en');
-
             document.getElementById('i18n-subtitle').textContent = i18n[currentLang].subtitle;
             document.getElementById('i18n-startbtn').textContent = i18n[currentLang].startbtn;
             document.getElementById('i18n-back').textContent = i18n[currentLang].back;
@@ -473,40 +207,25 @@
             document.getElementById('i18n-diff4').textContent = i18n[currentLang].diff4;
             document.getElementById('i18n-playbtn').textContent = i18n[currentLang].playbtn;
             document.getElementById('i18n-quit').textContent = i18n[currentLang].quit;
-
             if (currentTarget) updatePrompt();
         }
 
         function getCountryName(feature) {
-            if (currentLang === 'de' && officialNamesDE[feature.id]) {
-                return officialNamesDE[feature.id];
-            }
-            if (currentLang === 'en' && officialNamesUK[feature.id]) {
-                return officialNamesUK[feature.id];
-            }
+            if (currentLang === 'de' && officialNamesDE[feature.id]) return officialNamesDE[feature.id];
+            if (currentLang === 'en' && officialNamesUK[feature.id]) return officialNamesUK[feature.id];
             return feature.properties.name;
         }
 
-        function switchScreen(screenId) {
+        function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
+            document.getElementById(id).classList.add('active');
         }
 
-        function selectMode(mode, el) {
-            selectedMode = mode;
-            el.parentElement.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-        }
-
-        function selectDifficulty(diff, el) {
-            selectedDifficulty = diff;
-            el.parentElement.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
-            el.classList.add('selected');
-        }
+        function selectMode(m, el) { selectedMode = m; el.parentElement.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); }
+        function selectDifficulty(d, el) { selectedDifficulty = d; el.parentElement.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); }
 
         function startTimer() {
-            clearInterval(timerInterval);
-            secondsElapsed = 0;
+            clearInterval(timerInterval); secondsElapsed = 0;
             timerInterval = setInterval(() => {
                 secondsElapsed++;
                 const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
@@ -515,79 +234,54 @@
             }, 1000);
         }
 
-        function initMap() {
+        function initMaps() {
             if (map) return;
 
-            map = L.map('map-container', {
-                center: [20, 0],
-                zoom: 2,
-                minZoom: 2,
-                maxBounds: [[-65, -180], [85, 180]],
-                maxBoundsViscosity: 0.9,
-                zoomControl: false
-            });
+            map = L.map('map-container', { center: [20, 0], zoom: 2, minZoom: 2, maxBounds: [[-65, -180], [85, 180]], zoomControl: false });
+            insetCaribbean = L.map('inset-caribbean-map', { center: [15, -73], zoom: 4, zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false });
+            insetOceania = L.map('inset-oceania-map', { center: [-15, 175], zoom: 3, zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false });
 
             fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
                 .then(res => res.json())
                 .then(data => {
                     geoData = data;
-                    setupGeoJsonLayer();
+                    renderGeoJson(map);
+                    renderGeoJson(insetCaribbean);
+                    renderGeoJson(insetOceania);
                     resetDeck();
                     nextRound();
                 });
         }
 
-        function setupGeoJsonLayer() {
-            if (geojsonLayer) map.removeLayer(geojsonLayer);
-
-            geojsonLayer = L.geoJSON(geoData, {
-                style: { className: 'country-polygon' },
-                pointToLayer: (feature, latlng) => {
-                    // Kleine Inseln & Punkte als klickbare Marker darstellen
-                    return L.circleMarker(latlng, {
-                        radius: 6,
-                        fillColor: '#1b2636',
-                        color: '#2e405a',
-                        weight: 1,
-                        fillOpacity: 1
-                    });
-                },
+        function renderGeoJson(targetMap) {
+            L.geoJSON(geoData, {
+                style: (feature) => ({
+                    fillColor: solvedCountries[feature.id] || '#1b2636',
+                    fillOpacity: 1, color: '#2e405a', weight: 1
+                }),
+                pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 5, fillColor: solvedCountries[feature.id] || '#1b2636', color: '#ffffff', weight: 1, fillOpacity: 1 }),
                 onEachFeature: (feature, layer) => {
-                    layer.on('click', () => {
-                        if (selectedMode === 'click') handleCountryClick(feature, layer);
-                    });
+                    layer.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature); });
                 }
-            }).addTo(map);
+            }).addTo(targetMap);
         }
 
         function resetDeck() {
-            if (!geoData) return;
-            if (selectedDifficulty === 'easy') {
-                remainingDeck = geoData.features.filter(f => top50ISO.includes(f.id));
-            } else if (selectedDifficulty === 'un') {
-                remainingDeck = geoData.features.filter(f => f.id && f.id.length === 3);
-            } else {
-                remainingDeck = [...geoData.features];
-            }
+            solvedCountries = {};
+            if (selectedDifficulty === 'easy') remainingDeck = geoData.features.filter(f => top50ISO.includes(f.id));
+            else remainingDeck = [...geoData.features];
         }
 
         function startGame() {
             switchScreen('game-screen');
             startTimer();
             setTimeout(() => {
-                initMap();
-                if (map) {
-                    map.invalidateSize();
-                    resetDeck();
-                    nextRound();
-                }
+                initMaps();
+                if (map) { map.invalidateSize(); insetCaribbean.invalidateSize(); insetOceania.invalidateSize(); resetDeck(); nextRound(); }
             }, 100);
         }
 
-        function quitGame() {
-            clearInterval(timerInterval);
-            switchScreen('main-menu');
-        }
+        function quitGame() { clearInterval(timerInterval); switchScreen('main-menu'); }
 
         function updatePrompt() {
             document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${getCountryName(currentTarget)}`;
@@ -596,58 +290,41 @@
 
         function nextRound() {
             if (!geoData) return;
-
-            // Farben für ungeprüfte Länder beibehalten oder zurücksetzen
-            geojsonLayer.eachLayer(layer => {
-                if (!layer.feature.guessedColor) {
-                    layer.setStyle({ fillColor: '#1b2636', stroke: '#2e405a' });
-                }
-            });
-
             if (remainingDeck.length === 0) resetDeck();
-
             const index = Math.floor(Math.random() * remainingDeck.length);
             currentTarget = remainingDeck.splice(index, 1)[0];
-
             updatePrompt();
         }
 
-        function handleCountryClick(feature, layer) {
+        function handleCountryClick(feature) {
+            currentAttempts++;
             const isCorrect = (feature.id === currentTarget.id || feature.properties.name === currentTarget.properties.name);
 
             if (isCorrect) {
-                currentAttempts++;
-                // Farbgebung nach Versuchen: 1. Versuch = Weiß, 2 = Gelb/Orange, 3 = Dunkelorange, 4 = Rot
-                let color = '#ffffff';
-                if (currentAttempts === 2) color = '#ffcc00';
-                else if (currentAttempts === 3) color = '#ff9900';
-                else if (currentAttempts === 4) color = '#ff4b4b';
+                let color = '#ffffff'; // 1. Versuch
+                if (currentAttempts === 2) color = '#ffeb3b'; // 2. Versuch (Gelb)
+                else if (currentAttempts === 3) color = '#ff9800'; // 3. Versuch (Orange)
+                else if (currentAttempts >= 4) color = '#f44336'; // 4. Versuch (Rot)
 
-                feature.guessedColor = color;
-                layer.setStyle({ fillColor: color, stroke: '#ffffff' });
-
-                setTimeout(() => { nextRound(); }, 500);
-            } else {
-                currentAttempts++;
-                layer.setStyle({ fillColor: '#ff4b4b' });
-
-                // Nach 4 Fehlversuchen automatisch auflösen und weitergehen
-                if (currentAttempts >= 4) {
-                    geojsonLayer.eachLayer(l => {
-                        if (l.feature.id === currentTarget.id || l.feature.properties.name === currentTarget.properties.name) {
-                            l.setStyle({ fillColor: '#58cc02', stroke: '#ffffff' });
-                        }
-                    });
-                    setTimeout(() => { nextRound(); }, 1200);
-                }
+                solvedCountries[feature.id] = color;
+                refreshAllMapStyles();
+                setTimeout(() => { nextRound(); }, 400);
+            } else if (currentAttempts >= 4) {
+                solvedCountries[currentTarget.id] = '#f44336'; // Rot nach 4 Fehlversuchen
+                refreshAllMapStyles();
+                setTimeout(() => { nextRound(); }, 1000);
             }
         }
 
-        function zoomRegion(region) {
-            if (region === 'caribbean') map.flyTo([15, -72], 5);
-            else if (region === 'europe') map.flyTo([50, 10], 4);
-            else if (region === 'asia') map.flyTo([10, 105], 4);
-            else if (region === 'oceania') map.flyTo([-15, 175], 4);
+        function refreshAllMapStyles() {
+            [map, insetCaribbean, insetOceania].forEach(m => {
+                m.eachLayer(layer => {
+                    if (layer.feature) {
+                        const col = solvedCountries[layer.feature.id] || '#1b2636';
+                        layer.setStyle({ fillColor: col });
+                    }
+                });
+            });
         }
     </script>
 </body>
