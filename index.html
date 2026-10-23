@@ -220,7 +220,7 @@
             background: rgba(28, 176, 246, 0.1);
         }
 
-        /* GAMEPLAY SCREEN & EINGEARBEITETE KARTE */
+        /* GAMEPLAY SCREEN */
         #game-screen {
             position: relative;
             flex: 1;
@@ -243,12 +243,12 @@
             align-items: center;
             gap: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            min-width: 280px;
+            min-width: 300px;
             justify-content: space-between;
         }
 
         .prompt-text {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 800;
         }
 
@@ -259,7 +259,7 @@
             flex: 1;
         }
 
-        /* NAHTLOSE KARTENUMRISSE */
+        /* KARTENUMRISSE & KLICKBARE PUNKTE */
         .country-polygon {
             fill: var(--map-land);
             fill-opacity: 1;
@@ -275,36 +275,39 @@
             cursor: pointer;
         }
 
-        /* ECKEN-FOKUS BUTTONS */
-        .corner-controls {
+        /* EINGEABETTETE MINI-KARTE / REGIONS-LEISTE UNTEN */
+        .embedded-mini-panel {
             position: absolute;
-            bottom: 20px;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 1000;
             display: flex;
-            gap: 8px;
-            background: rgba(21, 29, 42, 0.85);
+            gap: 10px;
+            background: rgba(21, 29, 42, 0.9);
             backdrop-filter: blur(8px);
             border: 2px solid var(--border-color);
-            padding: 8px;
+            padding: 8px 14px;
             border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
         }
 
-        .corner-left { left: 20px; }
-        .corner-right { right: 20px; }
-
-        .focus-btn {
+        .mini-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 12px;
             color: var(--text-main);
             padding: 6px 12px;
             font-size: 0.8rem;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .focus-btn:hover {
+        .mini-card:hover {
             background: var(--accent-blue);
             border-color: var(--accent-blue);
         }
@@ -393,15 +396,12 @@
 
         <div id="map-container"></div>
 
-        <!-- ECKEN-FOKUS REGIONEN -->
-        <div class="corner-controls corner-left">
-            <button class="focus-btn" onclick="zoomRegion('caribbean')">🏝️ Karibik</button>
-            <button class="focus-btn" onclick="zoomRegion('europe')">🇪🇺 Europa</button>
-        </div>
-
-        <div class="corner-controls corner-right">
-            <button class="focus-btn" onclick="zoomRegion('asia')">🌏 SE-Asien</button>
-            <button class="focus-btn" onclick="zoomRegion('oceania')">🌊 Ozeanien</button>
+        <!-- EINGEABETTETES MINI-PANEL FÜR REGIONEN -->
+        <div class="embedded-mini-panel">
+            <div class="mini-card" onclick="zoomRegion('caribbean')">🏝️ Karibik</div>
+            <div class="mini-card" onclick="zoomRegion('europe')">🇪🇺 Europa</div>
+            <div class="mini-card" onclick="zoomRegion('asia')">🌏 SE-Asien</div>
+            <div class="mini-card" onclick="zoomRegion('oceania')">🌊 Ozeanien</div>
         </div>
     </section>
 
@@ -427,7 +427,6 @@
             }
         };
 
-        // Amtliche Bezeichnungen DE / UK
         const officialNamesDE = {
             "DEU": "Deutschland", "FRA": "Frankreich", "ESP": "Spanien", "ITA": "Italien",
             "GBR": "Vereinigtes Königreich", "USA": "Vereinigte Staaten", "CAN": "Kanada",
@@ -452,6 +451,7 @@
         let currentTarget = null;
         let geoData = null;
         let remainingDeck = [];
+        let currentAttempts = 0; // Versuche-Zähler (max 4)
 
         const top50ISO = ["DEU", "FRA", "ESP", "ITA", "GBR", "POL", "SWE", "NOR", "FIN", "UKR", "ROU", "GRC", "PRT", "AUT", "CHE", "NLD", "BEL", "DNK", "IRL", "TUR", "USA", "CAN", "MEX", "BRA", "ARG", "CHL", "COL", "PER", "AUS", "NZL", "CHN", "IND", "JPN", "KOR", "IDN", "EGY", "ZAF", "NGA", "KEN", "MAR", "RUS", "KAZ", "SAU", "ARE", "THA", "VNM", "MYS", "PHL", "PAK", "DZA"];
 
@@ -542,6 +542,16 @@
 
             geojsonLayer = L.geoJSON(geoData, {
                 style: { className: 'country-polygon' },
+                pointToLayer: (feature, latlng) => {
+                    // Kleine Inseln & Punkte als klickbare Marker darstellen
+                    return L.circleMarker(latlng, {
+                        radius: 6,
+                        fillColor: '#1b2636',
+                        color: '#2e405a',
+                        weight: 1,
+                        fillOpacity: 1
+                    });
+                },
                 onEachFeature: (feature, layer) => {
                     layer.on('click', () => {
                         if (selectedMode === 'click') handleCountryClick(feature, layer);
@@ -554,6 +564,8 @@
             if (!geoData) return;
             if (selectedDifficulty === 'easy') {
                 remainingDeck = geoData.features.filter(f => top50ISO.includes(f.id));
+            } else if (selectedDifficulty === 'un') {
+                remainingDeck = geoData.features.filter(f => f.id && f.id.length === 3);
             } else {
                 remainingDeck = [...geoData.features];
             }
@@ -579,13 +591,17 @@
 
         function updatePrompt() {
             document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${getCountryName(currentTarget)}`;
+            currentAttempts = 0;
         }
 
         function nextRound() {
             if (!geoData) return;
 
+            // Farben für ungeprüfte Länder beibehalten oder zurücksetzen
             geojsonLayer.eachLayer(layer => {
-                layer.setStyle({ fillColor: '#1b2636', stroke: '#2e405a' });
+                if (!layer.feature.guessedColor) {
+                    layer.setStyle({ fillColor: '#1b2636', stroke: '#2e405a' });
+                }
             });
 
             if (remainingDeck.length === 0) resetDeck();
@@ -597,11 +613,33 @@
         }
 
         function handleCountryClick(feature, layer) {
-            if (feature.id === currentTarget.id || feature.properties.name === currentTarget.properties.name) {
-                layer.setStyle({ fillColor: '#58cc02' });
-                setTimeout(() => { nextRound(); }, 400);
+            const isCorrect = (feature.id === currentTarget.id || feature.properties.name === currentTarget.properties.name);
+
+            if (isCorrect) {
+                currentAttempts++;
+                // Farbgebung nach Versuchen: 1. Versuch = Weiß, 2 = Gelb/Orange, 3 = Dunkelorange, 4 = Rot
+                let color = '#ffffff';
+                if (currentAttempts === 2) color = '#ffcc00';
+                else if (currentAttempts === 3) color = '#ff9900';
+                else if (currentAttempts === 4) color = '#ff4b4b';
+
+                feature.guessedColor = color;
+                layer.setStyle({ fillColor: color, stroke: '#ffffff' });
+
+                setTimeout(() => { nextRound(); }, 500);
             } else {
+                currentAttempts++;
                 layer.setStyle({ fillColor: '#ff4b4b' });
+
+                // Nach 4 Fehlversuchen automatisch auflösen und weitergehen
+                if (currentAttempts >= 4) {
+                    geojsonLayer.eachLayer(l => {
+                        if (l.feature.id === currentTarget.id || l.feature.properties.name === currentTarget.properties.name) {
+                            l.setStyle({ fillColor: '#58cc02', stroke: '#ffffff' });
+                        }
+                    });
+                    setTimeout(() => { nextRound(); }, 1200);
+                }
             }
         }
 
