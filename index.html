@@ -96,16 +96,17 @@
         }
         #map-container { width: 100%; height: 100%; background-color: var(--map-bg); }
 
-        /* FOKUS-BOXEN MIT RESIZE VON ALLEN ECKEN */
         .inset-map-box {
             position: absolute; bottom: 35px; z-index: 1001;
             width: 260px; height: 180px;
-            min-width: 160px; min-height: 120px;
+            min-width: 150px; min-height: 110px;
             background: var(--card-bg);
             border: 2px solid var(--accent-blue); border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-            display: flex; flex-direction: column;
+            display: none;
+            flex-direction: column;
             overflow: hidden;
+            touch-action: none;
         }
         .inset-caribbean { left: 35px; }
         .inset-oceania { right: 35px; }
@@ -113,20 +114,18 @@
             height: 28px; font-size: 0.75rem; font-weight: 900; background: rgba(21, 29, 42, 0.95);
             padding: 4px 10px; color: var(--accent-gold); border-bottom: 1px solid var(--border-color);
             display: flex; justify-content: space-between; align-items: center; cursor: move;
-            flex-shrink: 0;
+            flex-shrink: 0; touch-action: none;
         }
         .inset-map { flex: 1; width: 100%; height: 100%; }
 
-        /* RESIZE PUNKTE FÜR ALLE 4 ECKEN */
         .resize-handle {
-            position: absolute; width: 14px; height: 14px; z-index: 1005; background: transparent;
+            position: absolute; width: 20px; height: 20px; z-index: 1005; background: transparent; touch-action: none;
         }
         .resize-handle.tl { top: 0; left: 0; cursor: nwse-resize; }
         .resize-handle.tr { top: 0; right: 0; cursor: nesw-resize; }
         .resize-handle.bl { bottom: 0; left: 0; cursor: nesw-resize; }
         .resize-handle.br { bottom: 0; right: 0; cursor: nwse-resize; }
 
-        /* MODAL OVERLAY */
         .modal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(11, 16, 23, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -158,6 +157,42 @@
         .end-actions { display: flex; flex-direction: column; gap: 10px; }
 
         .reopen-end-btn { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 1002; display: none; }
+
+        /* ========================================================= */
+        /* MOBILE / TABLET SPEZIFISCHES CSS (MEDIA QUERY FOR MOBILE) */
+        /* ========================================================= */
+        @media (max-width: 768px) {
+            /* Fokus-Boxen auf Mobile komplett verbergen */
+            .inset-map-box {
+                display: none !important;
+            }
+
+            /* Anpassung des Prompt-Balkens auf kleinen Bildschirmen */
+            .game-prompt-bar {
+                top: 12px;
+                min-width: calc(100% - 30px);
+                padding: 8px 14px;
+                border-radius: 16px;
+                gap: 10px;
+            }
+
+            .prompt-text {
+                font-size: 0.95rem;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .stat-badge {
+                padding: 4px 8px;
+                font-size: 0.8rem;
+            }
+
+            .top-bar {
+                padding: 0 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -165,8 +200,7 @@
     <header class="top-bar">
         <div class="logo"><span>🌍</span> GEORA</div>
         <div class="top-controls">
-            <!-- Erst im Spiel sichtbare Elemente werden über id gesteuert -->
-            <div id="game-stats-container" style="display: none; align-items: center; gap: 12px;">
+            <div id="game-stats-container" style="display: none; align-items: center; gap: 8px;">
                 <div class="stat-badge">🚩 <span id="country-counter">0 / 0</span></div>
                 <div class="stat-badge">⏱️ <span id="global-timer">00:00</span></div>
             </div>
@@ -387,7 +421,7 @@
                             if (validModeIDs.has(id)) {
                                 col = '#162235';
                             } else {
-                                col = '#0d1117'; // Dunkles Grau für inaktive Länder
+                                col = '#0d1117';
                             }
                         }
                         return { fillColor: col, fillOpacity: 1, color: '#2a3f5f', weight: 0.6 };
@@ -437,17 +471,14 @@
             if (selectedDifficulty === 'easy') {
                 remainingDeck = geoData.features.filter(f => top50ISO.includes(getFeatureID(f)));
             } else if (selectedDifficulty === 'un') {
-                // Exakte Filterung der UN-Mitgliedsstaaten (genau 195)
                 remainingDeck = geoData.features.filter(f => {
                     const p = f.properties;
                     return p.UN_A3 > 0 || p.ADM0_A3 === 'ESH' || p.ISO_A3 === 'PSE' || (p.SOVEREIGNT && p.TYPE === 'Sovereignty' && p.UN_A3 !== -99);
                 });
-                // Falls durch Feature-Variationen minimal abweichend, auf exakt 195 begrenzen/filtern
                 if (remainingDeck.length > 195) {
                     remainingDeck = remainingDeck.slice(0, 195);
                 }
             } else if (selectedDifficulty === 'standard') {
-                // Länder & Territorien (225)
                 remainingDeck = geoData.features.filter(f => {
                     const p = f.properties;
                     return p.TYPE !== 'Indeterminate' && p.TYPE !== 'Lease' && p.POP_EST > 0;
@@ -456,7 +487,6 @@
                     remainingDeck = remainingDeck.slice(0, 225);
                 }
             } else {
-                // Alle Territorien (258)
                 remainingDeck = [...geoData.features];
             }
 
@@ -473,17 +503,23 @@
         function startGame() {
             document.getElementById('end-modal').classList.remove('active');
             document.getElementById('reopen-modal-btn').style.display = 'none';
-            // Aktiviere Stoppuhr, Counter & Fokus-Boxen
+            
             document.getElementById('game-stats-container').style.display = 'flex';
             
+            // Nur auf Desktops/Tablets einblenden (> 768px)
+            if (window.innerWidth > 768) {
+                document.getElementById('box-caribbean').style.display = 'flex';
+                document.getElementById('box-oceania').style.display = 'flex';
+            }
+
             switchScreen('game-screen');
             startTimer();
             setTimeout(() => {
                 initMaps();
                 if (map) { 
                     map.invalidateSize(); 
-                    insetCaribbean.invalidateSize(); 
-                    insetOceania.invalidateSize(); 
+                    if (insetCaribbean) insetCaribbean.invalidateSize(); 
+                    if (insetOceania) insetOceania.invalidateSize(); 
                 }
             }, 100);
         }
@@ -492,8 +528,11 @@
             clearInterval(timerInterval); 
             document.getElementById('end-modal').classList.remove('active');
             document.getElementById('reopen-modal-btn').style.display = 'none';
-            // Verstecke Counter und Stoppuhr im Menü
+
             document.getElementById('game-stats-container').style.display = 'none';
+            document.getElementById('box-caribbean').style.display = 'none';
+            document.getElementById('box-oceania').style.display = 'none';
+
             switchScreen('main-menu'); 
         }
 
@@ -599,7 +638,6 @@
             document.getElementById('reopen-modal-btn').style.display = 'inline-flex';
         }
 
-        // DRAG & 4-ECKEN RESIZE LOGIK FÜR DIE FOKUS-BOXEN
         document.addEventListener('DOMContentLoaded', () => {
             if (window.ResizeObserver) {
                 const ro = new ResizeObserver(() => {
@@ -615,58 +653,73 @@
                 const titleEl = el.querySelector('.inset-title');
                 if (!el || !titleEl) return;
 
-                // Dragging per Titel
                 let isDragging = false, startX, startY, initialX, initialY;
-                titleEl.addEventListener('mousedown', (e) => {
+
+                function onDragStart(e) {
                     isDragging = true;
-                    startX = e.clientX;
-                    startY = e.clientY;
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    startX = clientX;
+                    startY = clientY;
                     initialX = el.offsetLeft;
                     initialY = el.offsetTop;
                     el.style.zIndex = 1005;
-                });
+                }
 
-                document.addEventListener('mousemove', (e) => {
+                function onDragMove(e) {
                     if (!isDragging) return;
-                    const dx = e.clientX - startX;
-                    const dy = e.clientY - startY;
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    const dx = clientX - startX;
+                    const dy = clientY - startY;
                     el.style.left = `${initialX + dx}px`;
                     el.style.top = `${initialY + dy}px`;
                     el.style.bottom = 'auto';
                     el.style.right = 'auto';
-                });
+                }
 
-                document.addEventListener('mouseup', () => { isDragging = false; });
+                function onDragEnd() { isDragging = false; }
 
-                // 4-Ecken Resizen hinzufügen
+                titleEl.addEventListener('mousedown', onDragStart);
+                titleEl.addEventListener('touchstart', onDragStart, { passive: false });
+
+                document.addEventListener('mousemove', onDragMove);
+                document.addEventListener('touchmove', onDragMove, { passive: false });
+
+                document.addEventListener('mouseup', onDragEnd);
+                document.addEventListener('touchend', onDragEnd);
+
                 ['tl', 'tr', 'bl', 'br'].forEach(dir => {
                     const handle = document.createElement('div');
                     handle.className = `resize-handle ${dir}`;
                     el.appendChild(handle);
 
-                    handle.addEventListener('mousedown', (e) => {
+                    function onResizeStart(e) {
                         e.stopPropagation();
-                        e.preventDefault();
-                        const hStartX = e.clientX;
-                        const hStartY = e.clientY;
+                        if (e.cancelable) e.preventDefault();
+
+                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                         const startW = el.offsetWidth;
                         const startH = el.offsetHeight;
                         const startL = el.offsetLeft;
                         const startT = el.offsetTop;
 
                         function onResizeMove(e) {
-                            const dx = e.clientX - hStartX;
-                            const dy = e.clientY - hStartY;
+                            const currentX = e.touches ? e.touches[0].clientX : e.clientX;
+                            const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+                            const dx = currentX - clientX;
+                            const dy = currentY - clientY;
                             let w = startW, h = startH, l = startL, t = startT;
 
-                            if (dir.includes('r')) w = Math.max(160, startW + dx);
+                            if (dir.includes('r')) w = Math.max(150, startW + dx);
                             if (dir.includes('l')) {
-                                w = Math.max(160, startW - dx);
+                                w = Math.max(150, startW - dx);
                                 l = startL + (startW - w);
                             }
-                            if (dir.includes('b')) h = Math.max(120, startH + dy);
+                            if (dir.includes('b')) h = Math.max(110, startH + dy);
                             if (dir.includes('t')) {
-                                h = Math.max(120, startH - dy);
+                                h = Math.max(110, startH - dy);
                                 t = startT + (startH - h);
                             }
 
@@ -678,16 +731,23 @@
                             el.style.bottom = 'auto';
                         }
 
-                        function onResizeUp() {
+                        function onResizeEnd() {
                             document.removeEventListener('mousemove', onResizeMove);
-                            document.removeEventListener('mouseup', onResizeUp);
+                            document.removeEventListener('touchmove', onResizeMove);
+                            document.removeEventListener('mouseup', onResizeEnd);
+                            document.removeEventListener('touchend', onResizeEnd);
                             if (insetCaribbean) insetCaribbean.invalidateSize();
                             if (insetOceania) insetOceania.invalidateSize();
                         }
 
                         document.addEventListener('mousemove', onResizeMove);
-                        document.addEventListener('mouseup', onResizeUp);
-                    });
+                        document.addEventListener('touchmove', onResizeMove, { passive: false });
+                        document.addEventListener('mouseup', onResizeEnd);
+                        document.addEventListener('touchend', onResizeEnd);
+                    }
+
+                    handle.addEventListener('mousedown', onResizeStart);
+                    handle.addEventListener('touchstart', onResizeStart, { passive: false });
                 });
             });
         });
