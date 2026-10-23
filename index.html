@@ -88,7 +88,7 @@
             height: 60px; background: var(--card-bg); border-bottom: 2px solid var(--border-color);
             display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000;
         }
-        .logo { font-size: 1.5rem; font-weight: 900; color: var(--accent-blue); display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .logo { font-size: 1.5rem; font-weight: 900; color: var(--accent-blue); display: flex; align-items: center; gap: 8px; }
         .top-controls { display: flex; align-items: center; gap: 12px; }
 
         .icon-btn {
@@ -140,6 +140,16 @@
         }
         .type-input:focus { border-color: var(--accent-blue); }
 
+        /* BLINK-EFFEKT FÜR DIE ÜBUNGS-AUFGABE */
+        @keyframes practiceBlink {
+            0% { border-color: var(--accent-red); box-shadow: 0 0 15px rgba(255, 75, 75, 0.6); }
+            50% { border-color: var(--accent-gold); box-shadow: 0 0 25px rgba(255, 200, 0, 0.8); }
+            100% { border-color: var(--accent-red); box-shadow: 0 0 15px rgba(255, 75, 75, 0.6); }
+        }
+        .practice-active {
+            animation: practiceBlink 1.2s infinite ease-in-out !important;
+        }
+
         .map-frame-wrapper {
             position: relative; width: 100%; height: 100%;
             border: 3px solid var(--border-color); border-radius: 20px; overflow: hidden;
@@ -154,7 +164,7 @@
             background: var(--inset-bg);
             border: 2px solid var(--accent-blue); border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            display: flex;
+            display: none;
             flex-direction: column;
             overflow: hidden;
             touch-action: none;
@@ -168,6 +178,12 @@
             flex-shrink: 0; touch-action: none;
         }
         .inset-map { flex: 1; width: 100%; height: 100%; background: var(--inset-bg); }
+
+        .resize-handle { position: absolute; width: 20px; height: 20px; z-index: 1005; background: transparent; touch-action: none; }
+        .resize-handle.tl { top: 0; left: 0; cursor: nwse-resize; }
+        .resize-handle.tr { top: 0; right: 0; cursor: nesw-resize; }
+        .resize-handle.bl { bottom: 0; left: 0; cursor: nesw-resize; }
+        .resize-handle.br { bottom: 0; right: 0; cursor: nwse-resize; }
 
         .leaflet-tooltip.country-label-temp {
             background: transparent !important; border: none !important; box-shadow: none !important;
@@ -225,7 +241,7 @@
 <body>
 
     <header class="top-bar">
-        <div class="logo" onclick="switchScreen('main-menu')"><span>🌍</span> GEORA</div>
+        <div class="logo"><span>🌍</span> GEORA</div>
         <div class="top-controls">
             <div id="game-stats-container" style="display: none; align-items: center; gap: 8px;">
                 <div class="stat-badge">🚩 <span id="country-counter">0 / 0</span></div>
@@ -313,7 +329,7 @@
             <div id="target-prompt" class="prompt-text">Finde: Deutschland</div>
             <div id="hint-display" class="hint-text" style="display: none;"></div>
             <div id="type-input-wrap" class="type-input-container" style="display: none;">
-                <input type="text" id="country-type-input" class="type-input" placeholder="Land eingeben..." autocomplete="off" spellcheck="false" onkeydown="handleInputKey(event)">
+                <input type="text" id="country-type-input" class="type-input" placeholder="Land eingeben..." autocomplete="off" spellcheck="false">
                 <button class="btn-3d btn-blue" style="padding: 8px 16px; font-size: 0.85rem;" onclick="submitCountryGuess()">OK</button>
             </div>
         </div>
@@ -323,12 +339,11 @@
         </div>
 
         <div class="inset-map-box inset-caribbean" id="box-caribbean">
-            <div class="inset-title" id="title-carib"><span>🏝️ Karibik-Fokus</span> ✥</div>
+            <div class="inset-title"><span>🏝️ Karibik-Fokus</span> ✥</div>
             <div id="inset-caribbean-map" class="inset-map"></div>
         </div>
-
         <div class="inset-map-box inset-oceania" id="box-oceania">
-            <div class="inset-title" id="title-oceania"><span>🌊 Ozeanien-Fokus</span> ✥</div>
+            <div class="inset-title"><span>🌊 Ozeanien-Fokus</span> ✥</div>
             <div id="inset-oceania-map" class="inset-map"></div>
         </div>
 
@@ -365,18 +380,37 @@
             de: {
                 subtitle: "Erkunde die Welt, meistere Geografie & lerne alle Länder.", startbtn: "Länder-Quiz", back: "Hauptmenü", sec1: "1. Spielmodus wählen", sec2: "2. Schwierigkeitsgrad", mode1: "Pin", mode2: "Eingabe", diff1: "Bekannteste (Top 50)", diff2: "UN-Staaten (195)", diff3: "Länder & Territorien (225)", diff4: "Alle Territorien (258)", playbtn: "JETZT SPIELEN", quit: "Abbrechen", find: "Finde: ",
                 typePrompt: "Welches Land ist hervorgehoben?", typePlaceholder: "Land eingeben...",
+                practiceTitle: "✏️ Jetzt als Übung anklicken!", practiceTypeTitle: "✍️ Schreiben lernen:",
                 congrats: "🎉 RUNDE VOLLENDET!", accLabel: "Genauigkeit", timeLabel: "Gesamtzeit", replay: "Nochmal spielen", viewmap: "Karte ansehen", home: "Hauptmenü", showsummary: "Ergebnis anzeigen",
                 settings: "Einstellungen", comingsoon: "Demnächst verfügbar", secLang: "Sprache / Language", secTheme: "Design / Theme"
             },
             en: {
                 subtitle: "Explore the world, master geography & learn all countries.", startbtn: "Country Quiz", back: "Main Menu", sec1: "1. Select Game Mode", sec2: "2. Difficulty", mode1: "Pin", mode2: "Type", diff1: "Top 50 Known", diff2: "UN States (195)", diff3: "Countries & Territories (225)", diff4: "All Territories (258)", playbtn: "PLAY NOW", quit: "Quit", find: "Find: ",
                 typePrompt: "Which country is highlighted?", typePlaceholder: "Enter country name...",
+                practiceTitle: "✏️ Click as practice now!", practiceTypeTitle: "✍️ Learn to write:",
                 congrats: "🎉 ROUND COMPLETED!", accLabel: "Accuracy", timeLabel: "Total Time", replay: "Play Again", viewmap: "View Map", home: "Main Menu", showsummary: "Show Results",
                 settings: "Settings", comingsoon: "Coming Soon", secLang: "Language", secTheme: "Theme"
             }
         };
 
         const top50ISO = ["AFG","DZA","AGO","ARG","BGD","BRA","CHN","COD","DEU","FRA","GHA","IND","IDN","IRQ","IRN","ITA","JPN","YEM","CAN","KEN","COL","MYS","MAR","MEX","MOZ","MMR","NPL","NGA","PAK","PER","PHL","POL","RUS","SAU","ESP","SDN","ZAF","KOR","TZA","THA","TUR","USA","UGA","UKR","UZB","VEN","GBR","VNM","EGY","ETH"];
+
+        const countrySynonyms = {
+            "USA": ["usa", "us", "vereinigte staaten", "vereinigte staaten von amerika", "united states", "united states of america", "america", "amerika"],
+            "ARE": ["vae", "uae", "vereinigte arabische emirate", "united arab emirates", "emirate", "emirates"],
+            "GBR": ["uk", "gb", "grossbritannien", "großbritannien", "great britain", "united kingdom", "england"],
+            "COD": ["dr kongo", "drc", "kongo dr", "demokratische republik kongo", "democratic republic of the congo", "congo drc"],
+            "COG": ["kongo", "republik kongo", "congo", "republic of the congo"],
+            "CHN": ["china", "prc", "volksrepublik china", "peoples republic of china"],
+            "RUS": ["russland", "russia", "russische foderation", "russian federation"],
+            "DEU": ["deutschland", "germany"],
+            "FRA": ["frankreich", "france"],
+            "ESP": ["spanien", "spain"],
+            "ITA": ["italien", "italy"],
+            "NLD": ["niederlande", "netherlands", "holland"],
+            "PRK": ["nordkorea", "north korea"],
+            "KOR": ["suedkorea", "südkorea", "south korea", "korea"]
+        };
 
         let currentLang = 'de', selectedMode = 'click', selectedDifficulty = 'easy';
         let currentTheme = 'system';
@@ -385,8 +419,11 @@
         let currentTarget = null, geoData = null, remainingDeck = [];
         let totalDeckSize = 0, completedCount = 0;
         let currentAttempts = 0;
+        let isPracticeMode = false; // Steuert, ob man das Land nach 4 Fehlern üben muss
         let solvedCountries = {}; 
         let totalAttemptsSpent = 0;
+        let geoJsonLayers = [];
+        let activeCircleMarkers = [];
         let validModeIDs = new Set();
 
         function setTheme(theme) {
@@ -463,9 +500,16 @@
             if (currentTarget) updatePrompt();
         }
 
+        function getFeatureID(feature) {
+            return feature.properties.ADM0_A3 || feature.properties.ISO_A3 || feature.id || feature.properties.NAME || "UNK";
+        }
+
         function getDisplayName(feature) {
             if (!feature || !feature.properties) return "";
-            return feature.properties.name || feature.properties.NAME || "Land";
+            if (currentLang === 'en') {
+                return feature.properties.NAME_LONG || feature.properties.NAME || "Unknown";
+            }
+            return feature.properties.NAME_DE || feature.properties.NAME_LONG || feature.properties.NAME || "Unbekannt";
         }
 
         function switchScreen(id) {
@@ -513,7 +557,7 @@
                 dragging: true, touchZoom: true, doubleClickZoom: true, scrollWheelZoom: true, preferCanvas: true
             });
 
-            fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+            fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson')
                 .then(res => res.json())
                 .then(data => {
                     geoData = data;
@@ -528,315 +572,573 @@
                 active: isLight ? '#ffffff' : '#162235',
                 inactive: isLight ? '#cbd5e1' : '#0d1117',
                 stroke: isLight ? '#64748b' : '#2a3f5f',
-                correct1: isLight ? '#16a34a' : '#ffffff',
-                correct2: '#ffeb3b',
-                correct3: '#ff9800',
-                correct4: '#f44336'
+                correct1: isLight ? '#16a34a' : '#ffffff'
             };
         }
 
         function renderAllMaps() {
-            if (!geoData) return;
-            [map, insetCaribbean, insetOceania].forEach(m => {
-                m.eachLayer(layer => { if (layer.feature) m.removeLayer(layer); });
-                
-                L.geoJSON(geoData, {
-                    style: (feature) => {
-                        const id = feature.id || feature.properties.name;
-                        const isActive = validModeIDs.has(id);
-                        const colors = getMapColors();
+            geoJsonLayers.forEach(l => l.remove());
+            geoJsonLayers = [];
+            activeCircleMarkers.forEach(m => m.remove());
+            activeCircleMarkers = [];
 
-                        if (!isActive && selectedDifficulty !== 'all') {
-                            return { fillColor: colors.inactive, fillOpacity: 0.6, color: colors.stroke, weight: 0.5 };
+            const mapColors = getMapColors();
+
+            [map, insetCaribbean, insetOceania].forEach(targetMap => {
+                if (!targetMap) return;
+                const geoLayer = L.geoJSON(geoData, {
+                    style: (feature) => {
+                        const id = getFeatureID(feature);
+                        let col = solvedCountries[id];
+
+                        // Übungsmodus oder Eingabe-Modus Hervorhebung
+                        if (currentTarget && id === getFeatureID(currentTarget)) {
+                            if (isPracticeMode) {
+                                return { fillColor: '#ff4b4b', fillOpacity: 1, color: '#ffc800', weight: 3 };
+                            }
+                            if (selectedMode === 'type') {
+                                return { fillColor: '#ffc800', fillOpacity: 1, color: '#1cb0f6', weight: 2 };
+                            }
                         }
 
-                        return {
-                            fillColor: solvedCountries[id] || colors.active,
-                            fillOpacity: 1,
-                            color: colors.stroke,
-                            weight: 1
+                        if (!col) {
+                            col = validModeIDs.has(id) ? mapColors.active : mapColors.inactive;
+                        }
+
+                        return { 
+                            fillColor: col, 
+                            fillOpacity: 1, 
+                            color: mapColors.stroke, 
+                            weight: 0.6
                         };
                     },
-                    pointToLayer: (feature, latlng) => {
-                        const id = feature.id || feature.properties.name;
-                        const isActive = validModeIDs.has(id);
-                        if (!isActive && selectedDifficulty !== 'all') return null;
-
-                        const colors = getMapColors();
-                        const col = solvedCountries[id] || colors.active;
-                        return L.circleMarker(latlng, { radius: 5, fillColor: col, color: '#ffffff', weight: 1, fillOpacity: 1 });
-                    },
                     onEachFeature: (feature, layer) => {
-                        const id = feature.id || feature.properties.name;
-                        if (selectedDifficulty !== 'all' && !validModeIDs.has(id)) return;
-                        layer.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature); });
+                        layer.on('click', () => { handleCountryClick(feature, layer); });
+
+                        const id = getFeatureID(feature);
+                        if (validModeIDs.has(id)) {
+                            const bounds = layer.getBounds();
+                            if (bounds.isValid()) {
+                                const areaWidth = bounds.getEast() - bounds.getWest();
+                                const areaHeight = bounds.getNorth() - bounds.getSouth();
+                                
+                                if (areaWidth < 1.2 && areaHeight < 1.2) {
+                                    const center = bounds.getCenter();
+                                    const circle = L.circleMarker(center, {
+                                        radius: 5,
+                                        fillColor: solvedCountries[id] || '#1cb0f6',
+                                        color: '#ffffff',
+                                        weight: 1,
+                                        fillOpacity: 0.95,
+                                        pane: 'markerPane'
+                                    });
+                                    circle.featureID = id;
+                                    circle.on('click', () => { handleCountryClick(feature, layer); });
+                                    circle.addTo(targetMap);
+                                    activeCircleMarkers.push(circle);
+                                }
+                            }
+                        }
                     }
-                }).addTo(m);
+                }).addTo(targetMap);
+                geoJsonLayers.push(geoLayer);
             });
         }
 
         function resetDeck() {
-            if (!geoData) return;
-            validModeIDs.clear();
-            let features = geoData.features;
-
-            if (selectedDifficulty === 'easy') {
-                features = features.filter(f => top50ISO.includes(f.id));
-            } else if (selectedDifficulty === 'un') {
-                features = features.slice(0, 195);
-            } else if (selectedDifficulty === 'standard') {
-                features = features.slice(0, 225);
-            } else {
-                features = [...geoData.features];
-            }
-
-            features.forEach(f => validModeIDs.add(f.id || f.properties.name));
-            remainingDeck = [...features];
-            totalDeckSize = remainingDeck.length;
-            completedCount = 0;
             solvedCountries = {};
             totalAttemptsSpent = 0;
-            updateCounter();
+            completedCount = 0;
+            isPracticeMode = false;
+
+            if (!geoData) return;
+
+            validModeIDs = new Set();
+
+            if (selectedDifficulty === 'easy') {
+                remainingDeck = geoData.features.filter(f => top50ISO.includes(getFeatureID(f)));
+            } else if (selectedDifficulty === 'un') {
+                remainingDeck = geoData.features.filter(f => {
+                    const p = f.properties;
+                    return p.UN_A3 > 0 || p.ADM0_A3 === 'ESH' || p.ISO_A3 === 'PSE' || (p.SOVEREIGNT && p.TYPE === 'Sovereignty' && p.UN_A3 !== -99);
+                });
+                if (remainingDeck.length > 195) {
+                    remainingDeck = remainingDeck.slice(0, 195);
+                }
+            } else if (selectedDifficulty === 'standard') {
+                remainingDeck = geoData.features.filter(f => {
+                    const p = f.properties;
+                    return p.TYPE !== 'Indeterminate' && p.TYPE !== 'Lease' && p.POP_EST > 0;
+                });
+                if (remainingDeck.length > 225) {
+                    remainingDeck = remainingDeck.slice(0, 225);
+                }
+            } else {
+                remainingDeck = [...geoData.features];
+            }
+
+            remainingDeck.forEach(f => validModeIDs.add(getFeatureID(f)));
+            if (selectedDifficulty === 'easy') {
+                top50ISO.forEach(id => validModeIDs.add(id));
+            }
+
+            totalDeckSize = remainingDeck.length;
             renderAllMaps();
+            updateCounter();
         }
 
         function startGame() {
-            switchScreen('game-screen');
-            document.getElementById('game-stats-container').style.display = 'flex';
-            document.getElementById('box-caribbean').style.display = 'flex';
-            document.getElementById('box-oceania').style.display = 'flex';
+            document.getElementById('end-modal').classList.remove('active');
             document.getElementById('reopen-modal-btn').style.display = 'none';
-
+            
+            document.getElementById('game-stats-container').style.display = 'flex';
+            document.getElementById('settings-top-btn').style.display = 'none';
+            
+            const typeContainer = document.getElementById('type-input-wrap');
             if (selectedMode === 'type') {
-                document.getElementById('target-prompt').style.display = 'none';
-                document.getElementById('type-input-wrap').style.display = 'flex';
-                document.getElementById('hint-display').style.display = 'block';
+                typeContainer.style.display = 'flex';
             } else {
-                document.getElementById('target-prompt').style.display = 'block';
-                document.getElementById('type-input-wrap').style.display = 'none';
+                typeContainer.style.display = 'none';
                 document.getElementById('hint-display').style.display = 'none';
             }
 
+            if (window.innerWidth > 768) {
+                document.getElementById('box-caribbean').style.display = 'flex';
+                document.getElementById('box-oceania').style.display = 'flex';
+            }
+
+            switchScreen('game-screen');
             startTimer();
             setTimeout(() => {
                 initMaps();
-                if (map) {
-                    map.invalidateSize();
-                    insetCaribbean.invalidateSize();
-                    insetOceania.invalidateSize();
+                if (map) { 
+                    map.invalidateSize(); 
+                    if (insetCaribbean) insetCaribbean.invalidateSize(); 
+                    if (insetOceania) insetOceania.invalidateSize(); 
                 }
             }, 100);
         }
 
-        function quitGame() {
-            clearInterval(timerInterval);
+        function quitGame() { 
+            clearInterval(timerInterval); 
+            document.getElementById('end-modal').classList.remove('active');
+            document.getElementById('reopen-modal-btn').style.display = 'none';
+
             document.getElementById('game-stats-container').style.display = 'none';
+            document.getElementById('settings-top-btn').style.display = 'flex';
             document.getElementById('box-caribbean').style.display = 'none';
             document.getElementById('box-oceania').style.display = 'none';
-            document.getElementById('end-modal').classList.remove('active');
-            switchScreen('main-menu');
+
+            switchScreen('main-menu'); 
+        }
+
+        function restartSameGame() {
+            startGame();
         }
 
         function updatePrompt() {
             if (!currentTarget) return;
-            const name = getDisplayName(currentTarget);
-            if (selectedMode === 'click') {
-                document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${name}`;
-            } else {
+            currentAttempts = 0;
+            isPracticeMode = false;
+            document.getElementById('game-prompt-bar').classList.remove('practice-active');
+
+            if (selectedMode === 'type') {
                 document.getElementById('target-prompt').textContent = i18n[currentLang].typePrompt;
-                document.getElementById('country-type-input').value = '';
-                document.getElementById('country-type-input').focus();
-                
-                if (currentAttempts === 0) {
-                    document.getElementById('hint-display').textContent = "_ ".repeat(name.length);
+                document.getElementById('hint-display').style.display = 'none';
+                document.getElementById('hint-display').textContent = '';
+                const inputEl = document.getElementById('country-type-input');
+                inputEl.value = '';
+                inputEl.focus();
+                zoomToTargetCountry(currentTarget);
+            } else {
+                document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${getDisplayName(currentTarget)}`;
+            }
+            refreshAllMapStyles();
+        }
+
+        function zoomToTargetCountry(feature) {
+            if (!map || !feature) return;
+            const tempLayer = L.geoJSON(feature);
+            const bounds = tempLayer.getBounds();
+            if (bounds.isValid()) {
+                map.flyToBounds(bounds, { maxZoom: 3.8, padding: [60, 60], duration: 0.7 });
+            }
+        }
+
+        function normalizeText(text) {
+            return (text || "")
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+                .replace(/[^a-z0-9]/g, "").trim();
+        }
+
+        function generateHintText(name, stage) {
+            let result = "";
+            let lettersRevealed = stage; 
+
+            let count = 0;
+            for (let i = 0; i < name.length; i++) {
+                const char = name[i];
+                if (char === ' ' || char === '-' || char === '\'') {
+                    result += char + ' ';
+                } else {
+                    if (count < lettersRevealed) {
+                        result += char.toUpperCase() + ' ';
+                    } else {
+                        result += '_ ';
+                    }
+                    count++;
+                }
+            }
+            return result.trim();
+        }
+
+        // STARTET DIE PFLICHT-ÜBUNG BEI 4 FEHLVERSUCHEN
+        function startPracticePhase() {
+            isPracticeMode = true;
+            const nameDE = getDisplayName(currentTarget);
+            const promptBar = document.getElementById('game-prompt-bar');
+            promptBar.classList.add('practice-active');
+
+            if (selectedMode === 'type') {
+                document.getElementById('target-prompt').textContent = i18n[currentLang].practiceTypeTitle;
+                const hintEl = document.getElementById('hint-display');
+                hintEl.style.display = 'block';
+                hintEl.textContent = nameDE; // Vollen Namen zum Abschreiben anzeigen!
+                const inputEl = document.getElementById('country-type-input');
+                inputEl.value = '';
+                inputEl.focus();
+            } else {
+                document.getElementById('target-prompt').textContent = `${i18n[currentLang].practiceTitle} ${nameDE}`;
+            }
+            refreshAllMapStyles();
+        }
+
+        // EINGABE-PRÜFUNG
+        function submitCountryGuess() {
+            if (!currentTarget || selectedMode !== 'type') return;
+
+            const inputEl = document.getElementById('country-type-input');
+            const userGuess = normalizeText(inputEl.value);
+            if (!userGuess) return;
+
+            const targetID = getFeatureID(currentTarget);
+            const nameDE = getDisplayName(currentTarget);
+            const nameEN = currentTarget.properties.NAME || "";
+            const nameLONG = currentTarget.properties.NAME_LONG || "";
+
+            let validNames = [
+                normalizeText(nameDE),
+                normalizeText(nameEN),
+                normalizeText(nameLONG),
+                normalizeText(targetID)
+            ];
+
+            if (countrySynonyms[targetID]) {
+                countrySynonyms[targetID].forEach(syn => validNames.push(normalizeText(syn)));
+            }
+
+            // FALL 1: WIR SIND IM ÜBUNGSMODUS (NAME EINFACH ABSCHREIBEN)
+            if (isPracticeMode) {
+                if (validNames.includes(userGuess)) {
+                    solvedCountries[targetID] = '#ff4b4b'; // Rot markieren
+                    completedCount++;
+                    updateCounter();
+                    inputEl.value = '';
+                    document.getElementById('game-prompt-bar').classList.remove('practice-active');
+                    nextRound();
+                } else {
+                    inputEl.style.borderColor = 'var(--accent-red)';
+                    setTimeout(() => { inputEl.style.borderColor = 'var(--border-color)'; }, 600);
+                }
+                return;
+            }
+
+            // FALL 2: NORMALES QUIZ
+            currentAttempts++;
+            totalAttemptsSpent++;
+
+            const isCorrect = validNames.includes(userGuess);
+
+            if (isCorrect) {
+                const mapColors = getMapColors();
+                let color = mapColors.correct1;
+                if (currentAttempts === 2) color = '#ffeb3b';
+                else if (currentAttempts === 3) color = '#ff9800';
+
+                solvedCountries[targetID] = color;
+                completedCount++;
+                updateCounter();
+                inputEl.value = '';
+                nextRound();
+            } else {
+                inputEl.style.borderColor = 'var(--accent-red)';
+                setTimeout(() => { inputEl.style.borderColor = 'var(--border-color)'; }, 600);
+
+                if (currentAttempts >= 4) {
+                    startPracticePhase();
+                } else {
+                    const hintEl = document.getElementById('hint-display');
+                    hintEl.style.display = 'block';
+                    hintEl.textContent = `Tipp: ${generateHintText(nameDE, currentAttempts)}`;
                 }
             }
         }
 
         function nextRound() {
+            if (!geoData) return;
+
             if (remainingDeck.length === 0) {
-                endGame();
+                triggerVictory();
                 return;
             }
-            const idx = Math.floor(Math.random() * remainingDeck.length);
-            currentTarget = remainingDeck.splice(idx, 1)[0];
-            currentAttempts = 0;
+
+            const index = Math.floor(Math.random() * remainingDeck.length);
+            currentTarget = remainingDeck.splice(index, 1)[0];
             updatePrompt();
         }
 
-        function handleCountryClick(feature) {
+        function handleCountryClick(feature, layer) {
             if (!currentTarget) return;
+            const targetID = getFeatureID(currentTarget);
+            const clickedID = getFeatureID(feature);
+
+            layer.bindTooltip(getDisplayName(feature), {
+                permanent: true,
+                direction: 'center',
+                className: 'country-label-temp'
+            }).openTooltip();
+
+            setTimeout(() => {
+                if (layer && layer.unbindTooltip) {
+                    layer.unbindTooltip();
+                }
+            }, 1500);
+
+            // FALL 1: ÜBUNGSMODUS IM PIN-MODUS
+            if (isPracticeMode) {
+                if (clickedID === targetID) {
+                    solvedCountries[targetID] = '#ff4b4b';
+                    completedCount++;
+                    updateCounter();
+                    document.getElementById('game-prompt-bar').classList.remove('practice-active');
+                    refreshAllMapStyles();
+                    setTimeout(() => { nextRound(); }, 400);
+                }
+                return;
+            }
+
+            if (solvedCountries[targetID] || selectedMode !== 'click') return;
+
             currentAttempts++;
             totalAttemptsSpent++;
 
-            const targetID = currentTarget.id || currentTarget.properties.name;
-            const clickedID = feature.id || feature.properties.name;
-            const isCorrect = (clickedID === targetID || feature.properties.name === currentTarget.properties.name);
+            const isCorrect = (clickedID === targetID);
 
-            const colors = getMapColors();
-            let color = colors.correct1;
-            if (currentAttempts === 2) color = colors.correct2;
-            else if (currentAttempts === 3) color = colors.correct3;
-            else if (currentAttempts >= 4) color = colors.correct4;
+            if (isCorrect) {
+                const mapColors = getMapColors();
+                let color = mapColors.correct1; 
+                if (currentAttempts === 2) color = '#ffeb3b'; 
+                else if (currentAttempts === 3) color = '#ff9800'; 
 
-            if (isCorrect || currentAttempts >= 4) {
                 solvedCountries[targetID] = color;
                 completedCount++;
                 updateCounter();
                 refreshAllMapStyles();
-
-                showTempLabel(currentTarget, getDisplayName(currentTarget));
-
-                setTimeout(() => {
-                    nextRound();
-                }, 600);
-            }
-        }
-
-        function submitCountryGuess() {
-            if (!currentTarget) return;
-            const inputVal = document.getElementById('country-type-input').value.trim().toLowerCase();
-            const targetName = getDisplayName(currentTarget).toLowerCase();
-            const targetID = currentTarget.id || currentTarget.properties.name;
-
-            currentAttempts++;
-            totalAttemptsSpent++;
-
-            const isCorrect = (inputVal === targetName);
-
-            if (isCorrect || currentAttempts >= 4) {
-                const colors = getMapColors();
-                solvedCountries[targetID] = colors.correct1;
-                completedCount++;
-                updateCounter();
-                refreshAllMapStyles();
-
-                showTempLabel(currentTarget, getDisplayName(currentTarget));
-
-                setTimeout(() => {
-                    nextRound();
-                }, 600);
+                setTimeout(() => { nextRound(); }, 350);
             } else {
-                if (currentAttempts === 1) {
-                    document.getElementById('hint-display').textContent = targetName.charAt(0).toUpperCase() + " " + "_ ".repeat(targetName.length - 1);
-                } else if (currentAttempts === 2) {
-                    document.getElementById('hint-display').textContent = targetName.substring(0, 3) + " " + "_ ".repeat(Math.max(0, targetName.length - 3));
-                } else {
-                    document.getElementById('hint-display').textContent = targetName;
+                if (currentAttempts >= 4) {
+                    startPracticePhase();
                 }
             }
         }
 
-        function handleInputKey(e) {
-            if (e.key === 'Enter') submitCountryGuess();
-        }
-
-        function showTempLabel(feature, text) {
-            try {
-                let layerGroup = L.geoJSON(feature);
-                let center = layerGroup.getBounds().getCenter();
-                L.popup({className: 'country-label-temp', closeButton: false, autoClose: true})
-                    .setLatLng(center)
-                    .setContent(`<b>${text}</b>`)
-                    .openOn(map);
-                setTimeout(() => { map.closePopup(); }, 1500);
-            } catch(e) {}
-        }
-
         function refreshAllMapStyles() {
-            [map, insetCaribbean, insetOceania].forEach(m => {
-                if (!m) return;
-                m.eachLayer(layer => {
+            const mapColors = getMapColors();
+            geoJsonLayers.forEach(geoLayer => {
+                geoLayer.eachLayer(layer => {
                     if (layer.feature) {
-                        const id = layer.feature.id || layer.feature.properties.name;
-                        const colors = getMapColors();
-                        const col = solvedCountries[id] || (validModeIDs.has(id) || selectedDifficulty === 'all' ? colors.active : colors.inactive);
-                        if (layer.setStyle) layer.setStyle({ fillColor: col });
-                        if (layer.setRadius) layer.setStyle({ fillColor: col });
+                        const id = getFeatureID(layer.feature);
+                        let col = solvedCountries[id];
+
+                        if (currentTarget && id === getFeatureID(currentTarget)) {
+                            if (isPracticeMode) {
+                                layer.setStyle({ fillColor: '#ff4b4b', color: '#ffc800', weight: 3 });
+                                return;
+                            }
+                            if (selectedMode === 'type') {
+                                layer.setStyle({ fillColor: '#ffc800', color: '#1cb0f6', weight: 2 });
+                                return;
+                            }
+                        }
+
+                        if (!col) {
+                            col = validModeIDs.has(id) ? mapColors.active : mapColors.inactive;
+                        }
+
+                        layer.setStyle({ 
+                            fillColor: col, 
+                            color: mapColors.stroke,
+                            weight: 0.6
+                        });
                     }
                 });
             });
+
+            activeCircleMarkers.forEach(circle => {
+                const col = solvedCountries[circle.featureID] || '#1cb0f6';
+                if (circle.setStyle) circle.setStyle({ fillColor: col });
+            });
         }
 
-        function endGame() {
+        function triggerVictory() {
             clearInterval(timerInterval);
-            const accuracy = Math.round((totalDeckSize / (totalDeckSize + totalAttemptsSpent)) * 100) || 100;
-            document.getElementById('end-accuracy').textContent = `${Math.max(Math.min(accuracy, 100), 10)}%`;
-            document.getElementById('end-time').textContent = document.getElementById('global-timer').textContent;
-            document.getElementById('end-modal').classList.add('active');
-            document.getElementById('reopen-modal-btn').style.display = 'block';
+
+            const minAttemptsNeeded = totalDeckSize;
+            let accuracy = Math.round((minAttemptsNeeded / Math.max(totalAttemptsSpent, minAttemptsNeeded)) * 100);
+            if (isNaN(accuracy) || accuracy > 100) accuracy = 100;
+
+            const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+            const secs = String(secondsElapsed % 60).padStart(2, '0');
+
+            document.getElementById('end-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('end-time').textContent = `${mins}:${secs}`;
+
+            openEndScreenModal();
         }
 
         function openEndScreenModal() {
             document.getElementById('end-modal').classList.add('active');
+            document.getElementById('reopen-modal-btn').style.display = 'none';
         }
 
         function hideEndScreenToInspectMap() {
             document.getElementById('end-modal').classList.remove('active');
+            document.getElementById('reopen-modal-btn').style.display = 'inline-flex';
         }
 
-        function restartSameGame() {
-            document.getElementById('end-modal').classList.remove('active');
-            startGame();
-        }
-
-        // Dragging Inset Maps
-        let activeBox = null, startX = 0, startY = 0, startL = 0, startT = 0;
-
-        document.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.inset-title')) {
-                activeBox = e.target.closest('.inset-map-box');
-                const rect = activeBox.getBoundingClientRect();
-                startX = e.clientX; startY = e.clientY;
-                startL = rect.left; startT = rect.top;
-                e.preventDefault();
-            }
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!activeBox) return;
-            let dx = e.clientX - startX, dy = e.clientY - startY;
-            activeBox.style.left = (startL + dx) + 'px';
-            activeBox.style.bottom = 'auto';
-            activeBox.style.top = (startT + dy) + 'px';
-        });
-
-        document.addEventListener('mouseup', () => {
-            activeBox = null;
-        });
-
-        // Touch support for dragging
-        document.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            if (e.target.closest('.inset-title')) {
-                activeBox = e.target.closest('.inset-map-box');
-                const rect = activeBox.getBoundingClientRect();
-                startX = touch.clientX; startY = touch.clientY;
-                startL = rect.left; startT = rect.top;
-                e.preventDefault();
-            }
-        }, { passive: false });
-
-        document.addEventListener('touchmove', (e) => {
-            if (!activeBox) return;
-            const touch = e.touches[0];
-            let dx = touch.clientX - startX, dy = touch.clientY - startY;
-            activeBox.style.left = (startL + dx) + 'px';
-            activeBox.style.bottom = 'auto';
-            activeBox.style.top = (startT + dy) + 'px';
-            e.preventDefault();
-        }, { passive: false });
-
-        document.addEventListener('touchend', () => {
-            activeBox = null;
-        });
-
-        // Initial setup on load
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedLang = localStorage.getItem('geora-lang') || 'de';
+        document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('geora-theme') || 'system';
-            setLanguage(savedLang);
+            const savedLang = localStorage.getItem('geora-lang') || 'de';
             setTheme(savedTheme);
+            setLanguage(savedLang);
+
+            document.getElementById('country-type-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitCountryGuess();
+            });
+
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(() => {
+                    if (insetCaribbean) insetCaribbean.invalidateSize();
+                    if (insetOceania) insetOceania.invalidateSize();
+                });
+                ro.observe(document.getElementById('box-caribbean'));
+                ro.observe(document.getElementById('box-oceania'));
+            }
+
+            ['box-caribbean', 'box-oceania'].forEach(id => {
+                const el = document.getElementById(id);
+                const titleEl = el.querySelector('.inset-title');
+                if (!el || !titleEl) return;
+
+                let isDragging = false, startX, startY, initialX, initialY;
+
+                function onDragStart(e) {
+                    isDragging = true;
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    startX = clientX;
+                    startY = clientY;
+                    initialX = el.offsetLeft;
+                    initialY = el.offsetTop;
+                    el.style.zIndex = 1005;
+                }
+
+                function onDragMove(e) {
+                    if (!isDragging) return;
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    const dx = clientX - startX;
+                    const dy = clientY - startY;
+                    el.style.left = `${initialX + dx}px`;
+                    el.style.top = `${initialY + dy}px`;
+                    el.style.bottom = 'auto';
+                    el.style.right = 'auto';
+                }
+
+                function onDragEnd() { isDragging = false; }
+
+                titleEl.addEventListener('mousedown', onDragStart);
+                titleEl.addEventListener('touchstart', onDragStart, { passive: false });
+
+                document.addEventListener('mousemove', onDragMove);
+                document.addEventListener('touchmove', onDragMove, { passive: false });
+
+                document.addEventListener('mouseup', onDragEnd);
+                document.addEventListener('touchend', onDragEnd);
+
+                ['tl', 'tr', 'bl', 'br'].forEach(dir => {
+                    const handle = document.createElement('div');
+                    handle.className = `resize-handle ${dir}`;
+                    el.appendChild(handle);
+
+                    function onResizeStart(e) {
+                        e.stopPropagation();
+                        if (e.cancelable) e.preventDefault();
+
+                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                        const startW = el.offsetWidth;
+                        const startH = el.offsetHeight;
+                        const startL = el.offsetLeft;
+                        const startT = el.offsetTop;
+
+                        function onResizeMove(e) {
+                            const currentX = e.touches ? e.touches[0].clientX : e.clientX;
+                            const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+                            const dx = currentX - clientX;
+                            const dy = currentY - clientY;
+                            let w = startW, h = startH, l = startL, t = startT;
+
+                            if (dir.includes('r')) w = Math.max(150, startW + dx);
+                            if (dir.includes('l')) {
+                                w = Math.max(150, startW - dx);
+                                l = startL + (startW - w);
+                            }
+                            if (dir.includes('b')) h = Math.max(110, startH + dy);
+                            if (dir.includes('t')) {
+                                h = Math.max(110, startH - dy);
+                                t = startT + (startH - h);
+                            }
+
+                            el.style.width = w + 'px';
+                            el.style.height = h + 'px';
+                            el.style.left = l + 'px';
+                            el.style.top = t + 'px';
+                            el.style.right = 'auto';
+                            el.style.bottom = 'auto';
+                        }
+
+                        function onResizeEnd() {
+                            document.removeEventListener('mousemove', onResizeMove);
+                            document.removeEventListener('touchmove', onResizeMove);
+                            document.removeEventListener('mouseup', onResizeEnd);
+                            document.removeEventListener('touchend', onResizeEnd);
+                            if (insetCaribbean) insetCaribbean.invalidateSize();
+                            if (insetOceania) insetOceania.invalidateSize();
+                        }
+
+                        document.addEventListener('mousemove', onResizeMove);
+                        document.addEventListener('touchmove', onResizeMove, { passive: false });
+                        document.addEventListener('mouseup', onResizeEnd);
+                        document.addEventListener('touchend', onResizeEnd);
+                    }
+
+                    handle.addEventListener('mousedown', onResizeStart);
+                    handle.addEventListener('touchstart', onResizeStart, { passive: false });
+                });
+            });
         });
     </script>
 </body>
