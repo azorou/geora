@@ -126,7 +126,6 @@
             background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 20px;
             padding: 12px 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25); min-width: 340px; max-width: 90%;
-            transition: border-color 0.3s;
         }
         .prompt-text { font-size: 1.2rem; font-weight: 800; text-align: center; }
         .hint-text { font-size: 0.95rem; font-weight: 800; color: var(--accent-gold); letter-spacing: 1.5px; }
@@ -140,14 +139,14 @@
         }
         .type-input:focus { border-color: var(--accent-blue); }
 
-        /* BLINK-EFFEKT FÜR DIE ÜBUNGS-AUFGABE */
-        @keyframes practiceBlink {
-            0% { border-color: var(--accent-red); box-shadow: 0 0 15px rgba(255, 75, 75, 0.6); }
-            50% { border-color: var(--accent-gold); box-shadow: 0 0 25px rgba(255, 200, 0, 0.8); }
-            100% { border-color: var(--accent-red); box-shadow: 0 0 15px rgba(255, 75, 75, 0.6); }
+        /* BLINK-ANIMATION FÜR DAS LAND IM ÜBUNGSMODUS */
+        @keyframes mapCountryBlink {
+            0% { fill-opacity: 0.2; stroke: #ffc800; stroke-width: 3px; }
+            50% { fill-opacity: 1; stroke: #ffffff; stroke-width: 4px; }
+            100% { fill-opacity: 0.2; stroke: #ffc800; stroke-width: 3px; }
         }
-        .practice-active {
-            animation: practiceBlink 1.2s infinite ease-in-out !important;
+        .blinking-country {
+            animation: mapCountryBlink 0.8s infinite ease-in-out;
         }
 
         .map-frame-wrapper {
@@ -380,20 +379,23 @@
             de: {
                 subtitle: "Erkunde die Welt, meistere Geografie & lerne alle Länder.", startbtn: "Länder-Quiz", back: "Hauptmenü", sec1: "1. Spielmodus wählen", sec2: "2. Schwierigkeitsgrad", mode1: "Pin", mode2: "Eingabe", diff1: "Bekannteste (Top 50)", diff2: "UN-Staaten (195)", diff3: "Länder & Territorien (225)", diff4: "Alle Territorien (258)", playbtn: "JETZT SPIELEN", quit: "Abbrechen", find: "Finde: ",
                 typePrompt: "Welches Land ist hervorgehoben?", typePlaceholder: "Land eingeben...",
-                practiceTitle: "✏️ Jetzt als Übung anklicken!", practiceTypeTitle: "✍️ Schreiben lernen:",
+                practicePrompt: "Klicke auf das blinkende Land!", practiceTypePrompt: "Schreibe ab:",
                 congrats: "🎉 RUNDE VOLLENDET!", accLabel: "Genauigkeit", timeLabel: "Gesamtzeit", replay: "Nochmal spielen", viewmap: "Karte ansehen", home: "Hauptmenü", showsummary: "Ergebnis anzeigen",
                 settings: "Einstellungen", comingsoon: "Demnächst verfügbar", secLang: "Sprache / Language", secTheme: "Design / Theme"
             },
             en: {
                 subtitle: "Explore the world, master geography & learn all countries.", startbtn: "Country Quiz", back: "Main Menu", sec1: "1. Select Game Mode", sec2: "2. Difficulty", mode1: "Pin", mode2: "Type", diff1: "Top 50 Known", diff2: "UN States (195)", diff3: "Countries & Territories (225)", diff4: "All Territories (258)", playbtn: "PLAY NOW", quit: "Quit", find: "Find: ",
                 typePrompt: "Which country is highlighted?", typePlaceholder: "Enter country name...",
-                practiceTitle: "✏️ Click as practice now!", practiceTypeTitle: "✍️ Learn to write:",
+                practicePrompt: "Click on the blinking country!", practiceTypePrompt: "Type name:",
                 congrats: "🎉 ROUND COMPLETED!", accLabel: "Accuracy", timeLabel: "Total Time", replay: "Play Again", viewmap: "View Map", home: "Main Menu", showsummary: "Show Results",
                 settings: "Settings", comingsoon: "Coming Soon", secLang: "Language", secTheme: "Theme"
             }
         };
 
         const top50ISO = ["AFG","DZA","AGO","ARG","BGD","BRA","CHN","COD","DEU","FRA","GHA","IND","IDN","IRQ","IRN","ITA","JPN","YEM","CAN","KEN","COL","MYS","MAR","MEX","MOZ","MMR","NPL","NGA","PAK","PER","PHL","POL","RUS","SAU","ESP","SDN","ZAF","KOR","TZA","THA","TUR","USA","UGA","UKR","UZB","VEN","GBR","VNM","EGY","ETH"];
+
+        // Ozeanien ISOs für gestrichelte Linien (Abgrenzungen wie im Bild)
+        const oceaniaISOs = ["FJI","SLB","VUT","FSM","KIR","NRU","PLW","TON","TUV","WSM","MHL","NCL","PYF","COK","NIU","TKL","WLF","PNG"];
 
         const countrySynonyms = {
             "USA": ["usa", "us", "vereinigte staaten", "vereinigte staaten von amerika", "united states", "united states of america", "america", "amerika"],
@@ -419,7 +421,7 @@
         let currentTarget = null, geoData = null, remainingDeck = [];
         let totalDeckSize = 0, completedCount = 0;
         let currentAttempts = 0;
-        let isPracticeMode = false; // Steuert, ob man das Land nach 4 Fehlern üben muss
+        let isPracticeMode = false;
         let solvedCountries = {}; 
         let totalAttemptsSpent = 0;
         let geoJsonLayers = [];
@@ -541,20 +543,20 @@
                 return;
             }
 
+            // Standard SVG Renderer für absolut fehlerfreie Klicks
             map = L.map('map-container', { 
                 center: [20, 0], zoom: 2, minZoom: 2, 
-                maxBounds: [[-65, -180], [85, 180]], maxBoundsViscosity: 1.0, zoomControl: false,
-                preferCanvas: true
+                maxBounds: [[-65, -180], [85, 180]], maxBoundsViscosity: 1.0, zoomControl: false 
             });
 
             insetCaribbean = L.map('inset-caribbean-map', { 
                 center: [15, -73], zoom: 4, zoomControl: false, 
-                dragging: true, touchZoom: true, doubleClickZoom: true, scrollWheelZoom: true, preferCanvas: true
+                dragging: true, touchZoom: true, doubleClickZoom: true, scrollWheelZoom: true 
             });
             
             insetOceania = L.map('inset-oceania-map', { 
                 center: [-15, 175], zoom: 3, zoomControl: false, 
-                dragging: true, touchZoom: true, doubleClickZoom: true, scrollWheelZoom: true, preferCanvas: true
+                dragging: true, touchZoom: true, doubleClickZoom: true, scrollWheelZoom: true 
             });
 
             fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson')
@@ -591,29 +593,30 @@
                         const id = getFeatureID(feature);
                         let col = solvedCountries[id];
 
-                        // Übungsmodus oder Eingabe-Modus Hervorhebung
-                        if (currentTarget && id === getFeatureID(currentTarget)) {
-                            if (isPracticeMode) {
-                                return { fillColor: '#ff4b4b', fillOpacity: 1, color: '#ffc800', weight: 3 };
-                            }
-                            if (selectedMode === 'type') {
-                                return { fillColor: '#ffc800', fillOpacity: 1, color: '#1cb0f6', weight: 2 };
-                            }
+                        if (selectedMode === 'type' && currentTarget && id === getFeatureID(currentTarget) && !isPracticeMode) {
+                            return { fillColor: '#ffc800', fillOpacity: 1, color: '#1cb0f6', weight: 2 };
                         }
 
                         if (!col) {
                             col = validModeIDs.has(id) ? mapColors.active : mapColors.inactive;
                         }
 
+                        // Ozeanien Abgrenzungslinien (gestrichelt) wie im Bild
+                        const isOceania = oceaniaISOs.includes(id);
+
                         return { 
                             fillColor: col, 
                             fillOpacity: 1, 
-                            color: mapColors.stroke, 
-                            weight: 0.6
+                            color: isOceania ? '#1cb0f6' : mapColors.stroke, 
+                            weight: isOceania ? 1.2 : 0.6,
+                            dashArray: isOceania ? '4, 4' : null
                         };
                     },
                     onEachFeature: (feature, layer) => {
-                        layer.on('click', () => { handleCountryClick(feature, layer); });
+                        layer.on('click', (e) => { 
+                            L.DomEvent.stopPropagation(e);
+                            handleCountryClick(feature, layer); 
+                        });
 
                         const id = getFeatureID(feature);
                         if (validModeIDs.has(id)) {
@@ -622,22 +625,36 @@
                                 const areaWidth = bounds.getEast() - bounds.getWest();
                                 const areaHeight = bounds.getNorth() - bounds.getSouth();
                                 
-                                if (areaWidth < 1.2 && areaHeight < 1.2) {
+                                // Fügt jedem Staat/Inselgruppe in Ozeanien ODER kleineren Ländern einen Punkt hinzu
+                                if (areaWidth < 3.5 || areaHeight < 3.5 || oceaniaISOs.includes(id)) {
                                     const center = bounds.getCenter();
                                     const circle = L.circleMarker(center, {
-                                        radius: 5,
-                                        fillColor: solvedCountries[id] || '#1cb0f6',
-                                        color: '#ffffff',
-                                        weight: 1,
+                                        radius: oceaniaISOs.includes(id) ? 4.5 : 5,
+                                        fillColor: solvedCountries[id] || (oceaniaISOs.includes(id) ? '#ffffff' : '#1cb0f6'),
+                                        color: '#1e293b',
+                                        weight: 1.2,
                                         fillOpacity: 0.95,
                                         pane: 'markerPane'
                                     });
                                     circle.featureID = id;
-                                    circle.on('click', () => { handleCountryClick(feature, layer); });
+                                    circle.on('click', (e) => {
+                                        L.DomEvent.stopPropagation(e);
+                                        handleCountryClick(feature, layer);
+                                    });
                                     circle.addTo(targetMap);
                                     activeCircleMarkers.push(circle);
                                 }
                             }
+                        }
+
+                        // Blinken des Landes im Übungsmodus aktivieren
+                        if (isPracticeMode && currentTarget && id === getFeatureID(currentTarget)) {
+                            setTimeout(() => {
+                                if (layer.getElement) {
+                                    const el = layer.getElement();
+                                    if (el) el.classList.add('blinking-country');
+                                }
+                            }, 50);
                         }
                     }
                 }).addTo(targetMap);
@@ -740,7 +757,6 @@
             if (!currentTarget) return;
             currentAttempts = 0;
             isPracticeMode = false;
-            document.getElementById('game-prompt-bar').classList.remove('practice-active');
 
             if (selectedMode === 'type') {
                 document.getElementById('target-prompt').textContent = i18n[currentLang].typePrompt;
@@ -753,7 +769,7 @@
             } else {
                 document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${getDisplayName(currentTarget)}`;
             }
-            refreshAllMapStyles();
+            renderAllMaps();
         }
 
         function zoomToTargetCountry(feature) {
@@ -794,28 +810,25 @@
             return result.trim();
         }
 
-        // STARTET DIE PFLICHT-ÜBUNG BEI 4 FEHLVERSUCHEN
+        // ÜBUNGSPHASE NACH 4 FEHLVERSUCHEN
         function startPracticePhase() {
             isPracticeMode = true;
             const nameDE = getDisplayName(currentTarget);
-            const promptBar = document.getElementById('game-prompt-bar');
-            promptBar.classList.add('practice-active');
 
             if (selectedMode === 'type') {
-                document.getElementById('target-prompt').textContent = i18n[currentLang].practiceTypeTitle;
+                document.getElementById('target-prompt').textContent = i18n[currentLang].practiceTypePrompt;
                 const hintEl = document.getElementById('hint-display');
                 hintEl.style.display = 'block';
-                hintEl.textContent = nameDE; // Vollen Namen zum Abschreiben anzeigen!
+                hintEl.textContent = nameDE; // Wort zum Abschreiben anzeigen
                 const inputEl = document.getElementById('country-type-input');
                 inputEl.value = '';
                 inputEl.focus();
             } else {
-                document.getElementById('target-prompt').textContent = `${i18n[currentLang].practiceTitle} ${nameDE}`;
+                document.getElementById('target-prompt').textContent = i18n[currentLang].practicePrompt;
             }
-            refreshAllMapStyles();
+            renderAllMaps();
         }
 
-        // EINGABE-PRÜFUNG
         function submitCountryGuess() {
             if (!currentTarget || selectedMode !== 'type') return;
 
@@ -839,14 +852,12 @@
                 countrySynonyms[targetID].forEach(syn => validNames.push(normalizeText(syn)));
             }
 
-            // FALL 1: WIR SIND IM ÜBUNGSMODUS (NAME EINFACH ABSCHREIBEN)
             if (isPracticeMode) {
                 if (validNames.includes(userGuess)) {
-                    solvedCountries[targetID] = '#ff4b4b'; // Rot markieren
+                    solvedCountries[targetID] = '#ff4b4b';
                     completedCount++;
                     updateCounter();
                     inputEl.value = '';
-                    document.getElementById('game-prompt-bar').classList.remove('practice-active');
                     nextRound();
                 } else {
                     inputEl.style.borderColor = 'var(--accent-red)';
@@ -855,7 +866,6 @@
                 return;
             }
 
-            // FALL 2: NORMALES QUIZ
             currentAttempts++;
             totalAttemptsSpent++;
 
@@ -916,14 +926,12 @@
                 }
             }, 1500);
 
-            // FALL 1: ÜBUNGSMODUS IM PIN-MODUS
             if (isPracticeMode) {
                 if (clickedID === targetID) {
                     solvedCountries[targetID] = '#ff4b4b';
                     completedCount++;
                     updateCounter();
-                    document.getElementById('game-prompt-bar').classList.remove('practice-active');
-                    refreshAllMapStyles();
+                    renderAllMaps();
                     setTimeout(() => { nextRound(); }, 400);
                 }
                 return;
@@ -945,51 +953,13 @@
                 solvedCountries[targetID] = color;
                 completedCount++;
                 updateCounter();
-                refreshAllMapStyles();
+                renderAllMaps();
                 setTimeout(() => { nextRound(); }, 350);
             } else {
                 if (currentAttempts >= 4) {
                     startPracticePhase();
                 }
             }
-        }
-
-        function refreshAllMapStyles() {
-            const mapColors = getMapColors();
-            geoJsonLayers.forEach(geoLayer => {
-                geoLayer.eachLayer(layer => {
-                    if (layer.feature) {
-                        const id = getFeatureID(layer.feature);
-                        let col = solvedCountries[id];
-
-                        if (currentTarget && id === getFeatureID(currentTarget)) {
-                            if (isPracticeMode) {
-                                layer.setStyle({ fillColor: '#ff4b4b', color: '#ffc800', weight: 3 });
-                                return;
-                            }
-                            if (selectedMode === 'type') {
-                                layer.setStyle({ fillColor: '#ffc800', color: '#1cb0f6', weight: 2 });
-                                return;
-                            }
-                        }
-
-                        if (!col) {
-                            col = validModeIDs.has(id) ? mapColors.active : mapColors.inactive;
-                        }
-
-                        layer.setStyle({ 
-                            fillColor: col, 
-                            color: mapColors.stroke,
-                            weight: 0.6
-                        });
-                    }
-                });
-            });
-
-            activeCircleMarkers.forEach(circle => {
-                const col = solvedCountries[circle.featureID] || '#1cb0f6';
-                if (circle.setStyle) circle.setStyle({ fillColor: col });
-            });
         }
 
         function triggerVictory() {
