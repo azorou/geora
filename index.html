@@ -89,14 +89,9 @@
         .prompt-text { font-size: 1.25rem; font-weight: 800; }
 
         .map-frame-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            border: 3px solid var(--border-color);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-            background-color: var(--map-bg);
+            position: relative; width: 100%; height: 100%;
+            border: 3px solid var(--border-color); border-radius: 20px; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8); background-color: var(--map-bg);
         }
         #map-container { width: 100%; height: 100%; background-color: var(--map-bg); }
 
@@ -104,8 +99,7 @@
             position: absolute; bottom: 35px; z-index: 1001;
             width: 240px; height: 160px; background: var(--card-bg);
             border: 2px solid var(--accent-blue); border-radius: 16px; overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-            cursor: move;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7); cursor: move;
         }
         .inset-caribbean { left: 35px; }
         .inset-oceania { right: 35px; }
@@ -120,30 +114,18 @@
         .country-polygon { fill: var(--map-land); fill-opacity: 1; stroke: var(--map-stroke); stroke-width: 1; }
         .country-polygon:hover { fill: #27384f; stroke: var(--accent-blue); stroke-width: 1.5; cursor: pointer; }
 
-        /* END SCREEN POPUP MIT BLUR-HINTERGRUND */
+        /* END SCREEN OVERLAY */
         .modal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 16, 23, 0.65);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            z-index: 2000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            background: rgba(11, 16, 23, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px;
         }
         .modal-overlay.active { display: flex; }
 
         .end-card {
-            background: var(--card-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 28px;
-            padding: 30px 35px;
-            max-width: 460px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 28px;
+            padding: 30px 35px; max-width: 460px; width: 100%; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         @keyframes modalPop {
@@ -152,58 +134,18 @@
         }
 
         .end-title {
-            font-size: 2rem;
-            font-weight: 900;
-            margin-bottom: 20px;
+            font-size: 2rem; font-weight: 900; margin-bottom: 20px;
             background: linear-gradient(135deg, var(--accent-gold), var(--accent-green));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-box { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+        .stat-box-val { font-size: 2rem; font-weight: 900; }
+        .stat-box-label { font-size: 0.8rem; font-weight: 800; color: var(--text-sub); text-transform: uppercase; }
+        .end-actions { display: flex; flex-direction: column; gap: 10px; }
 
-        .stat-box {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-color);
-            border-radius: 18px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .stat-box-val {
-            font-size: 2rem;
-            font-weight: 900;
-        }
-
-        .stat-box-label {
-            font-size: 0.8rem;
-            font-weight: 800;
-            color: var(--text-sub);
-            text-transform: uppercase;
-        }
-
-        .end-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        /* Schwebender Button, wenn Endscreen minimiert wurde */
-        .reopen-end-btn {
-            position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1002;
-            display: none;
-        }
+        .reopen-end-btn { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 1002; display: none; }
     </style>
 </head>
 <body>
@@ -269,12 +211,10 @@
             <div id="inset-oceania-map" class="inset-map"></div>
         </div>
 
-        <!-- SCHWEBENDER REOPEN-BUTTON FÜR DIE KARTE -->
         <button class="btn-3d btn-gold reopen-end-btn" id="reopen-modal-btn" onclick="openEndScreenModal()">
             🏆 <span id="i18n-showsummary">Ergebnis anzeigen</span>
         </button>
 
-        <!-- END SCREEN OVERLAY MODAL -->
         <div class="modal-overlay" id="end-modal">
             <div class="end-card">
                 <div class="end-title" id="i18n-congrats">🎉 RUNDE VOLLENDET!</div>
@@ -301,18 +241,51 @@
 
     <script>
         const nameMapDE = {
-            "Afghanistan": "Afghanistan", "Algerien": "Algeria", "Angola": "Angola", "Argentinien": "Argentina",
-            "Bangladesch": "Bangladesh", "Brasilien": "Brazil", "China": "China", "Demokratische Republik Kongo": "Democratic Republic of the Congo",
-            "Deutschland": "Germany", "Frankreich": "France", "Ghana": "Ghana", "Indien": "India", "Indonesien": "Indonesia",
-            "Irak": "Iraq", "Iran": "Iran", "Italien": "Italy", "Japan": "Japan", "Jemen": "Yemen", "Kanada": "Canada",
-            "Kenia": "Kenya", "Kolumbien": "Colombia", "Malaysia": "Malaysia", "Marokko": "Morocco", "Mexiko": "Mexico",
-            "Mosambik": "Mozambique", "Myanmar": "Myanmar", "Nepal": "Nepal", "Nigeria": "Nigeria", "Pakistan": "Pakistan",
-            "Peru": "Peru", "Philippinen": "Philippines", "Polen": "Poland", "Russland": "Russia", "Saudi-Arabien": "Saudi Arabia",
-            "Spanien": "Spain", "Sudan": "Sudan", "Südafrika": "South Africa", "Südkorea": "South Korea", "Tansania": "Tanzania",
-            "Thailand": "Thailand", "Türkei": "Türkiye", "USA": "United States", "Uganda": "Uganda", "Ukraine": "Ukraine",
-            "Usbekistan": "Uzbekistan", "Venezuela": "Venezuela", "Vereinigtes Königreich": "United Kingdom", "Vietnam": "Vietnam",
-            "Ägypten": "Egypt", "Äthiopien": "Ethiopia", "Tschechien": "Czech Republic", "Paraguay": "Paraguay"
+            "Afghanistan": "Afghanistan", "Albanien": "Albania", "Algerien": "Algeria", "Andorra": "Andorra", "Angola": "Angola", 
+            "Antigua und Barbuda": "Antigua and Barbuda", "Argentinien": "Argentina", "Armenien": "Armenia", "Aserbaidschan": "Azerbaijan", 
+            "Australien": "Australia", "Bahrain": "Bahrain", "Bangladesch": "Bangladesh", "Barbados": "Barbados", "Belarus": "Belarus", 
+            "Belgien": "Belgium", "Belize": "Belize", "Benin": "Benin", "Bhutan": "Bhutan", "Bolivien": "Bolivia", 
+            "Bosnien-Herzegowina": "Bosnia and Herzegovina", "Botswana": "Botswana", "Brasilien": "Brazil", "Brunei": "Brunei", 
+            "Bulgarien": "Bulgaria", "Burkina Faso": "Burkina Faso", "Burundi": "Burundi", "Chile": "Chile", "China": "China", 
+            "Costa Rica": "Costa Rica", "Demokratische Republik Kongo": "Democratic Republic of the Congo", "Deutschland": "Germany", 
+            "Die Bahamas": "The Bahamas", "Dominica": "Dominica", "Dominikanische Republik": "Dominican Republic", "Dschibuti": "Djibouti", 
+            "Dänemark": "Denmark", "Ecuador": "Ecuador", "El Salvador": "El Salvador", "Elfenbeinküste": "Ivory Coast", 
+            "Eritrea": "Eritrea", "Estland": "Estonia", "Eswatini": "Eswatini", "Fidschi": "Fiji", "Finnland": "Finland", 
+            "Frankreich": "France", "Gabun": "Gabon", "Gambia": "The Gambia", "Georgien": "Georgia", "Ghana": "Ghana", 
+            "Grenada": "Grenada", "Griechenland": "Greece", "Guatemala": "Guatemala", "Guinea": "Guinea", "Guinea-Bissau": "Guinea-Bissau", 
+            "Guyana": "Guyana", "Haiti": "Haiti", "Honduras": "Honduras", "Indien": "India", "Indonesien": "Indonesia", 
+            "Irak": "Iraq", "Iran": "Iran", "Irland": "Ireland", "Island": "Iceland", "Israel": "Israel", "Italien": "Italy", 
+            "Jamaika": "Jamaica", "Japan": "Japan", "Jemen": "Yemen", "Jordanien": "Jordan", "Kambodscha": "Cambodia", 
+            "Kamerun": "Cameroon", "Kanada": "Canada", "Kap Verde": "Cape Verde", "Kasachstan": "Kazakhstan", "Katar": "Qatar", 
+            "Kenia": "Kenya", "Kirgisistan": "Kyrgyzstan", "Kiribati": "Kiribati", "Kolumbien": "Colombia", "Komoren": "Comoros", 
+            "Kroatien": "Croatia", "Kuba": "Cuba", "Kuwait": "Kuwait", "Laos": "Laos", "Lesotho": "Lesotho", "Lettland": "Latvia", 
+            "Libanon": "Lebanon", "Liberia": "Liberia", "Libyen": "Libya", "Liechtenstein": "Liechtenstein", "Litauen": "Lithuania", 
+            "Luxemburg": "Luxembourg", "Madagaskar": "Madagascar", "Malawi": "Malawi", "Malaysia": "Malaysia", "Malediven": "Maldives", 
+            "Mali": "Mali", "Malta": "Malta", "Marokko": "Morocco", "Marshallinseln": "Marshall Islands", "Mauretanien": "Mauritania", 
+            "Mauritius": "Mauritius", "Mexiko": "Mexico", "Mikronesien": "Federated States of Micronesia", "Moldawien": "Moldova", 
+            "Monaco": "Monaco", "Mongolei": "Mongolia", "Montenegro": "Montenegro", "Mosambik": "Mozambique", "Myanmar": "Myanmar", 
+            "Namibia": "Namibia", "Nauru": "Nauru", "Nepal": "Nepal", "Neuseeland": "New Zealand", "Nicaragua": "Nicaragua", 
+            "Niederlande": "Netherlands", "Niger": "Niger", "Nigeria": "Nigeria", "Nordkorea": "North Korea", "Nordmazedonien": "North Macedonia", 
+            "Norwegen": "Norway", "Oman": "Oman", "Ost Timor": "East Timor", "Pakistan": "Pakistan", "Palau": "Palau", 
+            "Palästina": "Palestine", "Panama": "Panama", "Papua-Neuguinea": "Papua New Guinea", "Paraguay": "Paraguay", "Peru": "Peru", 
+            "Philippinen": "Philippines", "Polen": "Poland", "Portugal": "Portugal", "Republik Kongo": "Republic of the Congo", 
+            "Ruanda": "Rwanda", "Rumänien": "Romania", "Russland": "Russia", "Salomonen": "Solomon Islands", "Sambia": "Zambia", 
+            "Samoa": "Samoa", "San Marino": "San Marino", "Saudi-Arabien": "Saudi Arabia", "Schweden": "Sweden", "Schweiz": "Switzerland", 
+            "Senegal": "Senegal", "Serbien": "Serbia", "Seychellen": "Seychelles", "Sierra Leone": "Sierra Leone", "Simbabwe": "Zimbabwe", 
+            "Singapur": "Singapore", "Slowakei": "Slovakia", "Slowenien": "Slovenia", "Somalia": "Somalia", "Spanien": "Spain", 
+            "Sri Lanka": "Sri Lanka", "St. Kitts und Nevis": "Saint Kitts and Nevis", "St. Lucia": "Saint Lucia", 
+            "St. Vincent und die Grenadinen": "Saint Vincent and the Grenadines", "Sudan": "Sudan", "Surinam": "Suriname", 
+            "Syrien": "Syria", "São Tomé und Príncipe": "São Tomé and Príncipe", "Südafrika": "South Africa", "Südkorea": "South Korea", 
+            "Südsudan": "South Sudan", "Tadschikistan": "Tajikistan", "Tansania": "Tanzania", "Thailand": "Thailand", "Togo": "Togo", 
+            "Tonga": "Tonga", "Trinidad und Tobago": "Trinidad and Tobago", "Tschad": "Chad", "Tschechien": "Czech Republic", 
+            "Tunesien": "Tunisia", "Turkmenistan": "Turkmenistan", "Tuvalu": "Tuvalu", "Türkei": "Türkiye", "USA": "United States", 
+            "Uganda": "Uganda", "Ukraine": "Ukraine", "Ungarn": "Hungary", "Uruguay": "Uruguay", "Usbekistan": "Uzbekistan", 
+            "Vanuatu": "Vanuatu", "Vatikanstadt": "Vatican City", "Venezuela": "Venezuela", "Vereinigte Arabische Emirate": "United Arab Emirates", 
+            "Vereinigtes Königreich": "United Kingdom", "Vietnam": "Vietnam", "Zentralafrikanische Republik": "Central African Republic", 
+            "Zypern": "Cyprus", "Ägypten": "Egypt", "Äquatorialguinea": "Equatorial Guinea", "Äthiopien": "Ethiopia", "Österreich": "Austria"
         };
+
+        const smallCountriesISO = ["AND", "LIE", "LUX", "MCO", "SMR", "VAT", "SGP", "MLT", "BHR", "BRB", "GRD", "LCA", "VCT", "KNA", "ATG", "DMA", "CPV", "STP", "COM", "MUS", "SYC", "FSM", "PLW", "NRU", "TUV", "MHL", "KIR", "TON", "WSM"];
 
         const listDE = {
             easy: ["Afghanistan","Algerien","Angola","Argentinien","Bangladesch","Brasilien","China","Demokratische Republik Kongo","Deutschland","Frankreich","Ghana","Indien","Indonesien","Irak","Iran","Italien","Japan","Jemen","Kanada","Kenia","Kolumbien","Malaysia","Marokko","Mexiko","Mosambik","Myanmar","Nepal","Nigeria","Pakistan","Peru","Philippinen","Polen","Russland","Saudi-Arabien","Spanien","Sudan","Südafrika","Südkorea","Tansania","Thailand","Türkei","USA","Uganda","Ukraine","Usbekistan","Venezuela","Vereinigtes Königreich","Vietnam","Ägypten","Äthiopien"],
@@ -338,7 +311,7 @@
         let totalDeckSize = 0, completedCount = 0;
         let currentAttempts = 0;
         let solvedCountries = {}; 
-        let totalAttemptsSpent = 0; // Für exakte Prozentberechnung
+        let totalAttemptsSpent = 0;
 
         function toggleLanguage() {
             currentLang = currentLang === 'de' ? 'en' : 'de';
@@ -412,9 +385,15 @@
             insetCaribbean = L.map('inset-caribbean-map', { center: [15, -73], zoom: 4, zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false });
             insetOceania = L.map('inset-oceania-map', { center: [-15, 175], zoom: 3, zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false });
 
-            fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+            // Nutzen des vollen, hochpräzisen Datensatzes
+            fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson')
                 .then(res => res.json())
                 .then(data => {
+                    // Mappen der Properties für saubere Kompatibilität
+                    data.features.forEach(f => {
+                        f.id = f.properties.ISO_A3 || f.properties.ADM0_A3;
+                        f.properties.name = f.properties.NAME_LONG || f.properties.NAME;
+                    });
                     geoData = data;
                     renderGeoJson(map);
                     renderGeoJson(insetCaribbean);
@@ -431,8 +410,13 @@
                     return { fillColor: col, fillOpacity: 1, color: '#2e405a', weight: 1 };
                 },
                 pointToLayer: (feature, latlng) => {
-                    const col = solvedCountries[feature.id] || '#1b2636';
-                    return L.circleMarker(latlng, { radius: 6, fillColor: col, color: '#ffffff', weight: 1, fillOpacity: 1 });
+                    const col = solvedCountries[feature.id] || '#1cb0f6';
+                    // Automatische Darstellung kleiner Staaten/Inseln als deutlicher Kreis
+                    return L.circleMarker(latlng, { radius: 7, fillColor: col, color: '#ffffff', weight: 1.5, fillOpacity: 0.9 });
+                },
+                filter: (feature) => {
+                    // Kleine Länder in Inselkarten oder Hauptkarte zulassen
+                    return true;
                 },
                 onEachFeature: (feature, layer) => {
                     layer.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature); });
@@ -551,7 +535,6 @@
         function triggerVictory() {
             clearInterval(timerInterval);
 
-            // Prozent-Berechnung basierend auf Versuchen (100% min = 1 Versuch pro Land, max = 4 Versuche)
             const minAttemptsNeeded = totalDeckSize;
             let accuracy = Math.round((minAttemptsNeeded / Math.max(totalAttemptsSpent, minAttemptsNeeded)) * 100);
             if (isNaN(accuracy) || accuracy > 100) accuracy = 100;
