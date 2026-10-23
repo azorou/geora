@@ -79,32 +79,44 @@
         .option-card { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 16px; padding: 14px; cursor: pointer; text-align: center; font-weight: 700; transition: all 0.2s; }
         .option-card:hover, .option-card.selected { border-color: var(--accent-blue); background: rgba(28, 176, 246, 0.1); }
 
-        #game-screen { position: relative; flex: 1; display: flex; flex-direction: column; }
+        #game-screen { position: relative; flex: 1; display: flex; flex-direction: column; padding: 15px; background: var(--bg-color); }
         .game-prompt-bar {
-            position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 1000;
+            position: absolute; top: 25px; left: 50%; transform: translateX(-50%); z-index: 1000;
             background: rgba(21, 29, 42, 0.95); border: 2px solid var(--border-color); border-radius: 20px;
             padding: 10px 22px; display: flex; align-items: center; gap: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
             min-width: 320px; justify-content: space-between;
         }
         .prompt-text { font-size: 1.25rem; font-weight: 800; }
 
-        #map-container { width: 100%; height: 100%; background-color: var(--map-bg); flex: 1; }
+        /* SCHÖN EINGEARBEITETE HAUPTKARTE MIT RAHMEN */
+        .map-frame-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border: 3px solid var(--border-color);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+        }
+        #map-container { width: 100%; height: 100%; background-color: var(--map-bg); }
 
-        /* MINI-KARTEN (INSET MAPS IN DEN ECKEN) */
+        /* GRÖßERE, VERSCHIEBBARE MINI-KARTEN (INSET MAPS) */
         .inset-map-box {
-            position: absolute; bottom: 20px; z-index: 999;
-            width: 180px; height: 130px; background: var(--card-bg);
-            border: 2px solid var(--border-color); border-radius: 14px; overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            position: absolute; bottom: 35px; z-index: 1001;
+            width: 240px; height: 160px; background: var(--card-bg);
+            border: 2px solid var(--accent-blue); border-radius: 16px; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            cursor: move;
         }
-        .inset-caribbean { left: 20px; }
-        .inset-oceania { right: 20px; }
+        .inset-caribbean { left: 35px; }
+        .inset-oceania { right: 35px; }
         .inset-title {
-            position: absolute; top: 4px; left: 6px; z-index: 1001;
-            font-size: 0.75rem; font-weight: 900; background: rgba(11, 16, 23, 0.8);
-            padding: 2px 6px; border-radius: 6px; color: var(--accent-blue);
+            position: absolute; top: 0; left: 0; right: 0; z-index: 1002;
+            font-size: 0.75rem; font-weight: 900; background: rgba(21, 29, 42, 0.9);
+            padding: 4px 10px; color: var(--accent-gold); border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .inset-map { width: 100%; height: 100%; }
+        .inset-map { width: 100%; height: 100%; padding-top: 22px; }
 
         .country-polygon { fill: var(--map-land); fill-opacity: 1; stroke: var(--map-stroke); stroke-width: 1; }
         .country-polygon:hover { fill: #27384f; stroke: var(--accent-blue); stroke-width: 1.5; cursor: pointer; }
@@ -160,14 +172,17 @@
             <button class="btn-3d btn-red" style="padding: 6px 12px; font-size: 0.8rem;" onclick="quitGame()">✖️ <span id="i18n-quit">Abbrechen</span></button>
         </div>
 
-        <div id="map-container"></div>
+        <div class="map-frame-wrapper">
+            <div id="map-container"></div>
+        </div>
 
-        <div class="inset-map-box inset-caribbean">
-            <div class="inset-title">🏝️ KARIBIK</div>
+        <!-- VERSCHIEBBARE MINI-KARTEN -->
+        <div class="inset-map-box inset-caribbean" id="box-caribbean">
+            <div class="inset-title"><span>🏝️ Karibik-Fokus</span> ✥</div>
             <div id="inset-caribbean-map" class="inset-map"></div>
         </div>
-        <div class="inset-map-box inset-oceania">
-            <div class="inset-title">🌊 OZEANIEN</div>
+        <div class="inset-map-box inset-oceania" id="box-oceania">
+            <div class="inset-title"><span>🌊 Ozeanien-Fokus</span> ✥</div>
             <div id="inset-oceania-map" class="inset-map"></div>
         </div>
     </section>
@@ -281,7 +296,13 @@
             startTimer();
             setTimeout(() => {
                 initMaps();
-                if (map) { map.invalidateSize(); insetCaribbean.invalidateSize(); insetOceania.invalidateSize(); resetDeck(); nextRound(); }
+                if (map) { 
+                    map.invalidateSize(); 
+                    insetCaribbean.invalidateSize(); 
+                    insetOceania.invalidateSize(); 
+                    resetDeck(); 
+                    nextRound(); 
+                }
             }, 100);
         }
 
@@ -335,6 +356,36 @@
                 });
             });
         }
+
+        // DRAG & MOVE LOGIK FÜR MINI-KARTEN
+        document.addEventListener('DOMContentLoaded', () => {
+            ['box-caribbean', 'box-oceania'].forEach(id => {
+                const el = document.getElementById(id);
+                let isDragging = false, startX, startY, initialX, initialY;
+
+                el.addEventListener('mousedown', (e) => {
+                    if (e.target.tagName === 'BUTTON' || e.target.closest('.inset-map')) return;
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    initialX = el.offsetLeft;
+                    initialY = el.offsetTop;
+                    el.style.zIndex = 1005;
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    el.style.left = `${initialX + dx}px`;
+                    el.style.top = `${initialY + dy}px`;
+                    el.style.bottom = 'auto';
+                    el.style.right = 'auto';
+                });
+
+                document.addEventListener('mouseup', () => { isDragging = false; });
+            });
+        });
     </script>
 </body>
 </html>
