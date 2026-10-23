@@ -237,209 +237,6 @@
     </section>
 
     <script>
-        // UMFASSENDE ZENTRALE LÄNDER-DATENBANK (FÜR ALLE MODI & SPRACHEN)
-        const countryDB = {
-            "AFG": { de: "Afghanistan", en: "Afghanistan" },
-            "ALB": { de: "Albanien", en: "Albania" },
-            "DZA": { de: "Algerien", en: "Algeria" },
-            "AND": { de: "Andorra", en: "Andorra", small: true },
-            "AGO": { de: "Angola", en: "Angola" },
-            "ATG": { de: "Antigua und Barbuda", en: "Antigua and Barbuda", small: true },
-            "ARG": { de: "Argentinien", en: "Argentina" },
-            "ARM": { de: "Armenien", en: "Armenia" },
-            "AUS": { de: "Australien", en: "Australia" },
-            "AUT": { de: "Österreich", en: "Austria" },
-            "AZE": { de: "Aserbaidschan", en: "Azerbaijan" },
-            "BHS": { de: "Die Bahamas", en: "The Bahamas" },
-            "BHR": { de: "Bahrain", en: "Bahrain", small: true },
-            "BGD": { de: "Bangladesch", en: "Bangladesh" },
-            "BRB": { de: "Barbados", en: "Barbados", small: true },
-            "BLR": { de: "Belarus", en: "Belarus" },
-            "BEL": { de: "Belgien", en: "Belgium" },
-            "BLZ": { de: "Belize", en: "Belize" },
-            "BEN": { de: "Benin", en: "Benin" },
-            "BTN": { de: "Bhutan", en: "Bhutan" },
-            "BOL": { de: "Bolivien", en: "Bolivia" },
-            "BIH": { de: "Bosnien-Herzegowina", en: "Bosnia and Herzegovina" },
-            "BWA": { de: "Botswana", en: "Botswana" },
-            "BRA": { de: "Brasilien", en: "Brazil" },
-            "BRN": { de: "Brunei", en: "Brunei" },
-            "BGR": { de: "Bulgarien", en: "Bulgaria" },
-            "BFA": { de: "Burkina Faso", en: "Burkina Faso" },
-            "BDI": { de: "Burundi", en: "Burundi" },
-            "KHM": { de: "Kambodscha", en: "Cambodia" },
-            "CMR": { de: "Kamerun", en: "Cameroon" },
-            "CAN": { de: "Kanada", en: "Canada" },
-            "CPV": { de: "Kap Verde", en: "Cape Verde", small: true },
-            "CAF": { de: "Zentralafrikanische Republik", en: "Central African Republic" },
-            "TCD": { de: "Tschad", en: "Chad" },
-            "CHL": { de: "Chile", en: "Chile" },
-            "CHN": { de: "China", en: "China" },
-            "COL": { de: "Kolumbien", en: "Colombia" },
-            "COM": { de: "Komoren", en: "Comoros", small: true },
-            "COG": { de: "Republik Kongo", en: "Republic of the Congo" },
-            "COD": { de: "Demokratische Republik Kongo", en: "Democratic Republic of the Congo" },
-            "CRI": { de: "Costa Rica", en: "Costa Rica" },
-            "CIV": { de: "Elfenbeinküste", en: "Ivory Coast" },
-            "HRV": { de: "Kroatien", en: "Croatia" },
-            "CUB": { de: "Kuba", en: "Cuba" },
-            "CYP": { de: "Zypern", en: "Cyprus" },
-            "CZE": { de: "Tschechien", en: "Czech Republic" },
-            "DNK": { de: "Dänemark", en: "Denmark" },
-            "DJI": { de: "Dschibuti", en: "Djibouti" },
-            "DMA": { de: "Dominica", en: "Dominica", small: true },
-            "DOM": { de: "Dominikanische Republik", en: "Dominican Republic" },
-            "ECU": { de: "Ecuador", en: "Ecuador" },
-            "EGY": { de: "Ägypten", en: "Egypt" },
-            "SLV": { de: "El Salvador", en: "El Salvador" },
-            "GNQ": { de: "Äquatorialguinea", en: "Equatorial Guinea" },
-            "ERI": { de: "Eritrea", en: "Eritrea" },
-            "EST": { de: "Estland", en: "Estonia" },
-            "SWZ": { de: "Eswatini", en: "Eswatini" },
-            "ETH": { de: "Äthiopien", en: "Ethiopia" },
-            "FJI": { de: "Fidschi", en: "Fiji" },
-            "FIN": { de: "Finnland", en: "Finland" },
-            "FRA": { de: "Frankreich", en: "France" },
-            "GAB": { de: "Gabun", en: "Gabon" },
-            "GMB": { de: "Gambia", en: "The Gambia" },
-            "GEO": { de: "Georgien", en: "Georgia" },
-            "DEU": { de: "Deutschland", en: "Germany" },
-            "GHA": { de: "Ghana", en: "Ghana" },
-            "GRC": { de: "Griechenland", en: "Greece" },
-            "GRD": { de: "Grenada", en: "Grenada", small: true },
-            "GTM": { de: "Guatemala", en: "Guatemala" },
-            "GIN": { de: "Guinea", en: "Guinea" },
-            "GNB": { de: "Guinea-Bissau", en: "Guinea-Bissau" },
-            "GUY": { de: "Guyana", en: "Guyana" },
-            "HTI": { de: "Haiti", en: "Haiti" },
-            "HND": { de: "Honduras", en: "Honduras" },
-            "HUN": { de: "Ungarn", en: "Hungary" },
-            "ISL": { de: "Island", en: "Iceland" },
-            "IND": { de: "Indien", en: "India" },
-            "IDN": { de: "Indonesien", en: "Indonesia" },
-            "IRN": { de: "Iran", en: "Iran" },
-            "IRQ": { de: "Irak", en: "Iraq" },
-            "IRL": { de: "Irland", en: "Ireland" },
-            "ISR": { de: "Israel", en: "Israel" },
-            "ITA": { de: "Italien", en: "Italy" },
-            "JAM": { de: "Jamaika", en: "Jamaica" },
-            "JPN": { de: "Japan", en: "Japan" },
-            "JOR": { de: "Jordanien", en: "Jordan" },
-            "KAZ": { de: "Kasachstan", en: "Kazakhstan" },
-            "KEN": { de: "Kenia", en: "Kenya" },
-            "KIR": { de: "Kiribati", en: "Kiribati", small: true },
-            "KWT": { de: "Kuwait", en: "Kuwait" },
-            "KGZ": { de: "Kirgisistan", en: "Kyrgyzstan" },
-            "LAO": { de: "Laos", en: "Laos" },
-            "LVA": { de: "Lettland", en: "Latvia" },
-            "LBN": { de: "Libanon", en: "Lebanon" },
-            "LSO": { de: "Lesotho", en: "Lesotho" },
-            "LBR": { de: "Liberia", en: "Liberia" },
-            "LBY": { de: "Libyen", en: "Libya" },
-            "LIE": { de: "Liechtenstein", en: "Liechtenstein", small: true },
-            "LTU": { de: "Litauen", en: "Lithuania" },
-            "LUX": { de: "Luxemburg", en: "Luxembourg", small: true },
-            "MDG": { de: "Madagaskar", en: "Madagascar" },
-            "MWI": { de: "Malawi", en: "Malawi" },
-            "MYS": { de: "Malaysia", en: "Malaysia" },
-            "MDV": { de: "Malediven", en: "Maldives", small: true },
-            "MLI": { de: "Mali", en: "Mali" },
-            "MLT": { de: "Malta", en: "Malta", small: true },
-            "MHL": { de: "Marshallinseln", en: "Marshall Islands", small: true },
-            "MRT": { de: "Mauretanien", en: "Mauritania" },
-            "MUS": { de: "Mauritius", en: "Mauritius", small: true },
-            "MEX": { de: "Mexiko", en: "Mexico" },
-            "FSM": { de: "Mikronesien", en: "Federated States of Micronesia", small: true },
-            "MDA": { de: "Moldawien", en: "Moldova" },
-            "MCO": { de: "Monaco", en: "Monaco", small: true },
-            "MNG": { de: "Mongolei", en: "Mongolia" },
-            "MNE": { de: "Montenegro", en: "Montenegro" },
-            "MAR": { de: "Marokko", en: "Morocco" },
-            "MOZ": { de: "Mosambik", en: "Mozambique" },
-            "MMR": { de: "Myanmar", en: "Myanmar" },
-            "NAM": { de: "Namibia", en: "Namibia" },
-            "NRU": { de: "Nauru", en: "Nauru", small: true },
-            "NPL": { de: "Nepal", en: "Nepal" },
-            "NLD": { de: "Niederlande", en: "Netherlands" },
-            "NZL": { de: "Neuseeland", en: "New Zealand" },
-            "NIC": { de: "Nicaragua", en: "Nicaragua" },
-            "NER": { de: "Niger", en: "Niger" },
-            "NGA": { de: "Nigeria", en: "Nigeria" },
-            "PRK": { de: "Nordkorea", en: "North Korea" },
-            "MKD": { de: "Nordmazedonien", en: "North Macedonia" },
-            "NOR": { de: "Norwegen", en: "Norway" },
-            "OMN": { de: "Oman", en: "Oman" },
-            "PAK": { de: "Pakistan", en: "Pakistan" },
-            "PLW": { de: "Palau", en: "Palau", small: true },
-            "PAN": { de: "Panama", en: "Panama" },
-            "PNG": { de: "Papua-Neuguinea", en: "Papua New Guinea" },
-            "PRY": { de: "Paraguay", en: "Paraguay" },
-            "PER": { de: "Peru", en: "Peru" },
-            "PHL": { de: "Philippinen", en: "Philippines" },
-            "POL": { de: "Polen", en: "Poland" },
-            "PRT": { de: "Portugal", en: "Portugal" },
-            "QAT": { de: "Katar", en: "Qatar" },
-            "ROU": { de: "Rumänien", en: "Romania" },
-            "RUS": { de: "Russland", en: "Russia" },
-            "RWA": { de: "Ruanda", en: "Rwanda" },
-            "KNA": { de: "St. Kitts und Nevis", en: "Saint Kitts and Nevis", small: true },
-            "LCA": { de: "St. Lucia", en: "Saint Lucia", small: true },
-            "VCT": { de: "St. Vincent und die Grenadinen", en: "Saint Vincent and the Grenadines", small: true },
-            "WSM": { de: "Samoa", en: "Samoa", small: true },
-            "SMR": { de: "San Marino", en: "San Marino", small: true },
-            "STP": { de: "São Tomé und Príncipe", en: "São Tomé and Príncipe", small: true },
-            "SAU": { de: "Saudi-Arabien", en: "Saudi Arabia" },
-            "SEN": { de: "Senegal", en: "Senegal" },
-            "SRB": { de: "Serbien", en: "Serbia" },
-            "SYC": { de: "Seychellen", en: "Seychelles", small: true },
-            "SLE": { de: "Sierra Leone", en: "Sierra Leone" },
-            "SGP": { de: "Singapur", en: "Singapore", small: true },
-            "SVK": { de: "Slowakei", en: "Slovakia" },
-            "SVN": { de: "Slowenien", en: "Slovenia" },
-            "SLB": { de: "Salomonen", en: "Solomon Islands" },
-            "SOM": { de: "Somalia", en: "Somalia" },
-            "ZAF": { de: "Südafrika", en: "South Africa" },
-            "KOR": { de: "Südkorea", en: "South Korea" },
-            "SSD": { de: "Südsudan", en: "South Sudan" },
-            "ESP": { de: "Spanien", en: "Spain" },
-            "LKA": { de: "Sri Lanka", en: "Sri Lanka" },
-            "SDN": { de: "Sudan", en: "Sudan" },
-            "SUR": { de: "Surinam", en: "Suriname" },
-            "SWE": { de: "Schweden", en: "Sweden" },
-            "CHE": { de: "Schweiz", en: "Switzerland" },
-            "SYR": { de: "Syrien", en: "Syria" },
-            "TWN": { de: "Taiwan", en: "Taiwan" },
-            "TJK": { de: "Tadschikistan", en: "Tajikistan" },
-            "TZA": { de: "Tansania", en: "Tanzania" },
-            "THA": { de: "Thailand", en: "Thailand" },
-            "TLS": { de: "Ost Timor", en: "East Timor" },
-            "TGO": { de: "Togo", en: "Togo" },
-            "TON": { de: "Tonga", en: "Tonga", small: true },
-            "TTO": { de: "Trinidad und Tobago", en: "Trinidad and Tobago" },
-            "TUN": { de: "Tunesien", en: "Tunisia" },
-            "TUR": { de: "Türkei", en: "Türkiye" },
-            "TKM": { de: "Turkmenistan", en: "Turkmenistan" },
-            "TUV": { de: "Tuvalu", en: "Tuvalu", small: true },
-            "UGA": { de: "Uganda", en: "Uganda" },
-            "UKR": { de: "Ukraine", en: "Ukraine" },
-            "ARE": { de: "Vereinigte Arabische Emirate", en: "United Arab Emirates" },
-            "GBR": { de: "Vereinigtes Königreich", en: "United Kingdom" },
-            "USA": { de: "USA", en: "United States" },
-            "URY": { de: "Uruguay", en: "Uruguay" },
-            "UZB": { de: "Usbekistan", en: "Uzbekistan" },
-            "VUT": { de: "Vanuatu", en: "Vanuatu" },
-            "VAT": { de: "Vatikanstadt", en: "Vatican City", small: true },
-            "VEN": { de: "Venezuela", en: "Venezuela" },
-            "VNM": { de: "Vietnam", en: "Vietnam" },
-            "ESH": { de: "West-Sahara", en: "Western Sahara" },
-            "YEM": { de: "Jemen", en: "Yemen" },
-            "ZMB": { de: "Sambia", en: "Zambia" },
-            "ZWE": { de: "Simbabwe", en: "Zimbabwe" }
-        };
-
-        // Top 50 ISO-Codes für den leichten Modus
-        const top50ISO = ["AFG","DZA","AGO","ARG","BGD","BRA","CHN","COD","DEU","FRA","GHA","IND","IDN","IRQ","IRN","ITA","JPN","YEM","CAN","KEN","COL","MYS","MAR","MEX","MOZ","MMR","NPL","NGA","PAK","PER","PHL","POL","RUS","SAU","ESP","SDN","ZAF","KOR","TZA","THA","TUR","USA","UGA","UKR","UZB","VEN","GBR","VNM","EGY","ETH"];
-
         const i18n = {
             de: {
                 subtitle: "Erkunde die Welt, meistere Geografie & lerne alle Länder.", startbtn: "Spiel starten", back: "Hauptmenü", sec1: "1. Spielmodus wählen", sec2: "2. Schwierigkeitsgrad", mode1: "Suchen & Klicken", mode2: "Erkennen & Benennen", diff1: "Bekannteste (Top 50)", diff2: "UN-Staaten (195)", diff3: "Seterra Style (225+)", diff4: "Alle Territorien (270+)", playbtn: "JETZT SPIELEN", quit: "Abbrechen", find: "Finde: ",
@@ -451,6 +248,8 @@
             }
         };
 
+        const top50ISO = ["AFG","DZA","AGO","ARG","BGD","BRA","CHN","COD","DEU","FRA","GHA","IND","IDN","IRQ","IRN","ITA","JPN","YEM","CAN","KEN","COL","MYS","MAR","MEX","MOZ","MMR","NPL","NGA","PAK","PER","PHL","POL","RUS","SAU","ESP","SDN","ZAF","KOR","TZA","THA","TUR","USA","UGA","UKR","UZB","VEN","GBR","VNM","EGY","ETH"];
+
         let currentLang = 'de', selectedMode = 'click', selectedDifficulty = 'easy';
         let timerInterval = null, secondsElapsed = 0;
         let map = null, insetCaribbean = null, insetOceania = null;
@@ -459,6 +258,7 @@
         let currentAttempts = 0;
         let solvedCountries = {}; 
         let totalAttemptsSpent = 0;
+        let mapLayers = [];
 
         function toggleLanguage() {
             currentLang = currentLang === 'de' ? 'en' : 'de';
@@ -489,16 +289,13 @@
             if (currentTarget) updatePrompt();
         }
 
-        function getFeatureISO(feature) {
-            return feature.id || feature.properties.iso_a3 || feature.properties.ISO_A3 || feature.properties.iso || "";
+        function getFeatureID(feature) {
+            return feature.properties.ADM0_A3 || feature.properties.ISO_A3 || feature.id || feature.properties.NAME || "UNK";
         }
 
         function getDisplayName(feature) {
-            const iso = getFeatureISO(feature);
-            if (countryDB[iso] && countryDB[iso][currentLang]) {
-                return countryDB[iso][currentLang];
-            }
-            return feature.properties.name || "Unbekannt";
+            if (!feature || !feature.properties) return "";
+            return feature.properties.NAME_DE || feature.properties.NAME_LONG || feature.properties.NAME || "Unbekannt";
         }
 
         function switchScreen(id) {
@@ -534,7 +331,8 @@
             insetCaribbean = L.map('inset-caribbean-map', { center: [15, -73], zoom: 4, zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false });
             insetOceania = L.map('inset-oceania-map', { center: [-15, 175], zoom: 3, zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false });
 
-            fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+            // HOCHPRÄZISER 10m NATURAL EARTH DATASET FÜR ALLE INSELN DER WELT
+            fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson')
                 .then(res => res.json())
                 .then(data => {
                     geoData = data;
@@ -547,26 +345,29 @@
         }
 
         function renderGeoJson(targetMap) {
-            L.geoJSON(geoData, {
+            const layerGroup = L.geoJSON(geoData, {
                 style: (feature) => {
-                    const iso = getFeatureISO(feature);
-                    const col = solvedCountries[iso] || '#162235';
-                    return { fillColor: col, fillOpacity: 1, color: '#2a3f5f', weight: 0.8 };
+                    const id = getFeatureID(feature);
+                    const col = solvedCountries[id] || '#162235';
+                    return { fillColor: col, fillOpacity: 1, color: '#2a3f5f', weight: 0.6 };
                 },
                 onEachFeature: (feature, layer) => {
                     layer.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature); });
 
-                    // Automatische Kreis-Marker für Klein- und Zwergstaaten
-                    const iso = getFeatureISO(feature);
-                    if (countryDB[iso] && countryDB[iso].small) {
-                        const bounds = layer.getBounds();
-                        if (bounds.isValid()) {
+                    // Automatische Marker-Generierung für Inseln/Kleinstaaten mit sehr kleiner Fläche
+                    const bounds = layer.getBounds();
+                    if (bounds.isValid()) {
+                        const areaWidth = bounds.getEast() - bounds.getWest();
+                        const areaHeight = bounds.getNorth() - bounds.getSouth();
+                        
+                        // Wenn es eine Insel oder ein Zwergstaat ist (kleiner als Threshold)
+                        if (areaWidth < 1.2 && areaHeight < 1.2) {
                             const center = bounds.getCenter();
                             const circle = L.circleMarker(center, {
-                                radius: 6,
-                                fillColor: solvedCountries[iso] || '#1cb0f6',
+                                radius: 5,
+                                fillColor: solvedCountries[getFeatureID(feature)] || '#1cb0f6',
                                 color: '#ffffff',
-                                weight: 1.5,
+                                weight: 1,
                                 fillOpacity: 0.9
                             });
                             circle.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature); });
@@ -575,6 +376,7 @@
                     }
                 }
             }).addTo(targetMap);
+            mapLayers.push(layerGroup);
         }
 
         function resetDeck() {
@@ -585,12 +387,11 @@
             if (!geoData) return;
 
             if (selectedDifficulty === 'easy') {
-                remainingDeck = geoData.features.filter(f => top50ISO.includes(getFeatureISO(f)));
-            } else if (selectedDifficulty === 'un' || selectedDifficulty === 'standard') {
-                // Alle in der Datenbank hinterlegten Hauptstaaten/Länder
-                remainingDeck = geoData.features.filter(f => countryDB[getFeatureISO(f)]);
+                remainingDeck = geoData.features.filter(f => top50ISO.includes(getFeatureID(f)));
+            } else if (selectedDifficulty === 'un') {
+                remainingDeck = geoData.features.filter(f => f.properties.TYPE === 'Sovereignty' || f.properties.TYPE === 'Country');
             } else {
-                // Alle Territorien
+                // Alle Inseln, Territorien & Kleinstaaten
                 remainingDeck = [...geoData.features];
             }
 
@@ -647,15 +448,15 @@
         }
 
         function handleCountryClick(feature) {
-            const targetISO = getFeatureISO(currentTarget);
-            const clickedISO = getFeatureISO(feature);
+            const targetID = getFeatureID(currentTarget);
+            const clickedID = getFeatureID(feature);
 
-            if (solvedCountries[targetISO]) return;
+            if (solvedCountries[targetID]) return;
 
             currentAttempts++;
             totalAttemptsSpent++;
 
-            const isCorrect = (clickedISO === targetISO);
+            const isCorrect = (clickedID === targetID);
 
             if (isCorrect) {
                 let color = '#ffffff'; // 1. Versuch (Weiß)
@@ -663,16 +464,15 @@
                 else if (currentAttempts === 3) color = '#ff9800'; // 3. Versuch (Orange)
                 else if (currentAttempts >= 4) color = '#ff4b4b'; // 4. Versuch (Rot)
 
-                solvedCountries[targetISO] = color;
+                solvedCountries[targetID] = color;
                 completedCount++;
                 updateCounter();
                 refreshAllMapStyles();
                 setTimeout(() => { nextRound(); }, 350);
             } else {
                 if (currentAttempts >= 4) {
-                    solvedCountries[targetISO] = '#ff4b4b'; 
+                    solvedCountries[targetID] = '#ff4b4b'; 
                     completedCount++;
-                    updateCounter();
                     updateCounter();
                     refreshAllMapStyles();
                     setTimeout(() => { nextRound(); }, 900);
@@ -681,12 +481,11 @@
         }
 
         function refreshAllMapStyles() {
-            [map, insetCaribbean, insetOceania].forEach(m => {
-                if (!m) return;
-                m.eachLayer(layer => {
+            mapLayers.forEach(layerGroup => {
+                layerGroup.eachLayer(layer => {
                     if (layer.feature) {
-                        const iso = getFeatureISO(layer.feature);
-                        const col = solvedCountries[iso] || '#162235';
+                        const id = getFeatureID(layer.feature);
+                        const col = solvedCountries[id] || '#162235';
                         if (layer.setStyle) layer.setStyle({ fillColor: col });
                     }
                 });
