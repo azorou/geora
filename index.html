@@ -24,9 +24,9 @@
             --text-main: #ffffff;
             --text-sub: #8295a9;
             --border-color: #233146;
-            --map-bg: #090e15;
-            --map-land: #1b2636;
-            --map-stroke: #2e405a;
+            --map-bg: #070b10;
+            --map-land: #162235;
+            --map-stroke: #2a3f5f;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; user-select: none; }
@@ -111,10 +111,7 @@
         }
         .inset-map { width: 100%; height: 100%; padding-top: 22px; }
 
-        .country-polygon { fill: var(--map-land); fill-opacity: 1; stroke: var(--map-stroke); stroke-width: 1; }
-        .country-polygon:hover { fill: #27384f; stroke: var(--accent-blue); stroke-width: 1.5; cursor: pointer; }
-
-        /* END SCREEN OVERLAY */
+        /* MODAL OVERLAY */
         .modal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(11, 16, 23, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -240,18 +237,208 @@
     </section>
 
     <script>
-        // Exakte DE und EN Listen
-        const listDE = {
-            easy: ["Afghanistan","Algerien","Angola","Argentinien","Bangladesch","Brasilien","China","Demokratische Republik Kongo","Deutschland","Frankreich","Ghana","Indien","Indonesien","Irak","Iran","Italien","Japan","Jemen","Kanada","Kenia","Kolumbien","Malaysia","Marokko","Mexiko","Mosambik","Myanmar","Nepal","Nigeria","Pakistan","Peru","Philippinen","Polen","Russland","Saudi-Arabien","Spanien","Sudan","Südafrika","Südkorea","Tansania","Thailand","Türkei","USA","Uganda","Ukraine","Usbekistan","Venezuela","Vereinigtes Königreich","Vietnam","Ägypten","Äthiopien"],
-            un: ["Afghanistan","Albanien","Algerien","Andorra","Angola","Antigua und Barbuda","Argentinien","Armenien","Aserbaidschan","Australien","Bahrain","Bangladesch","Barbados","Belarus","Belgien","Belize","Benin","Bhutan","Bolivien","Bosnien-Herzegowina","Botswana","Brasilien","Brunei","Bulgarien","Burkina Faso","Burundi","Chile","China","Costa Rica","Demokratische Republik Kongo","Deutschland","Die Bahamas","Dominica","Dominikanische Republik","Dschibuti","Dänemark","Ecuador","El Salvador","Elfenbeinküste","Eritrea","Estland","Eswatini","Fidschi","Finnland","Frankreich","Gabun","Gambia","Georgien","Ghana","Grenada","Griechenland","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Indien","Indonesien","Irak","Iran","Irland","Island","Israel","Italien","Jamaika","Japan","Jemen","Jordanien","Kambodscha","Kamerun","Kanada","Kap Verde","Kasachstan","Katar","Kenia","Kirgisistan","Kiribati","Kolumbien","Komoren","Kroatien","Kuba","Kuwait","Laos","Lesotho","Lettland","Libanon","Liberia","Libyen","Liechtenstein","Litauen","Luxemburg","Madagaskar","Malawi","Malaysia","Malediven","Mali","Malta","Marokko","Marshallinseln","Mauretanien","Mauritius","Mexiko","Mikronesien","Moldawien","Monaco","Mongolei","Montenegro","Mosambik","Myanmar","Namibia","Nauru","Nepal","Neuseeland","Nicaragua","Niederlande","Niger","Nigeria","Nordkorea","Nordmazedonien","Norwegen","Oman","Ost Timor","Pakistan","Palau","Palästina","Panama","Papua-Neuguinea","Paraguay","Peru","Philippinen","Polen","Portugal","Republik Kongo","Ruanda","Rumänien","Russland","Salomonen","Sambia","Samoa","San Marino","Saudi-Arabien","Schweden","Schweiz","Senegal","Serbien","Seychellen","Sierra Leone","Simbabwe","Singapur","Slowakei","Slowenien","Somalia","Spanien","Sri Lanka","St. Kitts und Nevis","St. Lucia","St. Vincent und die Grenadinen","Sudan","Surinam","Syrien","São Tomé und Príncipe","Südafrika","Südkorea","Südsudan","Tadschikistan","Tansania","Thailand","Togo","Tonga","Trinidad und Tobago","Tschad","Tschechien","Tunesien","Turkmenistan","Tuvalu","Türkei","USA","Uganda","Ukraine","Ungarn","Uruguay","Usbekistan","Vanuatu","Vatikanstadt","Venezuela","Vereinigte Arabische Emirate","Vereinigtes Königreich","Vietnam","Zentralafrikanische Republik","Zypern","Ägypten","Äquatorialguinea","Äthiopien","Österreich"],
-            standard: ["Abchasien","Afghanistan","Albanien","Algerien","Amerikanisch-Samoa","Amerikanische Jungferninseln","Andorra","Angola","Anguilla","Antigua und Barbuda","Argentinien","Armenien","Aruba","Aserbaidschan","Australien","Bahrain","Bangladesch","Barbados","Belarus","Belgien","Belize","Benin","Bhutan","Bolivien","Bonaire","Bosnien-Herzegowina","Botswana","Brasilien","Britische Jungferninseln","Brunei","Bulgarien","Burkina Faso","Burundi","Cayman Islands","Chile","China","Cookinseln","Costa Rica","Curaçao","Demokratische Republik Kongo","Deutschland","Die Bahamas","Dominica","Dominikanische Republik","Dschibuti","Dänemark","Ecuador","El Salvador","Elfenbeinküste","Eritrea","Estland","Eswatini","Fidschi","Finnland","Frankreich","Französisch-Polynesien","Gabun","Gambia","Georgien","Ghana","Grenada","Griechenland","Grönland","Guadeloupe","Guam","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Indien","Indonesien","Irak","Iran","Irland","Island","Israel","Italien","Jamaika","Japan","Jemen","Jordanien","Kambodscha","Kamerun","Kanada","Kap Verde","Kasachstan","Katar","Kenia","Kirgisistan","Kiribati","Kolumbien","Komoren","Kosovo","Kroatien","Kuba","Kuwait","Laos","Lesotho","Lettland","Libanon","Liberia","Libyen","Liechtenstein","Litauen","Luxemburg","Madagaskar","Malawi","Malaysia","Malediven","Mali","Malta","Marokko","Marshallinseln","Martinique","Mauretanien","Mauritius","Mexiko","Mikronesien","Moldawien","Monaco","Mongolei","Montenegro","Montserrat","Mosambik","Myanmar","Namibia","Nauru","Nepal","Neukaledonien","Neuseeland","Nicaragua","Niederlande","Niger","Nigeria","Niue","Nordkorea","Nordmazedonien","Norwegen","Nördliche Marianen","Oman","Ost Timor","Pakistan","Palau","Palästina","Panama","Papua-Neuguinea","Paraguay","Peru","Philippinen","Pitcairninseln","Polen","Portugal","Puerto Rico","Republik Kongo","Ruanda","Rumänien","Russland","Salomonen","Sambia","Samoa","San Marino","Saudi-Arabien","Schweden","Schweiz","Senegal","Serbien","Seychellen","Sierra Leone","Simbabwe","Singapur","Slowakei","Slowenien","Somalia","Somaliland","Spanien","Sri Lanka","St. Kitts und Nevis","St. Lucia","St. Vincent und die Grenadinen","Sudan","Surinam","Syrien","São Tomé und Príncipe","Südafrika","Südkorea","Südossetien","Südsudan","Tadschikistan","Taiwan","Tansania","Thailand","Togo","Tokelau","Tonga","Transnistrien","Trinidad und Tobago","Tschad","Tschechien","Tunesien","Turkmenistan","Turks- und Caicosinseln","Tuvalu","Türkei","USA","Uganda","Ukraine","Ungarn","Uruguay","Usbekistan","Vanuatu","Vatikanstadt","Venezuela","Vereinigte Arabische Emirate","Vereinigtes Königreich","Vietnam","Wallis und Futuna","West-Sahara","Zentralafrikanische Republik","Zypern","Ägypten","Äquatorialguinea","Äthiopien","Österreich"]
+        // UMFASSENDE ZENTRALE LÄNDER-DATENBANK (FÜR ALLE MODI & SPRACHEN)
+        const countryDB = {
+            "AFG": { de: "Afghanistan", en: "Afghanistan" },
+            "ALB": { de: "Albanien", en: "Albania" },
+            "DZA": { de: "Algerien", en: "Algeria" },
+            "AND": { de: "Andorra", en: "Andorra", small: true },
+            "AGO": { de: "Angola", en: "Angola" },
+            "ATG": { de: "Antigua und Barbuda", en: "Antigua and Barbuda", small: true },
+            "ARG": { de: "Argentinien", en: "Argentina" },
+            "ARM": { de: "Armenien", en: "Armenia" },
+            "AUS": { de: "Australien", en: "Australia" },
+            "AUT": { de: "Österreich", en: "Austria" },
+            "AZE": { de: "Aserbaidschan", en: "Azerbaijan" },
+            "BHS": { de: "Die Bahamas", en: "The Bahamas" },
+            "BHR": { de: "Bahrain", en: "Bahrain", small: true },
+            "BGD": { de: "Bangladesch", en: "Bangladesh" },
+            "BRB": { de: "Barbados", en: "Barbados", small: true },
+            "BLR": { de: "Belarus", en: "Belarus" },
+            "BEL": { de: "Belgien", en: "Belgium" },
+            "BLZ": { de: "Belize", en: "Belize" },
+            "BEN": { de: "Benin", en: "Benin" },
+            "BTN": { de: "Bhutan", en: "Bhutan" },
+            "BOL": { de: "Bolivien", en: "Bolivia" },
+            "BIH": { de: "Bosnien-Herzegowina", en: "Bosnia and Herzegovina" },
+            "BWA": { de: "Botswana", en: "Botswana" },
+            "BRA": { de: "Brasilien", en: "Brazil" },
+            "BRN": { de: "Brunei", en: "Brunei" },
+            "BGR": { de: "Bulgarien", en: "Bulgaria" },
+            "BFA": { de: "Burkina Faso", en: "Burkina Faso" },
+            "BDI": { de: "Burundi", en: "Burundi" },
+            "KHM": { de: "Kambodscha", en: "Cambodia" },
+            "CMR": { de: "Kamerun", en: "Cameroon" },
+            "CAN": { de: "Kanada", en: "Canada" },
+            "CPV": { de: "Kap Verde", en: "Cape Verde", small: true },
+            "CAF": { de: "Zentralafrikanische Republik", en: "Central African Republic" },
+            "TCD": { de: "Tschad", en: "Chad" },
+            "CHL": { de: "Chile", en: "Chile" },
+            "CHN": { de: "China", en: "China" },
+            "COL": { de: "Kolumbien", en: "Colombia" },
+            "COM": { de: "Komoren", en: "Comoros", small: true },
+            "COG": { de: "Republik Kongo", en: "Republic of the Congo" },
+            "COD": { de: "Demokratische Republik Kongo", en: "Democratic Republic of the Congo" },
+            "CRI": { de: "Costa Rica", en: "Costa Rica" },
+            "CIV": { de: "Elfenbeinküste", en: "Ivory Coast" },
+            "HRV": { de: "Kroatien", en: "Croatia" },
+            "CUB": { de: "Kuba", en: "Cuba" },
+            "CYP": { de: "Zypern", en: "Cyprus" },
+            "CZE": { de: "Tschechien", en: "Czech Republic" },
+            "DNK": { de: "Dänemark", en: "Denmark" },
+            "DJI": { de: "Dschibuti", en: "Djibouti" },
+            "DMA": { de: "Dominica", en: "Dominica", small: true },
+            "DOM": { de: "Dominikanische Republik", en: "Dominican Republic" },
+            "ECU": { de: "Ecuador", en: "Ecuador" },
+            "EGY": { de: "Ägypten", en: "Egypt" },
+            "SLV": { de: "El Salvador", en: "El Salvador" },
+            "GNQ": { de: "Äquatorialguinea", en: "Equatorial Guinea" },
+            "ERI": { de: "Eritrea", en: "Eritrea" },
+            "EST": { de: "Estland", en: "Estonia" },
+            "SWZ": { de: "Eswatini", en: "Eswatini" },
+            "ETH": { de: "Äthiopien", en: "Ethiopia" },
+            "FJI": { de: "Fidschi", en: "Fiji" },
+            "FIN": { de: "Finnland", en: "Finland" },
+            "FRA": { de: "Frankreich", en: "France" },
+            "GAB": { de: "Gabun", en: "Gabon" },
+            "GMB": { de: "Gambia", en: "The Gambia" },
+            "GEO": { de: "Georgien", en: "Georgia" },
+            "DEU": { de: "Deutschland", en: "Germany" },
+            "GHA": { de: "Ghana", en: "Ghana" },
+            "GRC": { de: "Griechenland", en: "Greece" },
+            "GRD": { de: "Grenada", en: "Grenada", small: true },
+            "GTM": { de: "Guatemala", en: "Guatemala" },
+            "GIN": { de: "Guinea", en: "Guinea" },
+            "GNB": { de: "Guinea-Bissau", en: "Guinea-Bissau" },
+            "GUY": { de: "Guyana", en: "Guyana" },
+            "HTI": { de: "Haiti", en: "Haiti" },
+            "HND": { de: "Honduras", en: "Honduras" },
+            "HUN": { de: "Ungarn", en: "Hungary" },
+            "ISL": { de: "Island", en: "Iceland" },
+            "IND": { de: "Indien", en: "India" },
+            "IDN": { de: "Indonesien", en: "Indonesia" },
+            "IRN": { de: "Iran", en: "Iran" },
+            "IRQ": { de: "Irak", en: "Iraq" },
+            "IRL": { de: "Irland", en: "Ireland" },
+            "ISR": { de: "Israel", en: "Israel" },
+            "ITA": { de: "Italien", en: "Italy" },
+            "JAM": { de: "Jamaika", en: "Jamaica" },
+            "JPN": { de: "Japan", en: "Japan" },
+            "JOR": { de: "Jordanien", en: "Jordan" },
+            "KAZ": { de: "Kasachstan", en: "Kazakhstan" },
+            "KEN": { de: "Kenia", en: "Kenya" },
+            "KIR": { de: "Kiribati", en: "Kiribati", small: true },
+            "KWT": { de: "Kuwait", en: "Kuwait" },
+            "KGZ": { de: "Kirgisistan", en: "Kyrgyzstan" },
+            "LAO": { de: "Laos", en: "Laos" },
+            "LVA": { de: "Lettland", en: "Latvia" },
+            "LBN": { de: "Libanon", en: "Lebanon" },
+            "LSO": { de: "Lesotho", en: "Lesotho" },
+            "LBR": { de: "Liberia", en: "Liberia" },
+            "LBY": { de: "Libyen", en: "Libya" },
+            "LIE": { de: "Liechtenstein", en: "Liechtenstein", small: true },
+            "LTU": { de: "Litauen", en: "Lithuania" },
+            "LUX": { de: "Luxemburg", en: "Luxembourg", small: true },
+            "MDG": { de: "Madagaskar", en: "Madagascar" },
+            "MWI": { de: "Malawi", en: "Malawi" },
+            "MYS": { de: "Malaysia", en: "Malaysia" },
+            "MDV": { de: "Malediven", en: "Maldives", small: true },
+            "MLI": { de: "Mali", en: "Mali" },
+            "MLT": { de: "Malta", en: "Malta", small: true },
+            "MHL": { de: "Marshallinseln", en: "Marshall Islands", small: true },
+            "MRT": { de: "Mauretanien", en: "Mauritania" },
+            "MUS": { de: "Mauritius", en: "Mauritius", small: true },
+            "MEX": { de: "Mexiko", en: "Mexico" },
+            "FSM": { de: "Mikronesien", en: "Federated States of Micronesia", small: true },
+            "MDA": { de: "Moldawien", en: "Moldova" },
+            "MCO": { de: "Monaco", en: "Monaco", small: true },
+            "MNG": { de: "Mongolei", en: "Mongolia" },
+            "MNE": { de: "Montenegro", en: "Montenegro" },
+            "MAR": { de: "Marokko", en: "Morocco" },
+            "MOZ": { de: "Mosambik", en: "Mozambique" },
+            "MMR": { de: "Myanmar", en: "Myanmar" },
+            "NAM": { de: "Namibia", en: "Namibia" },
+            "NRU": { de: "Nauru", en: "Nauru", small: true },
+            "NPL": { de: "Nepal", en: "Nepal" },
+            "NLD": { de: "Niederlande", en: "Netherlands" },
+            "NZL": { de: "Neuseeland", en: "New Zealand" },
+            "NIC": { de: "Nicaragua", en: "Nicaragua" },
+            "NER": { de: "Niger", en: "Niger" },
+            "NGA": { de: "Nigeria", en: "Nigeria" },
+            "PRK": { de: "Nordkorea", en: "North Korea" },
+            "MKD": { de: "Nordmazedonien", en: "North Macedonia" },
+            "NOR": { de: "Norwegen", en: "Norway" },
+            "OMN": { de: "Oman", en: "Oman" },
+            "PAK": { de: "Pakistan", en: "Pakistan" },
+            "PLW": { de: "Palau", en: "Palau", small: true },
+            "PAN": { de: "Panama", en: "Panama" },
+            "PNG": { de: "Papua-Neuguinea", en: "Papua New Guinea" },
+            "PRY": { de: "Paraguay", en: "Paraguay" },
+            "PER": { de: "Peru", en: "Peru" },
+            "PHL": { de: "Philippinen", en: "Philippines" },
+            "POL": { de: "Polen", en: "Poland" },
+            "PRT": { de: "Portugal", en: "Portugal" },
+            "QAT": { de: "Katar", en: "Qatar" },
+            "ROU": { de: "Rumänien", en: "Romania" },
+            "RUS": { de: "Russland", en: "Russia" },
+            "RWA": { de: "Ruanda", en: "Rwanda" },
+            "KNA": { de: "St. Kitts und Nevis", en: "Saint Kitts and Nevis", small: true },
+            "LCA": { de: "St. Lucia", en: "Saint Lucia", small: true },
+            "VCT": { de: "St. Vincent und die Grenadinen", en: "Saint Vincent and the Grenadines", small: true },
+            "WSM": { de: "Samoa", en: "Samoa", small: true },
+            "SMR": { de: "San Marino", en: "San Marino", small: true },
+            "STP": { de: "São Tomé und Príncipe", en: "São Tomé and Príncipe", small: true },
+            "SAU": { de: "Saudi-Arabien", en: "Saudi Arabia" },
+            "SEN": { de: "Senegal", en: "Senegal" },
+            "SRB": { de: "Serbien", en: "Serbia" },
+            "SYC": { de: "Seychellen", en: "Seychelles", small: true },
+            "SLE": { de: "Sierra Leone", en: "Sierra Leone" },
+            "SGP": { de: "Singapur", en: "Singapore", small: true },
+            "SVK": { de: "Slowakei", en: "Slovakia" },
+            "SVN": { de: "Slowenien", en: "Slovenia" },
+            "SLB": { de: "Salomonen", en: "Solomon Islands" },
+            "SOM": { de: "Somalia", en: "Somalia" },
+            "ZAF": { de: "Südafrika", en: "South Africa" },
+            "KOR": { de: "Südkorea", en: "South Korea" },
+            "SSD": { de: "Südsudan", en: "South Sudan" },
+            "ESP": { de: "Spanien", en: "Spain" },
+            "LKA": { de: "Sri Lanka", en: "Sri Lanka" },
+            "SDN": { de: "Sudan", en: "Sudan" },
+            "SUR": { de: "Surinam", en: "Suriname" },
+            "SWE": { de: "Schweden", en: "Sweden" },
+            "CHE": { de: "Schweiz", en: "Switzerland" },
+            "SYR": { de: "Syrien", en: "Syria" },
+            "TWN": { de: "Taiwan", en: "Taiwan" },
+            "TJK": { de: "Tadschikistan", en: "Tajikistan" },
+            "TZA": { de: "Tansania", en: "Tanzania" },
+            "THA": { de: "Thailand", en: "Thailand" },
+            "TLS": { de: "Ost Timor", en: "East Timor" },
+            "TGO": { de: "Togo", en: "Togo" },
+            "TON": { de: "Tonga", en: "Tonga", small: true },
+            "TTO": { de: "Trinidad und Tobago", en: "Trinidad and Tobago" },
+            "TUN": { de: "Tunesien", en: "Tunisia" },
+            "TUR": { de: "Türkei", en: "Türkiye" },
+            "TKM": { de: "Turkmenistan", en: "Turkmenistan" },
+            "TUV": { de: "Tuvalu", en: "Tuvalu", small: true },
+            "UGA": { de: "Uganda", en: "Uganda" },
+            "UKR": { de: "Ukraine", en: "Ukraine" },
+            "ARE": { de: "Vereinigte Arabische Emirate", en: "United Arab Emirates" },
+            "GBR": { de: "Vereinigtes Königreich", en: "United Kingdom" },
+            "USA": { de: "USA", en: "United States" },
+            "URY": { de: "Uruguay", en: "Uruguay" },
+            "UZB": { de: "Usbekistan", en: "Uzbekistan" },
+            "VUT": { de: "Vanuatu", en: "Vanuatu" },
+            "VAT": { de: "Vatikanstadt", en: "Vatican City", small: true },
+            "VEN": { de: "Venezuela", en: "Venezuela" },
+            "VNM": { de: "Vietnam", en: "Vietnam" },
+            "ESH": { de: "West-Sahara", en: "Western Sahara" },
+            "YEM": { de: "Jemen", en: "Yemen" },
+            "ZMB": { de: "Sambia", en: "Zambia" },
+            "ZWE": { de: "Simbabwe", en: "Zimbabwe" }
         };
 
-        const listEN = {
-            easy: ["Afghanistan","Algeria","Angola","Argentina","Bangladesh","Brazil","Canada","China","Colombia","Democratic Republic of the Congo","Egypt","Ethiopia","France","Germany","Ghana","India","Indonesia","Iran","Iraq","Italy","Japan","Kenya","Malaysia","Mexico","Morocco","Mozambique","Myanmar","Nepal","Nigeria","Pakistan","Peru","Philippines","Poland","Russia","Saudi Arabia","South Africa","South Korea","Spain","Sudan","Tanzania","Thailand","Türkiye","Uganda","Ukraine","United Kingdom","United States","Uzbekistan","Venezuela","Vietnam","Yemen"],
-            un: ["Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic","Chad","Chile","China","Colombia","Comoros","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic (Czechia)","Democratic Republic of the Congo","Denmark","Djibouti","Dominica","Dominican Republic","East Timor","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Ivory Coast","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Republic of the Congo","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","São Tomé and Príncipe","Tajikistan","Tanzania","Thailand","The Bahamas","The Gambia","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkmenistan","Tuvalu","Türkiye","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe","Federated States of Micronesia"],
-            standard: ["Abkhazia","Afghanistan","Albania","Algeria","American Samoa","Andorra","Angola","Anguilla","Antigua and Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivien","Bonaire","Bosnia and Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central African Republic","Chad","Chile","China","Colombia","Comoros","Cook Islands","Costa Rica","Croatia","Cuba","Curaçao","Cyprus","Czech Republic (Czechia)","Democratic Republic of the Congo","Denmark","Djibouti","Dominica","Dominican Republic","East Timor","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","French Polynesia","Gabon","Georgia","Germany","Ghana","Greece","Greenland","Grenada","Guadeloupe","Guam","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Ivory Coast","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Martinique","Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","Niue","North Korea","North Macedonia","Northern Mariana Islands","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Pitcairn Islands","Poland","Portugal","Puerto Rico","Qatar","Republic of the Congo","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","Somaliland","South Africa","South Korea","South Ossetia","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","São Tomé and Príncipe","Taiwan","Tajikistan","Tanzania","Thailand","The Bahamas","The Gambia","Togo","Tokelau","Tonga","Transnistria","Trinidad and Tobago","Tunisia","Turkmenistan","Turks and Caicos Islands","Tuvalu","Türkiye","US Virgin Islands","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Wallis and Futuna","Western Sahara","Yemen","Zambia","Zimbabwe","Federated States of Micronesia"]
-        };
+        // Top 50 ISO-Codes für den leichten Modus
+        const top50ISO = ["AFG","DZA","AGO","ARG","BGD","BRA","CHN","COD","DEU","FRA","GHA","IND","IDN","IRQ","IRN","ITA","JPN","YEM","CAN","KEN","COL","MYS","MAR","MEX","MOZ","MMR","NPL","NGA","PAK","PER","PHL","POL","RUS","SAU","ESP","SDN","ZAF","KOR","TZA","THA","TUR","USA","UGA","UKR","UZB","VEN","GBR","VNM","EGY","ETH"];
 
         const i18n = {
             de: {
@@ -302,31 +489,16 @@
             if (currentTarget) updatePrompt();
         }
 
-        // Hilfsfunktion zur Bereinigung und sprachgenauen Zuordnung
-        function normalizeString(str) {
-            if (!str) return "";
-            return str.toLowerCase().replace(/[\(\)].*?[\(\)]/g, '').replace(/[^a-zäöüß]/g, '');
+        function getFeatureISO(feature) {
+            return feature.id || feature.properties.iso_a3 || feature.properties.ISO_A3 || feature.properties.iso || "";
         }
 
-        function getTargetDisplayName(feature) {
-            if (!feature || !feature.properties) return "";
-            const geoName = feature.properties.name || feature.properties.ADMIN || "";
-            const currentListEN = listEN[selectedDifficulty] || listEN.easy;
-            const currentListDE = listDE[selectedDifficulty] || listDE.easy;
-
-            // Finde Index über normalisierten Namen
-            const normGeo = normalizeString(geoName);
-            let idx = currentListEN.findIndex(item => normalizeString(item) === normGeo);
-            
-            if (idx === -1) {
-                // Alternativ über deutsche Liste suchen
-                idx = currentListDE.findIndex(item => normalizeString(item) === normGeo);
+        function getDisplayName(feature) {
+            const iso = getFeatureISO(feature);
+            if (countryDB[iso] && countryDB[iso][currentLang]) {
+                return countryDB[iso][currentLang];
             }
-
-            if (idx !== -1) {
-                return currentLang === 'de' ? currentListDE[idx] : currentListEN[idx];
-            }
-            return geoName;
+            return feature.properties.name || "Unbekannt";
         }
 
         function switchScreen(id) {
@@ -362,7 +534,6 @@
             insetCaribbean = L.map('inset-caribbean-map', { center: [15, -73], zoom: 4, zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false });
             insetOceania = L.map('inset-oceania-map', { center: [-15, 175], zoom: 3, zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false });
 
-            // Nutzen eines umfassenden GeoJSON-Datasets für alle Länder und Kleinstaaten
             fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
                 .then(res => res.json())
                 .then(data => {
@@ -378,15 +549,30 @@
         function renderGeoJson(targetMap) {
             L.geoJSON(geoData, {
                 style: (feature) => {
-                    const col = solvedCountries[feature.id] || '#1b2636';
-                    return { fillColor: col, fillOpacity: 1, color: '#2e405a', weight: 1 };
-                },
-                pointToLayer: (feature, latlng) => {
-                    const col = solvedCountries[feature.id] || '#1cb0f6';
-                    return L.circleMarker(latlng, { radius: 6, fillColor: col, color: '#ffffff', weight: 1.5, fillOpacity: 0.9 });
+                    const iso = getFeatureISO(feature);
+                    const col = solvedCountries[iso] || '#162235';
+                    return { fillColor: col, fillOpacity: 1, color: '#2a3f5f', weight: 0.8 };
                 },
                 onEachFeature: (feature, layer) => {
                     layer.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature); });
+
+                    // Automatische Kreis-Marker für Klein- und Zwergstaaten
+                    const iso = getFeatureISO(feature);
+                    if (countryDB[iso] && countryDB[iso].small) {
+                        const bounds = layer.getBounds();
+                        if (bounds.isValid()) {
+                            const center = bounds.getCenter();
+                            const circle = L.circleMarker(center, {
+                                radius: 6,
+                                fillColor: solvedCountries[iso] || '#1cb0f6',
+                                color: '#ffffff',
+                                weight: 1.5,
+                                fillOpacity: 0.9
+                            });
+                            circle.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature); });
+                            circle.addTo(targetMap);
+                        }
+                    }
                 }
             }).addTo(targetMap);
         }
@@ -398,17 +584,14 @@
 
             if (!geoData) return;
 
-            if (selectedDifficulty === 'all') {
-                remainingDeck = [...geoData.features];
+            if (selectedDifficulty === 'easy') {
+                remainingDeck = geoData.features.filter(f => top50ISO.includes(getFeatureISO(f)));
+            } else if (selectedDifficulty === 'un' || selectedDifficulty === 'standard') {
+                // Alle in der Datenbank hinterlegten Hauptstaaten/Länder
+                remainingDeck = geoData.features.filter(f => countryDB[getFeatureISO(f)]);
             } else {
-                const activeEN = listEN[selectedDifficulty] || [];
-                const activeDE = listDE[selectedDifficulty] || [];
-                const normActiveSet = new Set([...activeEN.map(normalizeString), ...activeDE.map(normalizeString)]);
-
-                remainingDeck = geoData.features.filter(f => {
-                    const featName = f.properties.name || "";
-                    return normActiveSet.has(normalizeString(featName));
-                });
+                // Alle Territorien
+                remainingDeck = [...geoData.features];
             }
 
             totalDeckSize = remainingDeck.length;
@@ -446,7 +629,7 @@
 
         function updatePrompt() {
             if (!currentTarget) return;
-            document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${getTargetDisplayName(currentTarget)}`;
+            document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${getDisplayName(currentTarget)}`;
             currentAttempts = 0;
         }
 
@@ -464,28 +647,32 @@
         }
 
         function handleCountryClick(feature) {
-            if (solvedCountries[currentTarget.id]) return;
+            const targetISO = getFeatureISO(currentTarget);
+            const clickedISO = getFeatureISO(feature);
+
+            if (solvedCountries[targetISO]) return;
 
             currentAttempts++;
             totalAttemptsSpent++;
 
-            const isCorrect = (feature.id === currentTarget.id || normalizeString(feature.properties.name) === normalizeString(currentTarget.properties.name));
+            const isCorrect = (clickedISO === targetISO);
 
             if (isCorrect) {
                 let color = '#ffffff'; // 1. Versuch (Weiß)
                 if (currentAttempts === 2) color = '#ffeb3b'; // 2. Versuch (Gelb)
                 else if (currentAttempts === 3) color = '#ff9800'; // 3. Versuch (Orange)
-                else if (currentAttempts >= 4) color = '#f44336'; // 4. Versuch (Rot)
+                else if (currentAttempts >= 4) color = '#ff4b4b'; // 4. Versuch (Rot)
 
-                solvedCountries[currentTarget.id] = color;
+                solvedCountries[targetISO] = color;
                 completedCount++;
                 updateCounter();
                 refreshAllMapStyles();
                 setTimeout(() => { nextRound(); }, 350);
             } else {
                 if (currentAttempts >= 4) {
-                    solvedCountries[currentTarget.id] = '#f44336'; 
+                    solvedCountries[targetISO] = '#ff4b4b'; 
                     completedCount++;
+                    updateCounter();
                     updateCounter();
                     refreshAllMapStyles();
                     setTimeout(() => { nextRound(); }, 900);
@@ -498,7 +685,8 @@
                 if (!m) return;
                 m.eachLayer(layer => {
                     if (layer.feature) {
-                        const col = solvedCountries[layer.feature.id] || '#1b2636';
+                        const iso = getFeatureISO(layer.feature);
+                        const col = solvedCountries[iso] || '#162235';
                         if (layer.setStyle) layer.setStyle({ fillColor: col });
                     }
                 });
