@@ -30,36 +30,39 @@
             --map-land: #162235;
             --map-inactive: #0d1117;
             --map-stroke: #2a3f5f;
-            --inset-bg: #e2e8f0;
-            --inset-title-bg: #cbd5e1;
-            --inset-title-color: #0f172a;
+            --inset-bg: #0f172a;
+            --inset-title-bg: #1e293b;
+            --inset-title-color: #f8fafc;
+            --label-color: #ffffff;
+            --label-shadow: rgba(0, 0, 0, 0.9);
         }
 
-        /* LIGHT MODE */
+        /* LIGHT MODE FARBEN */
         body.light-mode {
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-main: #0f172a;
             --text-sub: #64748b;
-            --border-color: #e2e8f0;
-            --map-bg: #f1f5f9;
-            --map-land: #cbd5e1;
-            --map-inactive: #e2e8f0;
+            --border-color: #cbd5e1;
+            --map-bg: #e2e8f0;
+            --map-land: #ffffff;
+            --map-inactive: #cbd5e1;
             --map-stroke: #94a3b8;
-            --inset-bg: #f1f5f9;
-            --inset-title-bg: #e2e8f0;
-            --inset-title-color: #1e293b;
+            --inset-bg: #e2e8f0;
+            --inset-title-bg: #cbd5e1;
+            --inset-title-color: #0f172a;
+            --label-color: #0f172a;
+            --label-shadow: rgba(255, 255, 255, 0.9);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; user-select: none; }
         body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: background 0.3s, color 0.3s; }
 
-        /* OPTIMIERUNG FÜR 1440p & 4K */
         @media (min-width: 1400px) {
             body {
                 max-width: 1600px;
                 margin: 0 auto;
-                box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+                box-shadow: 0 0 60px rgba(0, 0, 0, 0.3);
                 border-left: 2px solid var(--border-color);
                 border-right: 2px solid var(--border-color);
             }
@@ -88,14 +91,14 @@
         .top-controls { display: flex; align-items: center; gap: 12px; }
 
         .icon-btn {
-            background: rgba(255, 255, 255, 0.06); border: 2px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.05); border: 2px solid var(--border-color);
             border-radius: 14px; padding: 6px 12px; font-weight: 800; font-size: 0.9rem; cursor: pointer; color: var(--text-main);
             display: flex; align-items: center; gap: 6px;
         }
         .icon-btn:hover { background: rgba(28, 176, 246, 0.1); border-color: var(--accent-blue); }
 
         .stat-badge {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.05); border: 1px solid var(--border-color);
             padding: 6px 12px; border-radius: 12px; font-weight: 800; font-size: 0.9rem;
         }
 
@@ -116,22 +119,23 @@
         .option-card:hover, .option-card.selected { border-color: var(--accent-blue); background: rgba(28, 176, 246, 0.1); }
 
         #game-screen { position: relative; flex: 1; display: flex; flex-direction: column; padding: 15px; background: var(--bg-color); }
+        
         .game-prompt-bar {
             position: absolute; top: 25px; left: 50%; transform: translateX(-50%); z-index: 1000;
             background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 20px;
-            padding: 10px 22px; display: flex; align-items: center; gap: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            min-width: 360px; justify-content: space-between;
+            padding: 10px 24px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25); min-width: 260px;
         }
         .prompt-text { font-size: 1.25rem; font-weight: 800; }
 
         .map-frame-wrapper {
             position: relative; width: 100%; height: 100%;
             border: 3px solid var(--border-color); border-radius: 20px; overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); background-color: var(--map-bg);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); background-color: var(--map-bg);
         }
         #map-container { width: 100%; height: 100%; background-color: var(--map-bg); }
 
-        /* HELLGRAUE FOKUS-BOXEN */
+        /* FOKUS-BOXEN */
         .inset-map-box {
             position: absolute; bottom: 35px; z-index: 1001;
             width: 260px; height: 180px;
@@ -162,24 +166,23 @@
         .resize-handle.bl { bottom: 0; left: 0; cursor: nesw-resize; }
         .resize-handle.br { bottom: 0; right: 0; cursor: nwse-resize; }
 
-        /* TEMPORÄRE LÄNDER-LABELS */
+        /* DEZENTER TEXT DIREKT IM LAND (TEMPORÄR) */
         .leaflet-tooltip.country-label-temp {
-            background: rgba(15, 23, 42, 0.85) !important;
-            border: 1px solid var(--accent-blue) !important;
-            border-radius: 6px !important;
-            color: #ffffff !important;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 2px 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: var(--label-color) !important;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-shadow: 0 1px 3px var(--label-shadow), 0 0 3px var(--label-shadow);
             pointer-events: none;
             animation: fadeInOut 1.5s ease forwards;
         }
 
         @keyframes fadeInOut {
             0% { opacity: 0; transform: scale(0.9); }
-            15% { opacity: 1; transform: scale(1); }
-            85% { opacity: 1; transform: scale(1); }
+            20% { opacity: 1; transform: scale(1); }
+            80% { opacity: 1; transform: scale(1); }
             100% { opacity: 0; transform: scale(0.9); }
         }
 
@@ -193,7 +196,7 @@
         .end-card {
             background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 28px;
             padding: 30px 35px; max-width: 460px; width: 100%; text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6); animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4); animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         @keyframes modalPop {
@@ -208,7 +211,7 @@
         }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .stat-box { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-color); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+        .stat-box { background: rgba(0, 0, 0, 0.04); border: 1px solid var(--border-color); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
         .stat-box-val { font-size: 2rem; font-weight: 900; }
         .stat-box-label { font-size: 0.8rem; font-weight: 800; color: var(--text-sub); text-transform: uppercase; }
         .end-actions { display: flex; flex-direction: column; gap: 10px; }
@@ -218,7 +221,7 @@
         @media (max-width: 768px) {
             .inset-map-box { display: none !important; }
             .game-prompt-bar {
-                top: 12px; min-width: calc(100% - 30px); padding: 8px 14px; border-radius: 16px; gap: 10px;
+                top: 12px; min-width: calc(100% - 30px); padding: 8px 14px; border-radius: 16px;
             }
             .prompt-text { font-size: 0.95rem; }
             .hero-title { font-size: 2.5rem; }
@@ -235,16 +238,20 @@
             <div id="game-stats-container" style="display: none; align-items: center; gap: 8px;">
                 <div class="stat-badge">🚩 <span id="country-counter">0 / 0</span></div>
                 <div class="stat-badge">⏱️ <span id="global-timer">00:00</span></div>
+                <button class="btn-3d btn-red" style="padding: 6px 12px; font-size: 0.8rem;" onclick="quitGame()">✖️ <span id="i18n-quit">Abbrechen</span></button>
             </div>
-            <button class="icon-btn" onclick="switchScreen('settings-screen')">⚙️ <span id="i18n-settings-btn">Einstellungen</span></button>
+            <button class="icon-btn" id="settings-top-btn" onclick="switchScreen('settings-screen')">⚙️ <span id="i18n-settings-btn">Einstellungen</span></button>
         </div>
     </header>
 
-    <!-- HAUPTMENÜ MIT COMING SOON PLATZHALTERN -->
+    <!-- STARTSEITE -->
     <section id="main-menu" class="screen active">
         <h1 class="hero-title">GEORA</h1>
         <p class="hero-subtitle" id="i18n-subtitle">Erkunde die Welt, meistere Geografie & lerne alle Länder.</p>
-        <button class="btn-3d" style="width: 280px;" onclick="switchScreen('mode-selection')">🎮 <span id="i18n-startbtn">Spiel starten</span></button>
+        
+        <button class="btn-3d" style="width: 280px;" onclick="switchScreen('mode-selection')">
+            🗺️ <span id="i18n-startbtn">Länder-Quiz</span>
+        </button>
 
         <div style="margin-top: 30px; width: 100%;">
             <div class="section-title" id="i18n-comingsoon" style="font-size: 0.85rem; margin-bottom: 8px;">Demnächst verfügbar</div>
@@ -263,7 +270,7 @@
         </div>
     </section>
 
-    <!-- EINSTELLUNGEN SCREEN -->
+    <!-- EINSTELLUNGEN -->
     <section id="settings-screen" class="screen">
         <div class="config-container">
             <button class="btn-3d btn-blue" style="padding: 6px 14px; font-size: 0.85rem;" onclick="switchScreen('main-menu')">← <span id="i18n-back">Hauptmenü</span></button>
@@ -283,7 +290,7 @@
         </div>
     </section>
 
-    <!-- MODUS & SCHWIERIGKEIT -->
+    <!-- MODUS-AUSWAHL -->
     <section id="mode-selection" class="screen">
         <div class="config-container">
             <button class="btn-3d btn-blue" style="padding: 6px 14px; font-size: 0.85rem;" onclick="switchScreen('main-menu')">← <span id="i18n-back2">Hauptmenü</span></button>
@@ -308,11 +315,10 @@
         </div>
     </section>
 
-    <!-- SPIELBILDSCHIRM -->
+    <!-- GAME SCREEN -->
     <section id="game-screen" class="screen">
         <div class="game-prompt-bar">
             <div id="target-prompt" class="prompt-text">Finde: Deutschland</div>
-            <button class="btn-3d btn-red" style="padding: 6px 12px; font-size: 0.8rem;" onclick="quitGame()">✖️ <span id="i18n-quit">Abbrechen</span></button>
         </div>
 
         <div class="map-frame-wrapper">
@@ -359,12 +365,12 @@
     <script>
         const i18n = {
             de: {
-                subtitle: "Erkunde die Welt, meistere Geografie & lerne alle Länder.", startbtn: "Spiel starten", back: "Hauptmenü", sec1: "1. Spielmodus wählen", sec2: "2. Schwierigkeitsgrad", mode1: "Pin", mode2: "Eingabe", diff1: "Bekannteste (Top 50)", diff2: "UN-Staaten (195)", diff3: "Länder & Territorien (225)", diff4: "Alle Territorien (258)", playbtn: "JETZT SPIELEN", quit: "Abbrechen", find: "Finde: ",
+                subtitle: "Erkunde die Welt, meistere Geografie & lerne alle Länder.", startbtn: "Länder-Quiz", back: "Hauptmenü", sec1: "1. Spielmodus wählen", sec2: "2. Schwierigkeitsgrad", mode1: "Pin", mode2: "Eingabe", diff1: "Bekannteste (Top 50)", diff2: "UN-Staaten (195)", diff3: "Länder & Territorien (225)", diff4: "Alle Territorien (258)", playbtn: "JETZT SPIELEN", quit: "Abbrechen", find: "Finde: ",
                 congrats: "🎉 RUNDE VOLLENDET!", accLabel: "Genauigkeit", timeLabel: "Gesamtzeit", replay: "Nochmal spielen", viewmap: "Karte ansehen", home: "Hauptmenü", showsummary: "Ergebnis anzeigen",
                 settings: "Einstellungen", comingsoon: "Demnächst verfügbar", secLang: "Sprache / Language", secTheme: "Design / Theme"
             },
             en: {
-                subtitle: "Explore the world, master geography & learn all countries.", startbtn: "Start Game", back: "Main Menu", sec1: "1. Select Game Mode", sec2: "2. Difficulty", mode1: "Pin", mode2: "Type", diff1: "Top 50 Known", diff2: "UN States (195)", diff3: "Countries & Territories (225)", diff4: "All Territories (258)", playbtn: "PLAY NOW", quit: "Quit", find: "Find: ",
+                subtitle: "Explore the world, master geography & learn all countries.", startbtn: "Country Quiz", back: "Main Menu", sec1: "1. Select Game Mode", sec2: "2. Difficulty", mode1: "Pin", mode2: "Type", diff1: "Top 50 Known", diff2: "UN States (195)", diff3: "Countries & Territories (225)", diff4: "All Territories (258)", playbtn: "PLAY NOW", quit: "Quit", find: "Find: ",
                 congrats: "🎉 ROUND COMPLETED!", accLabel: "Accuracy", timeLabel: "Total Time", replay: "Play Again", viewmap: "View Map", home: "Main Menu", showsummary: "Show Results",
                 settings: "Settings", comingsoon: "Coming Soon", secLang: "Language", secTheme: "Theme"
             }
@@ -373,7 +379,7 @@
         const top50ISO = ["AFG","DZA","AGO","ARG","BGD","BRA","CHN","COD","DEU","FRA","GHA","IND","IDN","IRQ","IRN","ITA","JPN","YEM","CAN","KEN","COL","MYS","MAR","MEX","MOZ","MMR","NPL","NGA","PAK","PER","PHL","POL","RUS","SAU","ESP","SDN","ZAF","KOR","TZA","THA","TUR","USA","UGA","UKR","UZB","VEN","GBR","VNM","EGY","ETH"];
 
         let currentLang = 'de', selectedMode = 'click', selectedDifficulty = 'easy';
-        let currentTheme = 'system'; // 'system', 'dark', 'light'
+        let currentTheme = 'system';
         let timerInterval = null, secondsElapsed = 0;
         let map = null, insetCaribbean = null, insetOceania = null;
         let currentTarget = null, geoData = null, remainingDeck = [];
@@ -385,23 +391,23 @@
         let activeCircleMarkers = [];
         let validModeIDs = new Set();
 
-        // THEME LOGIC
         function setTheme(theme) {
             currentTheme = theme;
             localStorage.setItem('geora-theme', theme);
             updateThemeUI();
             applyTheme();
+            if (map) renderAllMaps();
+        }
+
+        function isLightModeActive() {
+            if (currentTheme === 'light') return true;
+            if (currentTheme === 'dark') return false;
+            return !window.matchMedia('(prefers-color-scheme: dark)').matches;
         }
 
         function applyTheme() {
-            if (currentTheme === 'system') {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.body.classList.toggle('light-mode', !prefersDark);
-            } else if (currentTheme === 'light') {
-                document.body.classList.add('light-mode');
-            } else {
-                document.body.classList.remove('light-mode');
-            }
+            const isLight = isLightModeActive();
+            document.body.classList.toggle('light-mode', isLight);
         }
 
         function updateThemeUI() {
@@ -412,10 +418,12 @@
         }
 
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-            if (currentTheme === 'system') applyTheme();
+            if (currentTheme === 'system') {
+                applyTheme();
+                if (map) renderAllMaps();
+            }
         });
 
-        // LANGUAGE LOGIC
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('geora-lang', lang);
@@ -453,10 +461,6 @@
             document.getElementById('i18n-sec-theme').textContent = i18n[currentLang].secTheme;
 
             if (currentTarget) updatePrompt();
-        }
-
-        function toggleLanguage() {
-            setLanguage(currentLang === 'de' ? 'en' : 'de');
         }
 
         function getFeatureID(feature) {
@@ -521,11 +525,22 @@
                 });
         }
 
+        function getMapColors() {
+            const isLight = isLightModeActive();
+            return {
+                active: isLight ? '#ffffff' : '#162235',
+                inactive: isLight ? '#cbd5e1' : '#0d1117',
+                stroke: isLight ? '#94a3b8' : '#2a3f5f'
+            };
+        }
+
         function renderAllMaps() {
             geoJsonLayers.forEach(l => l.remove());
             geoJsonLayers = [];
             activeCircleMarkers.forEach(m => m.remove());
             activeCircleMarkers = [];
+
+            const mapColors = getMapColors();
 
             [map, insetCaribbean, insetOceania].forEach(targetMap => {
                 if (!targetMap) return;
@@ -534,13 +549,9 @@
                         const id = getFeatureID(feature);
                         let col = solvedCountries[id];
                         if (!col) {
-                            if (validModeIDs.has(id)) {
-                                col = currentTheme === 'light' || (!document.body.classList.contains('light-mode') && currentTheme==='system' && !window.matchMedia('(prefers-color-scheme: dark)').matches) ? '#cbd5e1' : '#162235';
-                            } else {
-                                col = currentTheme === 'light' || (!document.body.classList.contains('light-mode') && currentTheme==='system' && !window.matchMedia('(prefers-color-scheme: dark)').matches) ? '#e2e8f0' : '#0d1117';
-                            }
+                            col = validModeIDs.has(id) ? mapColors.active : mapColors.inactive;
                         }
-                        return { fillColor: col, fillOpacity: 1, color: '#2a3f5f', weight: 0.6 };
+                        return { fillColor: col, fillOpacity: 1, color: mapColors.stroke, weight: 0.6 };
                     },
                     onEachFeature: (feature, layer) => {
                         layer.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature, layer); });
@@ -621,6 +632,7 @@
             document.getElementById('reopen-modal-btn').style.display = 'none';
             
             document.getElementById('game-stats-container').style.display = 'flex';
+            document.getElementById('settings-top-btn').style.display = 'none';
             
             if (window.innerWidth > 768) {
                 document.getElementById('box-caribbean').style.display = 'flex';
@@ -645,6 +657,7 @@
             document.getElementById('reopen-modal-btn').style.display = 'none';
 
             document.getElementById('game-stats-container').style.display = 'none';
+            document.getElementById('settings-top-btn').style.display = 'flex';
             document.getElementById('box-caribbean').style.display = 'none';
             document.getElementById('box-oceania').style.display = 'none';
 
@@ -674,21 +687,20 @@
             updatePrompt();
         }
 
-        // TEMPORÄRES ANZEIGEN DES NAMENS BEIM KLICK (UND WIEDER AUSBLLEDEN)
         function handleCountryClick(feature, layer) {
             const targetID = getFeatureID(currentTarget);
             const clickedID = getFeatureID(feature);
 
-            // Temporäres Label einblenden und nach 1.5s wieder schließen
+            // Kurz den Namen als schlichten Text im Land einblenden
             layer.bindTooltip(getDisplayName(feature), {
-                permanent: false,
+                permanent: true,
                 direction: 'center',
                 className: 'country-label-temp'
             }).openTooltip();
 
             setTimeout(() => {
-                if (layer && layer.closeTooltip) {
-                    layer.closeTooltip();
+                if (layer && layer.unbindTooltip) {
+                    layer.unbindTooltip();
                 }
             }, 1500);
 
@@ -722,15 +734,16 @@
         }
 
         function refreshAllMapStyles() {
+            const mapColors = getMapColors();
             geoJsonLayers.forEach(geoLayer => {
                 geoLayer.eachLayer(layer => {
                     if (layer.feature) {
                         const id = getFeatureID(layer.feature);
                         let col = solvedCountries[id];
                         if (!col) {
-                            col = validModeIDs.has(id) ? '#162235' : '#0d1117';
+                            col = validModeIDs.has(id) ? mapColors.active : mapColors.inactive;
                         }
-                        if (layer.setStyle) layer.setStyle({ fillColor: col });
+                        if (layer.setStyle) layer.setStyle({ fillColor: col, color: mapColors.stroke });
                     }
                 });
             });
@@ -767,13 +780,11 @@
             document.getElementById('reopen-modal-btn').style.display = 'inline-flex';
         }
 
-        // INITIALISIERUNG BEIM LADEN
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('geora-theme') || 'system';
             const savedLang = localStorage.getItem('geora-lang') || 'de';
             setTheme(savedTheme);
             setLanguage(savedLang);
-            updateThemeUI();
 
             if (window.ResizeObserver) {
                 const ro = new ResizeObserver(() => {
