@@ -88,7 +88,7 @@
             height: 60px; background: var(--card-bg); border-bottom: 2px solid var(--border-color);
             display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000;
         }
-        .logo { font-size: 1.5rem; font-weight: 900; color: var(--accent-blue); display: flex; align-items: center; gap: 8px; }
+        .logo { font-size: 1.5rem; font-weight: 900; color: var(--accent-blue); display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .top-controls { display: flex; align-items: center; gap: 12px; }
 
         .icon-btn {
@@ -231,7 +231,7 @@
 <body>
 
     <header class="top-bar">
-        <div class="logo"><span>🌍</span> GEORA</div>
+        <div class="logo" onclick="switchScreen('main-menu')"><span>🌍</span> GEORA</div>
         <div class="top-controls">
             <div id="game-stats-container" style="display: none; align-items: center; gap: 8px;">
                 <div class="stat-badge">🚩 <span id="country-counter">0 / 0</span></div>
@@ -637,6 +637,7 @@
             totalDeckSize = remainingDeck.length;
             completedCount = 0;
             solvedCountries = {};
+            totalAttemptsSpent = 0;
             updateCounter();
             renderAllMaps();
         }
@@ -688,12 +689,10 @@
                 document.getElementById('country-type-input').value = '';
                 document.getElementById('country-type-input').focus();
                 
-                // Hints
                 if (currentAttempts === 0) {
                     document.getElementById('hint-display').textContent = "_ ".repeat(name.length);
                 }
             }
-            currentAttempts = 0;
         }
 
         function nextRound() {
@@ -710,6 +709,7 @@
         function handleCountryClick(feature) {
             if (!currentTarget) return;
             currentAttempts++;
+            totalAttemptsSpent++;
 
             const targetID = getFeatureID(currentTarget);
             const clickedID = getFeatureID(feature);
@@ -727,7 +727,6 @@
                 updateCounter();
                 refreshAllMapStyles();
 
-                // Temp Label
                 showTempLabel(currentTarget, getDisplayName(currentTarget));
 
                 setTimeout(() => {
@@ -743,6 +742,7 @@
             const targetID = getFeatureID(currentTarget);
 
             currentAttempts++;
+            totalAttemptsSpent++;
 
             let acceptedNames = [targetName];
             if (countrySynonyms[targetID]) {
@@ -764,7 +764,6 @@
                     nextRound();
                 }, 600);
             } else {
-                // Hint logic
                 if (currentAttempts === 1) {
                     document.getElementById('hint-display').textContent = targetName.charAt(0).toUpperCase() + " " + "_ ".repeat(targetName.length - 1);
                 } else if (currentAttempts === 2) {
@@ -780,7 +779,6 @@
         }
 
         function showTempLabel(feature, text) {
-            // Find latlng center or geometry center
             try {
                 let layerGroup = L.geoJSON(feature);
                 let center = layerGroup.getBounds().getCenter();
@@ -810,8 +808,7 @@
         function endGame() {
             clearInterval(timerInterval);
             const accuracy = Math.round((totalDeckSize / (totalDeckSize + totalAttemptsSpent)) * 100) || 100;
-            document.getElementById('end-accuracy.textContent') // safety
-            document.getElementById('end-accuracy').textContent = `${Math.max(accuracy, 25)}%`;
+            document.getElementById('end-accuracy').textContent = `${Math.max(Math.min(accuracy, 100), 10)}%`;
             document.getElementById('end-time').textContent = document.getElementById('global-timer').textContent;
             document.getElementById('end-modal').classList.add('active');
             document.getElementById('reopen-modal-btn').style.display = 'block';
@@ -833,7 +830,6 @@
         // Dragging & Resizing Inset Maps
         let activeBox = null, resizeDir = null, startX = 0, startY = 0, startW = 0, startH = 0, startL = 0, startT = 0;
 
-        document.querySelectorAll('.inset-title').titleBar = true;
         document.addEventListener('mousedown', (e) => {
             if (e.target.closest('.inset-title')) {
                 activeBox = e.target.closest('.inset-map-box');
@@ -879,6 +875,58 @@
         });
 
         document.addEventListener('mouseup', () => {
+            activeBox = null; resizeDir = null;
+        });
+
+        // Touch support for dragging and resizing
+        document.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            if (e.target.closest('.inset-title')) {
+                activeBox = e.target.closest('.inset-map-box');
+                const rect = activeBox.getBoundingClientRect();
+                startX = touch.clientX; startY = touch.clientY;
+                startL = rect.left; startT = rect.top;
+                e.preventDefault();
+            } else if (e.target.classList.contains('resize-handle')) {
+                activeBox = document.getElementById(e.target.dataset.box);
+                resizeDir = e.target.dataset.dir;
+                const rect = activeBox.getBoundingClientRect();
+                startX = touch.clientX; startY = touch.clientY;
+                startW = rect.width; startH = rect.height;
+                startL = rect.left; startT = rect.top;
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!activeBox) return;
+            const touch = e.touches[0];
+            if (resizeDir) {
+                let dx = touch.clientX - startX, dy = touch.clientY - startY;
+                if (resizeDir.includes('r')) activeBox.style.width = Math.max(150, startW + dx) + 'px';
+                if (resizeDir.includes('b')) activeBox.style.height = Math.max(110, startH + dy) + 'px';
+                if (resizeDir.includes('l')) {
+                    let w = Math.max(150, startW - dx);
+                    activeBox.style.width = w + 'px';
+                    activeBox.style.left = (startL + (startW - w)) + 'px';
+                }
+                if (resizeDir.includes('t')) {
+                    let h = Math.max(110, startH - dy);
+                    activeBox.style.height = h + 'px';
+                    activeBox.style.top = (startT + (startH - h)) + 'px';
+                }
+                if (insetCaribbean) insetCaribbean.invalidateSize();
+                if (insetOceania) insetOceania.invalidateSize();
+            } else {
+                let dx = touch.clientX - startX, dy = touch.clientY - startY;
+                activeBox.style.left = (startL + dx) + 'px';
+                activeBox.style.bottom = 'auto';
+                activeBox.style.top = (startT + dy) + 'px';
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('touchend', () => {
             activeBox = null; resizeDir = null;
         });
 
