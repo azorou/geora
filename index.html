@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Geora - Das Geografie-Quiz</title>
 
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0b1017">
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -300,6 +303,14 @@
             }
         };
 
+        if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then((reg) => console.log('Service Worker registriert!', reg))
+            .catch((err) => console.log('Service Worker Fehler:', err));
+    });
+}
+        
         const top50ISO = ["AFG","DZA","AGO","ARG","BGD","BRA","CHN","COD","DEU","FRA","GHA","IND","IDN","IRQ","IRN","ITA","JPN","YEM","CAN","KEN","COL","MYS","MAR","MEX","MOZ","MMR","NPL","NGA","PAK","PER","PHL","POL","RUS","SAU","ESP","SDN","ZAF","KOR","TZA","THA","TUR","USA","UGA","UKR","UZB","VEN","GBR","VNM","EGY","ETH"];
 
         let currentLang = 'de', selectedMode = 'click', selectedDifficulty = 'easy';
