@@ -35,9 +35,9 @@
             --inset-title-color: #f8fafc;
             --label-color: #ffffff;
             --label-shadow: rgba(0, 0, 0, 0.9);
+            --correct-color-1: #ffffff;
         }
 
-        /* LIGHT MODE FARBEN */
         body.light-mode {
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
@@ -53,6 +53,7 @@
             --inset-title-color: #0f172a;
             --label-color: #0f172a;
             --label-shadow: rgba(255, 255, 255, 0.9);
+            --correct-color-1: #22c55e; /* Gut sichtbares Grün im Lightmode statt Weiß */
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; user-select: none; }
@@ -123,10 +124,22 @@
         .game-prompt-bar {
             position: absolute; top: 25px; left: 50%; transform: translateX(-50%); z-index: 1000;
             background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 20px;
-            padding: 10px 24px; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25); min-width: 260px;
+            padding: 10px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25); min-width: 320px; max-width: 90%;
         }
-        .prompt-text { font-size: 1.25rem; font-weight: 800; }
+        .prompt-text { font-size: 1.2rem; font-weight: 800; text-align: center; }
+
+        /* INPUT MODE STYLES */
+        .type-input-container {
+            display: flex; gap: 8px; width: 100%; margin-top: 4px;
+        }
+        .type-input {
+            flex: 1; background: var(--bg-color); border: 2px solid var(--border-color);
+            border-radius: 12px; padding: 8px 14px; color: var(--text-main);
+            font-size: 1rem; font-weight: 700; outline: none; transition: border-color 0.2s;
+            user-select: text;
+        }
+        .type-input:focus { border-color: var(--accent-blue); }
 
         .map-frame-wrapper {
             position: relative; width: 100%; height: 100%;
@@ -135,7 +148,6 @@
         }
         #map-container { width: 100%; height: 100%; background-color: var(--map-bg); }
 
-        /* FOKUS-BOXEN */
         .inset-map-box {
             position: absolute; bottom: 35px; z-index: 1001;
             width: 260px; height: 180px;
@@ -166,7 +178,6 @@
         .resize-handle.bl { bottom: 0; left: 0; cursor: nesw-resize; }
         .resize-handle.br { bottom: 0; right: 0; cursor: nwse-resize; }
 
-        /* DEZENTER TEXT DIREKT IM LAND (TEMPORÄR) */
         .leaflet-tooltip.country-label-temp {
             background: transparent !important;
             border: none !important;
@@ -319,6 +330,10 @@
     <section id="game-screen" class="screen">
         <div class="game-prompt-bar">
             <div id="target-prompt" class="prompt-text">Finde: Deutschland</div>
+            <div id="type-input-wrap" class="type-input-container" style="display: none;">
+                <input type="text" id="country-type-input" class="type-input" placeholder="Land eingeben..." autocomplete="off" spellcheck="false">
+                <button class="btn-3d btn-blue" style="padding: 8px 16px; font-size: 0.85rem;" onclick="submitCountryGuess()">OK</button>
+            </div>
         </div>
 
         <div class="map-frame-wrapper">
@@ -366,17 +381,22 @@
         const i18n = {
             de: {
                 subtitle: "Erkunde die Welt, meistere Geografie & lerne alle Länder.", startbtn: "Länder-Quiz", back: "Hauptmenü", sec1: "1. Spielmodus wählen", sec2: "2. Schwierigkeitsgrad", mode1: "Pin", mode2: "Eingabe", diff1: "Bekannteste (Top 50)", diff2: "UN-Staaten (195)", diff3: "Länder & Territorien (225)", diff4: "Alle Territorien (258)", playbtn: "JETZT SPIELEN", quit: "Abbrechen", find: "Finde: ",
+                typePrompt: "Welches Land ist hervorgehoben?", typePlaceholder: "Land eingeben...",
                 congrats: "🎉 RUNDE VOLLENDET!", accLabel: "Genauigkeit", timeLabel: "Gesamtzeit", replay: "Nochmal spielen", viewmap: "Karte ansehen", home: "Hauptmenü", showsummary: "Ergebnis anzeigen",
                 settings: "Einstellungen", comingsoon: "Demnächst verfügbar", secLang: "Sprache / Language", secTheme: "Design / Theme"
             },
             en: {
                 subtitle: "Explore the world, master geography & learn all countries.", startbtn: "Country Quiz", back: "Main Menu", sec1: "1. Select Game Mode", sec2: "2. Difficulty", mode1: "Pin", mode2: "Type", diff1: "Top 50 Known", diff2: "UN States (195)", diff3: "Countries & Territories (225)", diff4: "All Territories (258)", playbtn: "PLAY NOW", quit: "Quit", find: "Find: ",
+                typePrompt: "Which country is highlighted?", typePlaceholder: "Enter country name...",
                 congrats: "🎉 ROUND COMPLETED!", accLabel: "Accuracy", timeLabel: "Total Time", replay: "Play Again", viewmap: "View Map", home: "Main Menu", showsummary: "Show Results",
                 settings: "Settings", comingsoon: "Coming Soon", secLang: "Language", secTheme: "Theme"
             }
         };
 
         const top50ISO = ["AFG","DZA","AGO","ARG","BGD","BRA","CHN","COD","DEU","FRA","GHA","IND","IDN","IRQ","IRN","ITA","JPN","YEM","CAN","KEN","COL","MYS","MAR","MEX","MOZ","MMR","NPL","NGA","PAK","PER","PHL","POL","RUS","SAU","ESP","SDN","ZAF","KOR","TZA","THA","TUR","USA","UGA","UKR","UZB","VEN","GBR","VNM","EGY","ETH"];
+
+        // Liste der Ozeanien-Länder für gestrichelte Insel-Abgrenzungen (wie im Bild)
+        const oceaniaISOs = ["FJI","SLB","VUT","FSM","KIR","NRU","PLW","TON","TUV","WSM","FJI","MHL","NCL","PYF","COK","NIU","TKL","WLF"];
 
         let currentLang = 'de', selectedMode = 'click', selectedDifficulty = 'easy';
         let currentTheme = 'system';
@@ -460,6 +480,8 @@
             document.getElementById('i18n-sec-lang').textContent = i18n[currentLang].secLang;
             document.getElementById('i18n-sec-theme').textContent = i18n[currentLang].secTheme;
 
+            document.getElementById('country-type-input').placeholder = i18n[currentLang].typePlaceholder;
+
             if (currentTarget) updatePrompt();
         }
 
@@ -530,7 +552,8 @@
             return {
                 active: isLight ? '#ffffff' : '#162235',
                 inactive: isLight ? '#cbd5e1' : '#0d1117',
-                stroke: isLight ? '#94a3b8' : '#2a3f5f'
+                stroke: isLight ? '#94a3b8' : '#2a3f5f',
+                correct1: isLight ? '#22c55e' : '#ffffff' // Smaragdgrün im Lightmode
             };
         }
 
@@ -548,10 +571,27 @@
                     style: (feature) => {
                         const id = getFeatureID(feature);
                         let col = solvedCountries[id];
+
+                        // Eingabe-Modus: Gesuchtes Land gelb hervorheben
+                        if (selectedMode === 'type' && currentTarget && id === getFeatureID(currentTarget)) {
+                            return { fillColor: '#ffc800', fillOpacity: 1, color: '#1cb0f6', weight: 2 };
+                        }
+
                         if (!col) {
                             col = validModeIDs.has(id) ? mapColors.active : mapColors.inactive;
                         }
-                        return { fillColor: col, fillOpacity: 1, color: mapColors.stroke, weight: 0.6 };
+
+                        // Gestrichelte Linien für Ozeanien-Inselgruppen (wie auf dem Bild)
+                        const isOceaniaIsland = oceaniaISOs.includes(id);
+                        const isDashed = isOceaniaIsland ? '4, 4' : null;
+
+                        return { 
+                            fillColor: col, 
+                            fillOpacity: 1, 
+                            color: isOceaniaIsland ? '#1cb0f6' : mapColors.stroke, 
+                            weight: isOceaniaIsland ? 1.2 : 0.6,
+                            dashArray: isDashed
+                        };
                     },
                     onEachFeature: (feature, layer) => {
                         layer.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature, layer); });
@@ -634,6 +674,14 @@
             document.getElementById('game-stats-container').style.display = 'flex';
             document.getElementById('settings-top-btn').style.display = 'none';
             
+            // UI an Spielmodus anpassen (Eingabefeld oder Pin-Prompt)
+            const typeContainer = document.getElementById('type-input-wrap');
+            if (selectedMode === 'type') {
+                typeContainer.style.display = 'flex';
+            } else {
+                typeContainer.style.display = 'none';
+            }
+
             if (window.innerWidth > 768) {
                 document.getElementById('box-caribbean').style.display = 'flex';
                 document.getElementById('box-oceania').style.display = 'flex';
@@ -670,8 +718,71 @@
 
         function updatePrompt() {
             if (!currentTarget) return;
-            document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${getDisplayName(currentTarget)}`;
+            if (selectedMode === 'type') {
+                document.getElementById('target-prompt').textContent = i18n[currentLang].typePrompt;
+                const inputEl = document.getElementById('country-type-input');
+                inputEl.value = '';
+                inputEl.focus();
+                // Fokus auf das gesuchte Land setzen
+                zoomToTargetCountry(currentTarget);
+            } else {
+                document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${getDisplayName(currentTarget)}`;
+            }
             currentAttempts = 0;
+            refreshAllMapStyles();
+        }
+
+        function zoomToTargetCountry(feature) {
+            if (!map || !feature) return;
+            const tempLayer = L.geoJSON(feature);
+            const bounds = tempLayer.getBounds();
+            if (bounds.isValid()) {
+                map.flyToBounds(bounds, { maxZoom: 5, padding: [50, 50], duration: 0.8 });
+            }
+        }
+
+        function normalizeText(text) {
+            return (text || "")
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+                .replace(/[^a-z0-9]/g, "").trim();
+        }
+
+        // EINGABE-PRÜFUNG FÜR EINGABE-MODUS
+        function submitCountryGuess() {
+            if (!currentTarget || selectedMode !== 'type') return;
+
+            const inputEl = document.getElementById('country-type-input');
+            const userGuess = normalizeText(inputEl.value);
+            if (!userGuess) return;
+
+            const targetDE = normalizeText(currentTarget.properties.NAME_DE);
+            const targetEN = normalizeText(currentTarget.properties.NAME);
+            const targetLONG = normalizeText(currentTarget.properties.NAME_LONG);
+            const targetISO = normalizeText(currentTarget.properties.ADM0_A3);
+
+            currentAttempts++;
+            totalAttemptsSpent++;
+
+            const isCorrect = [targetDE, targetEN, targetLONG, targetISO].includes(userGuess);
+
+            if (isCorrect) {
+                const mapColors = getMapColors();
+                let color = mapColors.correct1;
+                if (currentAttempts === 2) color = '#ffeb3b';
+                else if (currentAttempts === 3) color = '#ff9800';
+                else if (currentAttempts >= 4) color = '#ff4b4b';
+
+                solvedCountries[getFeatureID(currentTarget)] = color;
+                completedCount++;
+                updateCounter();
+                inputEl.value = '';
+                nextRound();
+            } else {
+                inputEl.style.borderColor = 'var(--accent-red)';
+                setTimeout(() => { inputEl.style.borderColor = 'var(--border-color)'; }, 600);
+            }
         }
 
         function nextRound() {
@@ -691,7 +802,6 @@
             const targetID = getFeatureID(currentTarget);
             const clickedID = getFeatureID(feature);
 
-            // Kurz den Namen als schlichten Text im Land einblenden
             layer.bindTooltip(getDisplayName(feature), {
                 permanent: true,
                 direction: 'center',
@@ -712,7 +822,8 @@
             const isCorrect = (clickedID === targetID);
 
             if (isCorrect) {
-                let color = '#ffffff'; 
+                const mapColors = getMapColors();
+                let color = mapColors.correct1; 
                 if (currentAttempts === 2) color = '#ffeb3b'; 
                 else if (currentAttempts === 3) color = '#ff9800'; 
                 else if (currentAttempts >= 4) color = '#ff4b4b'; 
@@ -740,10 +851,23 @@
                     if (layer.feature) {
                         const id = getFeatureID(layer.feature);
                         let col = solvedCountries[id];
+
+                        if (selectedMode === 'type' && currentTarget && id === getFeatureID(currentTarget)) {
+                            layer.setStyle({ fillColor: '#ffc800', color: '#1cb0f6', weight: 2 });
+                            return;
+                        }
+
                         if (!col) {
                             col = validModeIDs.has(id) ? mapColors.active : mapColors.inactive;
                         }
-                        if (layer.setStyle) layer.setStyle({ fillColor: col, color: mapColors.stroke });
+
+                        const isOceaniaIsland = oceaniaISOs.includes(id);
+                        layer.setStyle({ 
+                            fillColor: col, 
+                            color: isOceaniaIsland ? '#1cb0f6' : mapColors.stroke,
+                            weight: isOceaniaIsland ? 1.2 : 0.6,
+                            dashArray: isOceaniaIsland ? '4, 4' : null
+                        });
                     }
                 });
             });
@@ -785,6 +909,11 @@
             const savedLang = localStorage.getItem('geora-lang') || 'de';
             setTheme(savedTheme);
             setLanguage(savedLang);
+
+            // Enter-Taste für Eingabefeld abfangen
+            document.getElementById('country-type-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitCountryGuess();
+            });
 
             if (window.ResizeObserver) {
                 const ro = new ResizeObserver(() => {
