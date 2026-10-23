@@ -1,0 +1,15 @@
+{
+  "name": "Geora - Das Geografie-Quiz",
+  "short_name": "Geora",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1017",
+  "theme_color": "#0b1017",
+  "icons": [
+    {
+      "src": "https://images.emojiterra.com/google/android-11/512px/1f30d.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
