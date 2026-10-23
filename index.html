@@ -154,7 +154,7 @@
             background: var(--inset-bg);
             border: 2px solid var(--accent-blue); border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            display: none;
+            display: flex;
             flex-direction: column;
             overflow: hidden;
             touch-action: none;
@@ -168,12 +168,6 @@
             flex-shrink: 0; touch-action: none;
         }
         .inset-map { flex: 1; width: 100%; height: 100%; background: var(--inset-bg); }
-
-        .resize-handle { position: absolute; width: 20px; height: 20px; z-index: 1005; background: transparent; touch-action: none; }
-        .resize-handle.tl { top: 0; left: 0; cursor: nwse-resize; }
-        .resize-handle.tr { top: 0; right: 0; cursor: nesw-resize; }
-        .resize-handle.bl { bottom: 0; left: 0; cursor: nesw-resize; }
-        .resize-handle.br { bottom: 0; right: 0; cursor: nwse-resize; }
 
         .leaflet-tooltip.country-label-temp {
             background: transparent !important; border: none !important; box-shadow: none !important;
@@ -330,19 +324,11 @@
 
         <div class="inset-map-box inset-caribbean" id="box-caribbean">
             <div class="inset-title" id="title-carib"><span>🏝️ Karibik-Fokus</span> ✥</div>
-            <div class="resize-handle tl" data-box="box-caribbean" data-dir="tl"></div>
-            <div class="resize-handle tr" data-box="box-caribbean" data-dir="tr"></div>
-            <div class="resize-handle bl" data-box="box-caribbean" data-dir="bl"></div>
-            <div class="resize-handle br" data-box="box-caribbean" data-dir="br"></div>
             <div id="inset-caribbean-map" class="inset-map"></div>
         </div>
 
         <div class="inset-map-box inset-oceania" id="box-oceania">
             <div class="inset-title" id="title-oceania"><span>🌊 Ozeanien-Fokus</span> ✥</div>
-            <div class="resize-handle tl" data-box="box-oceania" data-dir="tl"></div>
-            <div class="resize-handle tr" data-box="box-oceania" data-dir="tr"></div>
-            <div class="resize-handle bl" data-box="box-oceania" data-dir="bl"></div>
-            <div class="resize-handle br" data-box="box-oceania" data-dir="br"></div>
             <div id="inset-oceania-map" class="inset-map"></div>
         </div>
 
@@ -391,24 +377,6 @@
         };
 
         const top50ISO = ["AFG","DZA","AGO","ARG","BGD","BRA","CHN","COD","DEU","FRA","GHA","IND","IDN","IRQ","IRN","ITA","JPN","YEM","CAN","KEN","COL","MYS","MAR","MEX","MOZ","MMR","NPL","NGA","PAK","PER","PHL","POL","RUS","SAU","ESP","SDN","ZAF","KOR","TZA","THA","TUR","USA","UGA","UKR","UZB","VEN","GBR","VNM","EGY","ETH"];
-        const oceaniaCodes = ["NRU", "KIR", "TUV", "FJI", "PLW", "MHL", "FSM", "WSM", "TON", "VUT", "SLB", "PNG"];
-
-        const countrySynonyms = {
-            "USA": ["usa", "us", "vereinigte staaten", "vereinigte staaten von amerika", "united states", "united states of america", "america", "amerika"],
-            "ARE": ["vae", "uae", "vereinigte arabische emirate", "united arab emirates", "emirate", "emirates"],
-            "GBR": ["uk", "gb", "grossbritannien", "großbritannien", "great britain", "united kingdom", "england"],
-            "COD": ["dr kongo", "drc", "kongo dr", "demokratische republik kongo", "democratic republic of the congo", "congo drc"],
-            "COG": ["kongo", "republik kongo", "congo", "republic of the congo"],
-            "CHN": ["china", "prc", "volksrepublik china", "peoples republic of china"],
-            "RUS": ["russland", "russia", "russische foderation", "russian federation"],
-            "DEU": ["deutschland", "germany"],
-            "FRA": ["frankreich", "france"],
-            "ESP": ["spanien", "spain"],
-            "ITA": ["italien", "italy"],
-            "NLD": ["niederlande", "netherlands", "holland"],
-            "PRK": ["nordkorea", "north korea"],
-            "KOR": ["suedkorea", "südkorea", "south korea", "korea"]
-        };
 
         let currentLang = 'de', selectedMode = 'click', selectedDifficulty = 'easy';
         let currentTheme = 'system';
@@ -495,16 +463,9 @@
             if (currentTarget) updatePrompt();
         }
 
-        function getFeatureID(feature) {
-            return feature.properties.ADM0_A3 || feature.properties.ISO_A3 || feature.id || feature.properties.NAME || "UNK";
-        }
-
         function getDisplayName(feature) {
             if (!feature || !feature.properties) return "";
-            if (currentLang === 'en') {
-                return feature.properties.NAME_LONG || feature.properties.NAME || "Unknown";
-            }
-            return feature.properties.NAME_DE || feature.properties.NAME_LONG || feature.properties.NAME || "Unbekannt";
+            return feature.properties.name || feature.properties.NAME || "Land";
         }
 
         function switchScreen(id) {
@@ -552,7 +513,7 @@
                 dragging: true, touchZoom: true, doubleClickZoom: true, scrollWheelZoom: true, preferCanvas: true
             });
 
-            fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+            fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
                 .then(res => res.json())
                 .then(data => {
                     geoData = data;
@@ -581,10 +542,9 @@
                 
                 L.geoJSON(geoData, {
                     style: (feature) => {
-                        const id = getFeatureID(feature);
+                        const id = feature.id || feature.properties.name;
                         const isActive = validModeIDs.has(id);
                         const colors = getMapColors();
-                        const isOceaniaGroup = (feature.properties.REGION === 'Oceania' || oceaniaCodes.includes(id));
 
                         if (!isActive && selectedDifficulty !== 'all') {
                             return { fillColor: colors.inactive, fillOpacity: 0.6, color: colors.stroke, weight: 0.5 };
@@ -593,13 +553,12 @@
                         return {
                             fillColor: solvedCountries[id] || colors.active,
                             fillOpacity: 1,
-                            color: isOceaniaGroup ? '#6366f1' : colors.stroke,
-                            weight: isOceaniaGroup ? 1.5 : 1,
-                            dashArray: isOceaniaGroup ? '3, 3' : null
+                            color: colors.stroke,
+                            weight: 1
                         };
                     },
                     pointToLayer: (feature, latlng) => {
-                        const id = getFeatureID(feature);
+                        const id = feature.id || feature.properties.name;
                         const isActive = validModeIDs.has(id);
                         if (!isActive && selectedDifficulty !== 'all') return null;
 
@@ -608,7 +567,7 @@
                         return L.circleMarker(latlng, { radius: 5, fillColor: col, color: '#ffffff', weight: 1, fillOpacity: 1 });
                     },
                     onEachFeature: (feature, layer) => {
-                        const id = getFeatureID(feature);
+                        const id = feature.id || feature.properties.name;
                         if (selectedDifficulty !== 'all' && !validModeIDs.has(id)) return;
                         layer.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature); });
                     }
@@ -622,9 +581,8 @@
             let features = geoData.features;
 
             if (selectedDifficulty === 'easy') {
-                features = features.filter(f => top50ISO.includes(getFeatureID(f)));
+                features = features.filter(f => top50ISO.includes(f.id));
             } else if (selectedDifficulty === 'un') {
-                features = features.filter(f => f.properties.UN_A3 || f.properties.ISO_A3 === 'USA' || top50ISO.includes(getFeatureID(f)));
                 features = features.slice(0, 195);
             } else if (selectedDifficulty === 'standard') {
                 features = features.slice(0, 225);
@@ -632,7 +590,7 @@
                 features = [...geoData.features];
             }
 
-            features.forEach(f => validModeIDs.add(getFeatureID(f)));
+            features.forEach(f => validModeIDs.add(f.id || f.properties.name));
             remainingDeck = [...features];
             totalDeckSize = remainingDeck.length;
             completedCount = 0;
@@ -711,8 +669,8 @@
             currentAttempts++;
             totalAttemptsSpent++;
 
-            const targetID = getFeatureID(currentTarget);
-            const clickedID = getFeatureID(feature);
+            const targetID = currentTarget.id || currentTarget.properties.name;
+            const clickedID = feature.id || feature.properties.name;
             const isCorrect = (clickedID === targetID || feature.properties.name === currentTarget.properties.name);
 
             const colors = getMapColors();
@@ -739,17 +697,12 @@
             if (!currentTarget) return;
             const inputVal = document.getElementById('country-type-input').value.trim().toLowerCase();
             const targetName = getDisplayName(currentTarget).toLowerCase();
-            const targetID = getFeatureID(currentTarget);
+            const targetID = currentTarget.id || currentTarget.properties.name;
 
             currentAttempts++;
             totalAttemptsSpent++;
 
-            let acceptedNames = [targetName];
-            if (countrySynonyms[targetID]) {
-                acceptedNames = acceptedNames.concat(countrySynonyms[targetID]);
-            }
-
-            const isCorrect = acceptedNames.some(n => inputVal === n.toLowerCase());
+            const isCorrect = (inputVal === targetName);
 
             if (isCorrect || currentAttempts >= 4) {
                 const colors = getMapColors();
@@ -795,7 +748,7 @@
                 if (!m) return;
                 m.eachLayer(layer => {
                     if (layer.feature) {
-                        const id = getFeatureID(layer.feature);
+                        const id = layer.feature.id || layer.feature.properties.name;
                         const colors = getMapColors();
                         const col = solvedCountries[id] || (validModeIDs.has(id) || selectedDifficulty === 'all' ? colors.active : colors.inactive);
                         if (layer.setStyle) layer.setStyle({ fillColor: col });
@@ -827,8 +780,8 @@
             startGame();
         }
 
-        // Dragging & Resizing Inset Maps
-        let activeBox = null, resizeDir = null, startX = 0, startY = 0, startW = 0, startH = 0, startL = 0, startT = 0;
+        // Dragging Inset Maps
+        let activeBox = null, startX = 0, startY = 0, startL = 0, startT = 0;
 
         document.addEventListener('mousedown', (e) => {
             if (e.target.closest('.inset-title')) {
@@ -837,48 +790,22 @@
                 startX = e.clientX; startY = e.clientY;
                 startL = rect.left; startT = rect.top;
                 e.preventDefault();
-            } else if (e.target.classList.contains('resize-handle')) {
-                activeBox = document.getElementById(e.target.dataset.box);
-                resizeDir = e.target.dataset.dir;
-                const rect = activeBox.getBoundingClientRect();
-                startX = e.clientX; startY = e.clientY;
-                startW = rect.width; startH = rect.height;
-                startL = rect.left; startT = rect.top;
-                e.preventDefault();
             }
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!activeBox) return;
-            if (resizeDir) {
-                let dx = e.clientX - startX, dy = e.clientY - startY;
-                if (resizeDir.includes('r')) activeBox.style.width = Math.max(150, startW + dx) + 'px';
-                if (resizeDir.includes('b')) activeBox.style.height = Math.max(110, startH + dy) + 'px';
-                if (resizeDir.includes('l')) {
-                    let w = Math.max(150, startW - dx);
-                    activeBox.style.width = w + 'px';
-                    activeBox.style.left = (startL + (startW - w)) + 'px';
-                }
-                if (resizeDir.includes('t')) {
-                    let h = Math.max(110, startH - dy);
-                    activeBox.style.height = h + 'px';
-                    activeBox.style.top = (startT + (startH - h)) + 'px';
-                }
-                if (insetCaribbean) insetCaribbean.invalidateSize();
-                if (insetOceania) insetOceania.invalidateSize();
-            } else {
-                let dx = e.clientX - startX, dy = e.clientY - startY;
-                activeBox.style.left = (startL + dx) + 'px';
-                activeBox.style.bottom = 'auto';
-                activeBox.style.top = (startT + dy) + 'px';
-            }
+            let dx = e.clientX - startX, dy = e.clientY - startY;
+            activeBox.style.left = (startL + dx) + 'px';
+            activeBox.style.bottom = 'auto';
+            activeBox.style.top = (startT + dy) + 'px';
         });
 
         document.addEventListener('mouseup', () => {
-            activeBox = null; resizeDir = null;
+            activeBox = null;
         });
 
-        // Touch support for dragging and resizing
+        // Touch support for dragging
         document.addEventListener('touchstart', (e) => {
             const touch = e.touches[0];
             if (e.target.closest('.inset-title')) {
@@ -887,47 +814,21 @@
                 startX = touch.clientX; startY = touch.clientY;
                 startL = rect.left; startT = rect.top;
                 e.preventDefault();
-            } else if (e.target.classList.contains('resize-handle')) {
-                activeBox = document.getElementById(e.target.dataset.box);
-                resizeDir = e.target.dataset.dir;
-                const rect = activeBox.getBoundingClientRect();
-                startX = touch.clientX; startY = touch.clientY;
-                startW = rect.width; startH = rect.height;
-                startL = rect.left; startT = rect.top;
-                e.preventDefault();
             }
         }, { passive: false });
 
         document.addEventListener('touchmove', (e) => {
             if (!activeBox) return;
             const touch = e.touches[0];
-            if (resizeDir) {
-                let dx = touch.clientX - startX, dy = touch.clientY - startY;
-                if (resizeDir.includes('r')) activeBox.style.width = Math.max(150, startW + dx) + 'px';
-                if (resizeDir.includes('b')) activeBox.style.height = Math.max(110, startH + dy) + 'px';
-                if (resizeDir.includes('l')) {
-                    let w = Math.max(150, startW - dx);
-                    activeBox.style.width = w + 'px';
-                    activeBox.style.left = (startL + (startW - w)) + 'px';
-                }
-                if (resizeDir.includes('t')) {
-                    let h = Math.max(110, startH - dy);
-                    activeBox.style.height = h + 'px';
-                    activeBox.style.top = (startT + (startH - h)) + 'px';
-                }
-                if (insetCaribbean) insetCaribbean.invalidateSize();
-                if (insetOceania) insetOceania.invalidateSize();
-            } else {
-                let dx = touch.clientX - startX, dy = touch.clientY - startY;
-                activeBox.style.left = (startL + dx) + 'px';
-                activeBox.style.bottom = 'auto';
-                activeBox.style.top = (startT + dy) + 'px';
-            }
+            let dx = touch.clientX - startX, dy = touch.clientY - startY;
+            activeBox.style.left = (startL + dx) + 'px';
+            activeBox.style.bottom = 'auto';
+            activeBox.style.top = (startT + dy) + 'px';
             e.preventDefault();
         }, { passive: false });
 
         document.addEventListener('touchend', () => {
-            activeBox = null; resizeDir = null;
+            activeBox = null;
         });
 
         // Initial setup on load
