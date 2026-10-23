@@ -96,14 +96,17 @@
         }
         #map-container { width: 100%; height: 100%; background-color: var(--map-bg); }
 
+        /* FOKUS-BOXEN MIT RESIZE FUNCTION */
         .inset-map-box {
             position: absolute; bottom: 35px; z-index: 1001;
             width: 260px; height: 180px;
             min-width: 180px; min-height: 130px;
             background: var(--card-bg);
-            border: 2px solid var(--accent-blue); border-radius: 16px; overflow: hidden;
+            border: 2px solid var(--accent-blue); border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
             display: flex; flex-direction: column;
+            resize: both; /* Aktiviert den Resize-Griffer unten rechts */
+            overflow: hidden;
         }
         .inset-caribbean { left: 35px; }
         .inset-oceania { right: 35px; }
@@ -371,9 +374,9 @@
                         let col = solvedCountries[id];
                         if (!col) {
                             if (validModeIDs.has(id)) {
-                                col = '#162235'; // Active mode land color
+                                col = '#162235';
                             } else {
-                                col = '#0d1117'; // Darker gray for inactive countries
+                                col = '#0d1117'; // Dunkleres Grau für nicht enthaltene Länder
                             }
                         }
                         return { fillColor: col, fillOpacity: 1, color: '#2a3f5f', weight: 0.6 };
@@ -382,7 +385,6 @@
                         layer.on('click', () => { if (selectedMode === 'click') handleCountryClick(feature); });
 
                         const id = getFeatureID(feature);
-                        // Nur Kreise für kleine Inseln zeichnen, wenn sie im aktuellen Modus enthalten sind!
                         if (validModeIDs.has(id)) {
                             const bounds = layer.getBounds();
                             if (bounds.isValid()) {
@@ -424,19 +426,24 @@
             if (selectedDifficulty === 'easy') {
                 remainingDeck = geoData.features.filter(f => top50ISO.includes(getFeatureID(f)));
             } else if (selectedDifficulty === 'un') {
-                remainingDeck = geoData.features.filter(f => f.properties.TYPE === 'Sovereignty' || f.properties.TYPE === 'Country');
+                // Präzise Erfassung aller 195 UN-Mitglieder/Souveränen Staaten
+                remainingDeck = geoData.features.filter(f => {
+                    const type = f.properties.TYPE || "";
+                    const unStatus = f.properties.UN_A3;
+                    return type.includes('Sovereign') || type.includes('Country') || (unStatus && unStatus > 0);
+                });
             } else if (selectedDifficulty === 'standard') {
-                remainingDeck = geoData.features.filter(f => f.properties.TYPE !== 'Dependency' && f.properties.TYPE !== 'Indeterminate');
+                // Länder & Territorien (225)
+                remainingDeck = geoData.features.filter(f => {
+                    const type = f.properties.TYPE || "";
+                    return !type.includes('Indeterminate') && !type.includes('Lease');
+                });
             } else {
+                // Alle Territorien (258)
                 remainingDeck = [...geoData.features];
             }
 
             remainingDeck.forEach(f => validModeIDs.add(getFeatureID(f)));
-            
-            // Wenn 'easy', müssen auch die Top50 IDs in validModeIDs sein
-            if (selectedDifficulty === 'easy') {
-                top50ISO.forEach(id => validModeIDs.add(id));
-            }
 
             totalDeckSize = remainingDeck.length;
             renderAllMaps();
@@ -567,7 +574,18 @@
             document.getElementById('reopen-modal-btn').style.display = 'inline-flex';
         }
 
+        // DRAG & RESIZE BEHANDLUNG DER FOKUS-BOXEN
         document.addEventListener('DOMContentLoaded', () => {
+            // ResizeObserver aktualisiert die Leaflet-Karten dynamisch beim Ziehen
+            if (window.ResizeObserver) {
+                const ro = new ResizeObserver(() => {
+                    if (insetCaribbean) insetCaribbean.invalidateSize();
+                    if (insetOceania) insetOceania.invalidateSize();
+                });
+                ro.observe(document.getElementById('box-caribbean'));
+                ro.observe(document.getElementById('box-oceania'));
+            }
+
             ['box-caribbean', 'box-oceania'].forEach(id => {
                 const el = document.getElementById(id);
                 const titleEl = el.querySelector('.inset-title');
