@@ -139,7 +139,6 @@
         }
         .type-input:focus { border-color: var(--accent-blue); }
 
-        /* BLINK-ANIMATION FÜR DAS LAND IM ÜBUNGSMODUS */
         @keyframes mapCountryBlink {
             0% { fill-opacity: 0.2; stroke: #ffc800; stroke-width: 3px; }
             50% { fill-opacity: 1; stroke: #ffffff; stroke-width: 4px; }
@@ -394,8 +393,16 @@
 
         const top50ISO = ["AFG","DZA","AGO","ARG","BGD","BRA","CHN","COD","DEU","FRA","GHA","IND","IDN","IRQ","IRN","ITA","JPN","YEM","CAN","KEN","COL","MYS","MAR","MEX","MOZ","MMR","NPL","NGA","PAK","PER","PHL","POL","RUS","SAU","ESP","SDN","ZAF","KOR","TZA","THA","TUR","USA","UGA","UKR","UZB","VEN","GBR","VNM","EGY","ETH"];
 
-        // Ozeanien ISOs für gestrichelte Linien (Abgrenzungen wie im Bild)
         const oceaniaISOs = ["FJI","SLB","VUT","FSM","KIR","NRU","PLW","TON","TUV","WSM","MHL","NCL","PYF","COK","NIU","TKL","WLF","PNG"];
+
+        // Geradlinige Begrenzungsboxen für Ozeanien (entsprechend dem Referenzbild)
+        const oceaniaBoundingBoxes = [
+            [[2, 130], [12, 168]],   // Mikronesien / Palau Region
+            [[-3, 165], [10, 180]],  // Kiribati / Marshallinseln Region
+            [[-25, 165], [-5, 180]], // Fidschi / Vanuatu / Tonga / Samoa
+            [[-25, -165], [-8, -135]],// Franz. Polynesien / Cookinseln
+            [[-23, 162], [-18, 169]] // Neukaledonien
+        ];
 
         const countrySynonyms = {
             "USA": ["usa", "us", "vereinigte staaten", "vereinigte staaten von amerika", "united states", "united states of america", "america", "amerika"],
@@ -426,6 +433,7 @@
         let totalAttemptsSpent = 0;
         let geoJsonLayers = [];
         let activeCircleMarkers = [];
+        let oceaniaBoxLayers = [];
         let validModeIDs = new Set();
 
         function setTheme(theme) {
@@ -543,7 +551,6 @@
                 return;
             }
 
-            // Standard SVG Renderer für absolut fehlerfreie Klicks
             map = L.map('map-container', { 
                 center: [20, 0], zoom: 2, minZoom: 2, 
                 maxBounds: [[-65, -180], [85, 180]], maxBoundsViscosity: 1.0, zoomControl: false 
@@ -583,11 +590,26 @@
             geoJsonLayers = [];
             activeCircleMarkers.forEach(m => m.remove());
             activeCircleMarkers = [];
+            oceaniaBoxLayers.forEach(b => b.remove());
+            oceaniaBoxLayers = [];
 
             const mapColors = getMapColors();
 
             [map, insetCaribbean, insetOceania].forEach(targetMap => {
                 if (!targetMap) return;
+
+                // Geradlinige gestrichelte Begrenzungsboxen für Ozeanien hinzufügen
+                oceaniaBoundingBoxes.forEach(coords => {
+                    const box = L.rectangle(coords, {
+                        color: '#1cb0f6',
+                        weight: 1.2,
+                        dashArray: '5, 5',
+                        fill: false,
+                        interactive: false
+                    }).addTo(targetMap);
+                    oceaniaBoxLayers.push(box);
+                });
+
                 const geoLayer = L.geoJSON(geoData, {
                     style: (feature) => {
                         const id = getFeatureID(feature);
@@ -601,15 +623,11 @@
                             col = validModeIDs.has(id) ? mapColors.active : mapColors.inactive;
                         }
 
-                        // Ozeanien Abgrenzungslinien (gestrichelt) wie im Bild
-                        const isOceania = oceaniaISOs.includes(id);
-
                         return { 
                             fillColor: col, 
                             fillOpacity: 1, 
-                            color: isOceania ? '#1cb0f6' : mapColors.stroke, 
-                            weight: isOceania ? 1.2 : 0.6,
-                            dashArray: isOceania ? '4, 4' : null
+                            color: mapColors.stroke, 
+                            weight: 0.6
                         };
                     },
                     onEachFeature: (feature, layer) => {
@@ -625,7 +643,6 @@
                                 const areaWidth = bounds.getEast() - bounds.getWest();
                                 const areaHeight = bounds.getNorth() - bounds.getSouth();
                                 
-                                // Fügt jedem Staat/Inselgruppe in Ozeanien ODER kleineren Ländern einen Punkt hinzu
                                 if (areaWidth < 3.5 || areaHeight < 3.5 || oceaniaISOs.includes(id)) {
                                     const center = bounds.getCenter();
                                     const circle = L.circleMarker(center, {
@@ -647,7 +664,6 @@
                             }
                         }
 
-                        // Blinken des Landes im Übungsmodus aktivieren
                         if (isPracticeMode && currentTarget && id === getFeatureID(currentTarget)) {
                             setTimeout(() => {
                                 if (layer.getElement) {
@@ -810,7 +826,6 @@
             return result.trim();
         }
 
-        // ÜBUNGSPHASE NACH 4 FEHLVERSUCHEN
         function startPracticePhase() {
             isPracticeMode = true;
             const nameDE = getDisplayName(currentTarget);
@@ -819,7 +834,7 @@
                 document.getElementById('target-prompt').textContent = i18n[currentLang].practiceTypePrompt;
                 const hintEl = document.getElementById('hint-display');
                 hintEl.style.display = 'block';
-                hintEl.textContent = nameDE; // Wort zum Abschreiben anzeigen
+                hintEl.textContent = nameDE;
                 const inputEl = document.getElementById('country-type-input');
                 inputEl.value = '';
                 inputEl.focus();
