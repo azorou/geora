@@ -79,7 +79,7 @@
         .option-card { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 16px; padding: 14px; cursor: pointer; text-align: center; font-weight: 700; transition: all 0.2s; }
         .option-card:hover, .option-card.selected { border-color: var(--accent-blue); background: rgba(28, 176, 246, 0.1); }
 
-        #game-screen { position: relative; flex: 1; display: flex; flex-direction: column; background: var(--bg-color); }
+        #game-screen { position: relative; flex: 1; display: flex; flex-direction: column; padding: 15px; background: var(--bg-color); }
         .game-prompt-bar {
             position: absolute; top: 25px; left: 50%; transform: translateX(-50%); z-index: 1000;
             background: rgba(21, 29, 42, 0.95); border: 2px solid var(--border-color); border-radius: 20px;
@@ -88,7 +88,18 @@
         }
         .prompt-text { font-size: 1.25rem; font-weight: 800; }
 
-        #map-container { width: 100%; height: 100%; background-color: var(--map-bg); flex: 1; }
+        /* KARTEN-RAHMEN PASSGENAU EINGEBAUT */
+        .map-frame-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border: 3px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            background-color: var(--map-bg);
+        }
+        #map-container { width: 100%; height: 100%; background-color: var(--map-bg); }
 
         .inset-map-box {
             position: absolute; bottom: 35px; z-index: 1001;
@@ -161,7 +172,9 @@
             <button class="btn-3d btn-red" style="padding: 6px 12px; font-size: 0.8rem;" onclick="quitGame()">✖️ <span id="i18n-quit">Abbrechen</span></button>
         </div>
 
-        <div id="map-container"></div>
+        <div class="map-frame-wrapper">
+            <div id="map-container"></div>
+        </div>
 
         <div class="inset-map-box inset-caribbean" id="box-caribbean">
             <div class="inset-title"><span>🏝️ Karibik-Fokus</span> ✥</div>
@@ -174,16 +187,25 @@
     </section>
 
     <script>
+        // MAPPING DEUTSCH -> ENGLISCH FÜR DEINE LISTEN
+        const nameMapDE = {
+            "Afghanistan": "Afghanistan", "Algerien": "Algeria", "Angola": "Angola", "Argentinien": "Argentina",
+            "Bangladesch": "Bangladesh", "Brasilien": "Brazil", "China": "China", "Demokratische Republik Kongo": "Democratic Republic of the Congo",
+            "Deutschland": "Germany", "Frankreich": "France", "Ghana": "Ghana", "Indien": "India", "Indonesien": "Indonesia",
+            "Irak": "Iraq", "Iran": "Iran", "Italien": "Italy", "Japan": "Japan", "Jemen": "Yemen", "Kanada": "Canada",
+            "Kenia": "Kenya", "Kolumbien": "Colombia", "Malaysia": "Malaysia", "Marokko": "Morocco", "Mexiko": "Mexico",
+            "Mosambik": "Mozambique", "Myanmar": "Myanmar", "Nepal": "Nepal", "Nigeria": "Nigeria", "Pakistan": "Pakistan",
+            "Peru": "Peru", "Philippinen": "Philippines", "Polen": "Poland", "Russland": "Russia", "Saudi-Arabien": "Saudi Arabia",
+            "Spanien": "Spain", "Sudan": "Sudan", "Südafrika": "South Africa", "Südkorea": "South Korea", "Tansania": "Tanzania",
+            "Thailand": "Thailand", "Türkei": "Türkiye", "USA": "United States", "Uganda": "Uganda", "Ukraine": "Ukraine",
+            "Usbekistan": "Uzbekistan", "Venezuela": "Venezuela", "Vereinigtes Königreich": "United Kingdom", "Vietnam": "Vietnam",
+            "Ägypten": "Egypt", "Äthiopien": "Ethiopia", "Tschechien": "Czech Republic", "Paraguay": "Paraguay"
+        };
+
         const listDE = {
             easy: ["Afghanistan","Algerien","Angola","Argentinien","Bangladesch","Brasilien","China","Demokratische Republik Kongo","Deutschland","Frankreich","Ghana","Indien","Indonesien","Irak","Iran","Italien","Japan","Jemen","Kanada","Kenia","Kolumbien","Malaysia","Marokko","Mexiko","Mosambik","Myanmar","Nepal","Nigeria","Pakistan","Peru","Philippinen","Polen","Russland","Saudi-Arabien","Spanien","Sudan","Südafrika","Südkorea","Tansania","Thailand","Türkei","USA","Uganda","Ukraine","Usbekistan","Venezuela","Vereinigtes Königreich","Vietnam","Ägypten","Äthiopien"],
             un: ["Afghanistan","Albanien","Algerien","Andorra","Angola","Antigua und Barbuda","Argentinien","Armenien","Aserbaidschan","Australien","Bahrain","Bangladesch","Barbados","Belarus","Belgien","Belize","Benin","Bhutan","Bolivien","Bosnien-Herzegowina","Botswana","Brasilien","Brunei","Bulgarien","Burkina Faso","Burundi","Chile","China","Costa Rica","Demokratische Republik Kongo","Deutschland","Die Bahamas","Dominica","Dominikanische Republik","Dschibuti","Dänemark","Ecuador","El Salvador","Elfenbeinküste","Eritrea","Estland","Eswatini","Fidschi","Finnland","Frankreich","Gabun","Gambia","Georgien","Ghana","Grenada","Griechenland","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Indien","Indonesien","Irak","Iran","Irland","Island","Israel","Italien","Jamaika","Japan","Jemen","Jordanien","Kambodscha","Kamerun","Kanada","Kap Verde","Kasachstan","Katar","Kenia","Kirgisistan","Kiribati","Kolumbien","Komoren","Kroatien","Kuba","Kuwait","Laos","Lesotho","Lettland","Libanon","Liberia","Libyen","Liechtenstein","Litauen","Luxemburg","Madagaskar","Malawi","Malaysia","Malediven","Mali","Malta","Marokko","Marshallinseln","Mauretanien","Mauritius","Mexiko","Mikronesien","Moldawien","Monaco","Mongolei","Montenegro","Mosambik","Myanmar","Namibia","Nauru","Nepal","Neuseeland","Nicaragua","Niederlande","Niger","Nigeria","Nordkorea","Nordmazedonien","Norwegen","Oman","Ost Timor","Pakistan","Palau","Palästina","Panama","Papua-Neuguinea","Paraguay","Peru","Philippinen","Polen","Portugal","Republik Kongo","Ruanda","Rumänien","Russland","Salomonen","Sambia","Samoa","San Marino","Saudi-Arabien","Schweden","Schweiz","Senegal","Serbien","Seychellen","Sierra Leone","Simbabwe","Singapur","Slowakei","Slowenien","Somalia","Spanien","Sri Lanka","St. Kitts und Nevis","St. Lucia","St. Vincent und die Grenadinen","Sudan","Surinam","Syrien","São Tomé und Príncipe","Südafrika","Südkorea","Südsudan","Tadschikistan","Tansania","Thailand","Togo","Tonga","Trinidad und Tobago","Tschad","Tschechien","Tunesien","Turkmenistan","Tuvalu","Türkei","USA","Uganda","Ukraine","Ungarn","Uruguay","Usbekistan","Vanuatu","Vatikanstadt","Venezuela","Vereinigte Arabische Emirate","Vereinigtes Königreich","Vietnam","Zentralafrikanische Republik","Zypern","Ägypten","Äquatorialguinea","Äthiopien","Österreich"],
             standard: ["Abchasien","Afghanistan","Albanien","Algerien","Amerikanisch-Samoa","Amerikanische Jungferninseln","Andorra","Angola","Anguilla","Antigua und Barbuda","Argentinien","Armenien","Aruba","Aserbaidschan","Australien","Bahrain","Bangladesch","Barbados","Belarus","Belgien","Belize","Benin","Bhutan","Bolivien","Bonaire","Bosnien-Herzegowina","Botswana","Brasilien","Britische Jungferninseln","Brunei","Bulgarien","Burkina Faso","Burundi","Cayman Islands","Chile","China","Cookinseln","Costa Rica","Curaçao","Demokratische Republik Kongo","Deutschland","Die Bahamas","Dominica","Dominikanische Republik","Dschibuti","Dänemark","Ecuador","El Salvador","Elfenbeinküste","Eritrea","Estland","Eswatini","Fidschi","Finnland","Frankreich","Französisch-Polynesien","Gabun","Gambia","Georgien","Ghana","Grenada","Griechenland","Grönland","Guadeloupe","Guam","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Indien","Indonesien","Irak","Iran","Irland","Island","Israel","Italien","Jamaika","Japan","Jemen","Jordanien","Kambodscha","Kamerun","Kanada","Kap Verde","Kasachstan","Katar","Kenia","Kirgisistan","Kiribati","Kolumbien","Komoren","Kosovo","Kroatien","Kuba","Kuwait","Laos","Lesotho","Lettland","Libanon","Liberia","Libyen","Liechtenstein","Litauen","Luxemburg","Madagaskar","Malawi","Malaysia","Malediven","Mali","Malta","Marokko","Marshallinseln","Martinique","Mauretanien","Mauritius","Mexiko","Mikronesien","Moldawien","Monaco","Mongolei","Montenegro","Montserrat","Mosambik","Myanmar","Namibia","Nauru","Nepal","Neukaledonien","Neuseeland","Nicaragua","Niederlande","Niger","Nigeria","Niue","Nordkorea","Nordmazedonien","Norwegen","Nördliche Marianen","Oman","Ost Timor","Pakistan","Palau","Palästina","Panama","Papua-Neuguinea","Paraguay","Peru","Philippinen","Pitcairninseln","Polen","Portugal","Puerto Rico","Republik Kongo","Ruanda","Rumänien","Russland","Salomonen","Sambia","Samoa","San Marino","Saudi-Arabien","Schweden","Schweiz","Senegal","Serbien","Seychellen","Sierra Leone","Simbabwe","Singapur","Slowakei","Slowenien","Somalia","Somaliland","Spanien","Sri Lanka","St. Kitts und Nevis","St. Lucia","St. Vincent und die Grenadinen","Sudan","Surinam","Syrien","São Tomé und Príncipe","Südafrika","Südkorea","Südossetien","Südsudan","Tadschikistan","Taiwan","Tansania","Thailand","Togo","Tokelau","Tonga","Transnistrien","Trinidad und Tobago","Tschad","Tschechien","Tunesien","Turkmenistan","Turks- und Caicosinseln","Tuvalu","Türkei","USA","Uganda","Ukraine","Ungarn","Uruguay","Usbekistan","Vanuatu","Vatikanstadt","Venezuela","Vereinigte Arabische Emirate","Vereinigtes Königreich","Vietnam","Wallis und Futuna","West-Sahara","Zentralafrikanische Republik","Zypern","Ägypten","Äquatorialguinea","Äthiopien","Österreich"]
-        };
-
-        const listEN = {
-            easy: ["Afghanistan","Algeria","Angola","Argentina","Bangladesh","Brazil","Canada","China","Colombia","Democratic Republic of the Congo","Egypt","Ethiopia","France","Germany","Ghana","India","Indonesia","Iran","Iraq","Italy","Japan","Kenya","Malaysia","Mexico","Morocco","Mozambique","Myanmar","Nepal","Nigeria","Pakistan","Peru","Philippines","Poland","Russia","Saudi Arabia","South Africa","South Korea","Spain","Sudan","Tanzania","Thailand","Türkiye","Uganda","Ukraine","United Kingdom","United States","Uzbekistan","Venezuela","Vietnam","Yemen"],
-            un: ["Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic","Chad","Chile","China","Colombia","Comoros","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic (Czechia)","Democratic Republic of the Congo","Denmark","Djibouti","Dominica","Dominican Republic","East Timor","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Ivory Coast","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Republic of the Congo","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","São Tomé and Príncipe","Tajikistan","Tanzania","Thailand","The Bahamas","The Gambia","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkmenistan","Tuvalu","Türkiye","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatikanstadt","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe","Federated States of Micronesia"],
-            standard: ["Abkhazia","Afghanistan","Albania","Algeria","American Samoa","Andorra","Angola","Anguilla","Antigua and Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bonaire","Bosnia and Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central African Republic","Chad","Chile","China","Colombia","Comoros","Cook Islands","Costa Rica","Croatia","Cuba","Curaçao","Cyprus","Czech Republic (Czechia)","Democratic Republic of the Congo","Denmark","Djibouti","Dominica","Dominican Republic","East Timor","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","French Polynesia","Gabon","Georgia","Germany","Ghana","Greece","Greenland","Grenada","Guadeloupe","Guam","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Ivory Coast","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Martinique","Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","Niue","North Korea","North Macedonia","Northern Mariana Islands","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Pitcairn Islands","Poland","Portugal","Puerto Rico","Qatar","Republic of the Congo","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","Somaliland","South Africa","South Korea","South Ossetia","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","São Tomé and Príncipe","Taiwan","Tajikistan","Tanzania","Thailand","The Bahamas","The Gambia","Togo","Tokelau","Tonga","Transnistria","Trinidad and Tobago","Tunisia","Turkmenistan","Turks and Caicos Islands","Tuvalu","Türkiye","US Virgin Islands","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Wallis and Futuna","Western Sahara","Yemen","Zambia","Zimbabwe","Federated States of Micronesia"]
         };
 
         const i18n = {
@@ -218,17 +240,13 @@
             if (currentTarget) updatePrompt();
         }
 
-        function getCountryName(feature) {
+        function getCountryDisplayName(feature) {
             const engName = feature.properties.name;
-            if (selectedDifficulty === 'all') return engName;
+            if (currentLang === 'en') return engName;
 
-            const enArr = listEN[selectedDifficulty];
-            const deArr = listDE[selectedDifficulty];
-            if (enArr && deArr) {
-                const idx = enArr.indexOf(engName);
-                if (idx !== -1 && deArr[idx]) {
-                    return currentLang === 'de' ? deArr[idx] : enArr[idx];
-                }
+            // Suche deutschen Namen
+            for (const [de, en] of Object.entries(nameMapDE)) {
+                if (en === engName) return de;
             }
             return engName;
         }
@@ -254,7 +272,15 @@
         function initMaps() {
             if (map) return;
 
-            map = L.map('map-container', { center: [20, 0], zoom: 2, minZoom: 2, maxBounds: [[-65, -180], [85, 180]], zoomControl: false });
+            map = L.map('map-container', { 
+                center: [20, 0], 
+                zoom: 2, 
+                minZoom: 2, 
+                maxBounds: [[-65, -180], [85, 180]], 
+                maxBoundsViscosity: 1.0,
+                zoomControl: false 
+            });
+
             insetCaribbean = L.map('inset-caribbean-map', { center: [15, -73], zoom: 4, zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false });
             insetOceania = L.map('inset-oceania-map', { center: [-15, 175], zoom: 3, zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false });
 
@@ -293,8 +319,9 @@
             if (selectedDifficulty === 'all') {
                 remainingDeck = [...geoData.features];
             } else {
-                const allowedNames = listEN[selectedDifficulty] || [];
-                remainingDeck = geoData.features.filter(f => allowedNames.includes(f.properties.name));
+                const deList = listDE[selectedDifficulty] || [];
+                const allowedEnglishNames = deList.map(deName => nameMapDE[deName] || deName);
+                remainingDeck = geoData.features.filter(f => allowedEnglishNames.includes(f.properties.name));
             }
         }
 
@@ -316,7 +343,7 @@
         function quitGame() { clearInterval(timerInterval); switchScreen('main-menu'); }
 
         function updatePrompt() {
-            document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${getCountryName(currentTarget)}`;
+            document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${getCountryDisplayName(currentTarget)}`;
             currentAttempts = 0;
         }
 
@@ -335,10 +362,10 @@
             const isCorrect = (feature.id === currentTarget.id || feature.properties.name === currentTarget.properties.name);
 
             if (isCorrect) {
-                let color = '#ffffff'; 
-                if (currentAttempts === 2) color = '#ffeb3b'; 
-                else if (currentAttempts === 3) color = '#ff9800'; 
-                else if (currentAttempts >= 4) color = '#f44336'; 
+                let color = '#ffffff'; // 1. Versuch
+                if (currentAttempts === 2) color = '#ffeb3b'; // 2. Versuch
+                else if (currentAttempts === 3) color = '#ff9800'; // 3. Versuch
+                else if (currentAttempts >= 4) color = '#f44336'; // 4. Versuch
 
                 solvedCountries[currentTarget.id] = color;
                 refreshAllMapStyles();
