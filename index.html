@@ -30,9 +30,6 @@
             --map-land: #162235;
             --map-inactive: #0d1117;
             --map-stroke: #2a3f5f;
-            --inset-bg: #0f172a;
-            --inset-title-bg: #1e293b;
-            --inset-title-color: #f8fafc;
             --label-color: #ffffff;
             --label-shadow: rgba(0, 0, 0, 0.9);
             --correct-color-1: #ffffff;
@@ -48,9 +45,6 @@
             --map-land: #ffffff;
             --map-inactive: #cbd5e1;
             --map-stroke: #64748b;
-            --inset-bg: #e2e8f0;
-            --inset-title-bg: #cbd5e1;
-            --inset-title-color: #0f172a;
             --label-color: #0f172a;
             --label-shadow: rgba(255, 255, 255, 0.9);
             --correct-color-1: #16a34a;
@@ -155,34 +149,7 @@
         }
         #map-container { width: 100%; height: 100%; background-color: var(--map-bg); }
 
-        .inset-map-box {
-            position: absolute; bottom: 35px; z-index: 1001;
-            width: 260px; height: 180px;
-            min-width: 150px; min-height: 110px;
-            background: var(--inset-bg);
-            border: 2px solid var(--accent-blue); border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            touch-action: none;
-        }
-        .inset-caribbean { left: 35px; }
-        .inset-oceania { right: 35px; }
-        .inset-title {
-            height: 28px; font-size: 0.75rem; font-weight: 900; background: var(--inset-title-bg);
-            padding: 4px 10px; color: var(--inset-title-color); border-bottom: 1px solid var(--border-color);
-            display: flex; justify-content: space-between; align-items: center; cursor: move;
-            flex-shrink: 0; touch-action: none;
-        }
-        .inset-map { flex: 1; width: 100%; height: 100%; background: var(--inset-bg); }
-
-        .resize-handle { position: absolute; width: 20px; height: 20px; z-index: 1005; background: transparent; touch-action: none; }
-        .resize-handle.tl { top: 0; left: 0; cursor: nwse-resize; }
-        .resize-handle.tr { top: 0; right: 0; cursor: nesw-resize; }
-        .resize-handle.bl { bottom: 0; left: 0; cursor: nesw-resize; }
-        .resize-handle.br { bottom: 0; right: 0; cursor: nwse-resize; }
-
+        /* NAMEN-POPUP DIREKT IM LAND (TEMPORÄR) */
         .leaflet-tooltip.country-label-temp {
             background: transparent !important; border: none !important; box-shadow: none !important;
             color: var(--label-color) !important; font-size: 0.8rem; font-weight: 800;
@@ -227,7 +194,6 @@
         .reopen-end-btn { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 1002; display: none; }
 
         @media (max-width: 768px) {
-            .inset-map-box { display: none !important; }
             .game-prompt-bar { top: 12px; min-width: calc(100% - 30px); padding: 8px 14px; border-radius: 16px; }
             .prompt-text { font-size: 0.95rem; }
             .hero-title { font-size: 2.5rem; }
@@ -336,15 +302,6 @@
             <div id="map-container"></div>
         </div>
 
-        <div class="inset-map-box inset-caribbean" id="box-caribbean">
-            <div class="inset-title"><span>🏝️ Karibik-Fokus</span> ✥</div>
-            <div id="inset-caribbean-map" class="inset-map"></div>
-        </div>
-        <div class="inset-map-box inset-oceania" id="box-oceania">
-            <div class="inset-title"><span>🌊 Ozeanien-Fokus</span> ✥</div>
-            <div id="inset-oceania-map" class="inset-map"></div>
-        </div>
-
         <button class="btn-3d btn-gold reopen-end-btn" id="reopen-modal-btn" onclick="openEndScreenModal()">
             🏆 <span id="i18n-showsummary">Ergebnis anzeigen</span>
         </button>
@@ -395,7 +352,7 @@
 
         const oceaniaISOs = ["FJI","SLB","VUT","FSM","KIR","NRU","PLW","TON","TUV","WSM","MHL","NCL","PYF","COK","NIU","TKL","WLF","PNG"];
 
-        // Geradlinige Begrenzungsboxen für Ozeanien (entsprechend dem Referenzbild)
+        // Geradlinige Begrenzungsboxen für Ozeanien
         const oceaniaBoundingBoxes = [
             [[2, 130], [12, 168]],   // Mikronesien / Palau Region
             [[-3, 165], [10, 180]],  // Kiribati / Marshallinseln Region
@@ -424,7 +381,7 @@
         let currentLang = 'de', selectedMode = 'click', selectedDifficulty = 'easy';
         let currentTheme = 'system';
         let timerInterval = null, secondsElapsed = 0;
-        let map = null, insetCaribbean = null, insetOceania = null;
+        let map = null;
         let currentTarget = null, geoData = null, remainingDeck = [];
         let totalDeckSize = 0, completedCount = 0;
         let currentAttempts = 0;
@@ -556,16 +513,6 @@
                 maxBounds: [[-65, -180], [85, 180]], maxBoundsViscosity: 1.0, zoomControl: false 
             });
 
-            insetCaribbean = L.map('inset-caribbean-map', { 
-                center: [15, -73], zoom: 4, zoomControl: false, 
-                dragging: true, touchZoom: true, doubleClickZoom: true, scrollWheelZoom: true 
-            });
-            
-            insetOceania = L.map('inset-oceania-map', { 
-                center: [-15, 175], zoom: 3, zoomControl: false, 
-                dragging: true, touchZoom: true, doubleClickZoom: true, scrollWheelZoom: true 
-            });
-
             fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson')
                 .then(res => res.json())
                 .then(data => {
@@ -595,87 +542,83 @@
 
             const mapColors = getMapColors();
 
-            [map, insetCaribbean, insetOceania].forEach(targetMap => {
-                if (!targetMap) return;
+            // Geradlinige gestrichelte Begrenzungsboxen für Ozeanien auf der Hauptkarte
+            oceaniaBoundingBoxes.forEach(coords => {
+                const box = L.rectangle(coords, {
+                    color: '#1cb0f6',
+                    weight: 1.2,
+                    dashArray: '5, 5',
+                    fill: false,
+                    interactive: false
+                }).addTo(map);
+                oceaniaBoxLayers.push(box);
+            });
 
-                // Geradlinige gestrichelte Begrenzungsboxen für Ozeanien hinzufügen
-                oceaniaBoundingBoxes.forEach(coords => {
-                    const box = L.rectangle(coords, {
-                        color: '#1cb0f6',
-                        weight: 1.2,
-                        dashArray: '5, 5',
-                        fill: false,
-                        interactive: false
-                    }).addTo(targetMap);
-                    oceaniaBoxLayers.push(box);
-                });
+            const geoLayer = L.geoJSON(geoData, {
+                style: (feature) => {
+                    const id = getFeatureID(feature);
+                    let col = solvedCountries[id];
 
-                const geoLayer = L.geoJSON(geoData, {
-                    style: (feature) => {
-                        const id = getFeatureID(feature);
-                        let col = solvedCountries[id];
+                    if (selectedMode === 'type' && currentTarget && id === getFeatureID(currentTarget) && !isPracticeMode) {
+                        return { fillColor: '#ffc800', fillOpacity: 1, color: '#1cb0f6', weight: 2 };
+                    }
 
-                        if (selectedMode === 'type' && currentTarget && id === getFeatureID(currentTarget) && !isPracticeMode) {
-                            return { fillColor: '#ffc800', fillOpacity: 1, color: '#1cb0f6', weight: 2 };
-                        }
+                    if (!col) {
+                        col = validModeIDs.has(id) ? mapColors.active : mapColors.inactive;
+                    }
 
-                        if (!col) {
-                            col = validModeIDs.has(id) ? mapColors.active : mapColors.inactive;
-                        }
+                    return { 
+                        fillColor: col, 
+                        fillOpacity: 1, 
+                        color: mapColors.stroke, 
+                        weight: 0.6
+                    };
+                },
+                onEachFeature: (feature, layer) => {
+                    layer.on('click', (e) => { 
+                        L.DomEvent.stopPropagation(e);
+                        handleCountryClick(feature, layer); 
+                    });
 
-                        return { 
-                            fillColor: col, 
-                            fillOpacity: 1, 
-                            color: mapColors.stroke, 
-                            weight: 0.6
-                        };
-                    },
-                    onEachFeature: (feature, layer) => {
-                        layer.on('click', (e) => { 
-                            L.DomEvent.stopPropagation(e);
-                            handleCountryClick(feature, layer); 
-                        });
-
-                        const id = getFeatureID(feature);
-                        if (validModeIDs.has(id)) {
-                            const bounds = layer.getBounds();
-                            if (bounds.isValid()) {
-                                const areaWidth = bounds.getEast() - bounds.getWest();
-                                const areaHeight = bounds.getNorth() - bounds.getSouth();
-                                
-                                if (areaWidth < 3.5 || areaHeight < 3.5 || oceaniaISOs.includes(id)) {
-                                    const center = bounds.getCenter();
-                                    const circle = L.circleMarker(center, {
-                                        radius: oceaniaISOs.includes(id) ? 4.5 : 5,
-                                        fillColor: solvedCountries[id] || (oceaniaISOs.includes(id) ? '#ffffff' : '#1cb0f6'),
-                                        color: '#1e293b',
-                                        weight: 1.2,
-                                        fillOpacity: 0.95,
-                                        pane: 'markerPane'
-                                    });
-                                    circle.featureID = id;
-                                    circle.on('click', (e) => {
-                                        L.DomEvent.stopPropagation(e);
-                                        handleCountryClick(feature, layer);
-                                    });
-                                    circle.addTo(targetMap);
-                                    activeCircleMarkers.push(circle);
-                                }
+                    const id = getFeatureID(feature);
+                    if (validModeIDs.has(id)) {
+                        const bounds = layer.getBounds();
+                        if (bounds.isValid()) {
+                            const areaWidth = bounds.getEast() - bounds.getWest();
+                            const areaHeight = bounds.getNorth() - bounds.getSouth();
+                            
+                            if (areaWidth < 3.5 || areaHeight < 3.5 || oceaniaISOs.includes(id)) {
+                                const center = bounds.getCenter();
+                                const circle = L.circleMarker(center, {
+                                    radius: oceaniaISOs.includes(id) ? 4.5 : 5,
+                                    fillColor: solvedCountries[id] || (oceaniaISOs.includes(id) ? '#ffffff' : '#1cb0f6'),
+                                    color: '#1e293b',
+                                    weight: 1.2,
+                                    fillOpacity: 0.95,
+                                    pane: 'markerPane'
+                                });
+                                circle.featureID = id;
+                                circle.on('click', (e) => {
+                                    L.DomEvent.stopPropagation(e);
+                                    handleCountryClick(feature, layer);
+                                });
+                                circle.addTo(map);
+                                activeCircleMarkers.push(circle);
                             }
                         }
-
-                        if (isPracticeMode && currentTarget && id === getFeatureID(currentTarget)) {
-                            setTimeout(() => {
-                                if (layer.getElement) {
-                                    const el = layer.getElement();
-                                    if (el) el.classList.add('blinking-country');
-                                }
-                            }, 50);
-                        }
                     }
-                }).addTo(targetMap);
-                geoJsonLayers.push(geoLayer);
-            });
+
+                    if (isPracticeMode && currentTarget && id === getFeatureID(currentTarget)) {
+                        setTimeout(() => {
+                            if (layer.getElement) {
+                                const el = layer.getElement();
+                                if (el) el.classList.add('blinking-country');
+                            }
+                        }, 50);
+                    }
+                }
+            }).addTo(map);
+            geoJsonLayers.push(geoLayer);
         }
 
         function resetDeck() {
@@ -688,10 +631,19 @@
 
             validModeIDs = new Set();
 
+            // Bereinigter Filter ohne Antarktis und unerwünschte Antillen/Lease-Objekte
+            const cleanFeatures = geoData.features.filter(f => {
+                const id = getFeatureID(f);
+                const p = f.properties;
+                if (id === 'ATA' || p.ADM0_A3 === 'ATA') return false;
+                if (p.TYPE === 'Indeterminate' || p.TYPE === 'Lease') return false;
+                return true;
+            });
+
             if (selectedDifficulty === 'easy') {
-                remainingDeck = geoData.features.filter(f => top50ISO.includes(getFeatureID(f)));
+                remainingDeck = cleanFeatures.filter(f => top50ISO.includes(getFeatureID(f)));
             } else if (selectedDifficulty === 'un') {
-                remainingDeck = geoData.features.filter(f => {
+                remainingDeck = cleanFeatures.filter(f => {
                     const p = f.properties;
                     return p.UN_A3 > 0 || p.ADM0_A3 === 'ESH' || p.ISO_A3 === 'PSE' || (p.SOVEREIGNT && p.TYPE === 'Sovereignty' && p.UN_A3 !== -99);
                 });
@@ -699,15 +651,15 @@
                     remainingDeck = remainingDeck.slice(0, 195);
                 }
             } else if (selectedDifficulty === 'standard') {
-                remainingDeck = geoData.features.filter(f => {
+                remainingDeck = cleanFeatures.filter(f => {
                     const p = f.properties;
-                    return p.TYPE !== 'Indeterminate' && p.TYPE !== 'Lease' && p.POP_EST > 0;
+                    return p.POP_EST > 0 && p.TYPE !== 'Disputed';
                 });
                 if (remainingDeck.length > 225) {
                     remainingDeck = remainingDeck.slice(0, 225);
                 }
             } else {
-                remainingDeck = [...geoData.features];
+                remainingDeck = [...cleanFeatures];
             }
 
             remainingDeck.forEach(f => validModeIDs.add(getFeatureID(f)));
@@ -735,19 +687,12 @@
                 document.getElementById('hint-display').style.display = 'none';
             }
 
-            if (window.innerWidth > 768) {
-                document.getElementById('box-caribbean').style.display = 'flex';
-                document.getElementById('box-oceania').style.display = 'flex';
-            }
-
             switchScreen('game-screen');
             startTimer();
             setTimeout(() => {
                 initMaps();
                 if (map) { 
                     map.invalidateSize(); 
-                    if (insetCaribbean) insetCaribbean.invalidateSize(); 
-                    if (insetOceania) insetOceania.invalidateSize(); 
                 }
             }, 100);
         }
@@ -759,8 +704,6 @@
 
             document.getElementById('game-stats-container').style.display = 'none';
             document.getElementById('settings-top-btn').style.display = 'flex';
-            document.getElementById('box-caribbean').style.display = 'none';
-            document.getElementById('box-oceania').style.display = 'none';
 
             switchScreen('main-menu'); 
         }
@@ -929,6 +872,7 @@
             const targetID = getFeatureID(currentTarget);
             const clickedID = getFeatureID(feature);
 
+            // Namen-Popup direkt im Land temporär anzeigen
             layer.bindTooltip(getDisplayName(feature), {
                 permanent: true,
                 direction: 'center',
@@ -1011,118 +955,6 @@
 
             document.getElementById('country-type-input').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') submitCountryGuess();
-            });
-
-            if (window.ResizeObserver) {
-                const ro = new ResizeObserver(() => {
-                    if (insetCaribbean) insetCaribbean.invalidateSize();
-                    if (insetOceania) insetOceania.invalidateSize();
-                });
-                ro.observe(document.getElementById('box-caribbean'));
-                ro.observe(document.getElementById('box-oceania'));
-            }
-
-            ['box-caribbean', 'box-oceania'].forEach(id => {
-                const el = document.getElementById(id);
-                const titleEl = el.querySelector('.inset-title');
-                if (!el || !titleEl) return;
-
-                let isDragging = false, startX, startY, initialX, initialY;
-
-                function onDragStart(e) {
-                    isDragging = true;
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    startX = clientX;
-                    startY = clientY;
-                    initialX = el.offsetLeft;
-                    initialY = el.offsetTop;
-                    el.style.zIndex = 1005;
-                }
-
-                function onDragMove(e) {
-                    if (!isDragging) return;
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    const dx = clientX - startX;
-                    const dy = clientY - startY;
-                    el.style.left = `${initialX + dx}px`;
-                    el.style.top = `${initialY + dy}px`;
-                    el.style.bottom = 'auto';
-                    el.style.right = 'auto';
-                }
-
-                function onDragEnd() { isDragging = false; }
-
-                titleEl.addEventListener('mousedown', onDragStart);
-                titleEl.addEventListener('touchstart', onDragStart, { passive: false });
-
-                document.addEventListener('mousemove', onDragMove);
-                document.addEventListener('touchmove', onDragMove, { passive: false });
-
-                document.addEventListener('mouseup', onDragEnd);
-                document.addEventListener('touchend', onDragEnd);
-
-                ['tl', 'tr', 'bl', 'br'].forEach(dir => {
-                    const handle = document.createElement('div');
-                    handle.className = `resize-handle ${dir}`;
-                    el.appendChild(handle);
-
-                    function onResizeStart(e) {
-                        e.stopPropagation();
-                        if (e.cancelable) e.preventDefault();
-
-                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                        const startW = el.offsetWidth;
-                        const startH = el.offsetHeight;
-                        const startL = el.offsetLeft;
-                        const startT = el.offsetTop;
-
-                        function onResizeMove(e) {
-                            const currentX = e.touches ? e.touches[0].clientX : e.clientX;
-                            const currentY = e.touches ? e.touches[0].clientY : e.clientY;
-                            const dx = currentX - clientX;
-                            const dy = currentY - clientY;
-                            let w = startW, h = startH, l = startL, t = startT;
-
-                            if (dir.includes('r')) w = Math.max(150, startW + dx);
-                            if (dir.includes('l')) {
-                                w = Math.max(150, startW - dx);
-                                l = startL + (startW - w);
-                            }
-                            if (dir.includes('b')) h = Math.max(110, startH + dy);
-                            if (dir.includes('t')) {
-                                h = Math.max(110, startH - dy);
-                                t = startT + (startH - h);
-                            }
-
-                            el.style.width = w + 'px';
-                            el.style.height = h + 'px';
-                            el.style.left = l + 'px';
-                            el.style.top = t + 'px';
-                            el.style.right = 'auto';
-                            el.style.bottom = 'auto';
-                        }
-
-                        function onResizeEnd() {
-                            document.removeEventListener('mousemove', onResizeMove);
-                            document.removeEventListener('touchmove', onResizeMove);
-                            document.removeEventListener('mouseup', onResizeEnd);
-                            document.removeEventListener('touchend', onResizeEnd);
-                            if (insetCaribbean) insetCaribbean.invalidateSize();
-                            if (insetOceania) insetOceania.invalidateSize();
-                        }
-
-                        document.addEventListener('mousemove', onResizeMove);
-                        document.addEventListener('touchmove', onResizeMove, { passive: false });
-                        document.addEventListener('mouseup', onResizeEnd);
-                        document.addEventListener('touchend', onResizeEnd);
-                    }
-
-                    handle.addEventListener('mousedown', onResizeStart);
-                    handle.addEventListener('touchstart', onResizeStart, { passive: false });
-                });
             });
         });
     </script>
