@@ -84,11 +84,10 @@
             position: absolute; top: 25px; left: 50%; transform: translateX(-50%); z-index: 1000;
             background: rgba(21, 29, 42, 0.95); border: 2px solid var(--border-color); border-radius: 20px;
             padding: 10px 22px; display: flex; align-items: center; gap: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            min-width: 320px; justify-content: space-between;
+            min-width: 360px; justify-content: space-between;
         }
         .prompt-text { font-size: 1.25rem; font-weight: 800; }
 
-        /* KARTEN-RAHMEN PASSGENAU EINGEBAUT */
         .map-frame-wrapper {
             position: relative;
             width: 100%;
@@ -120,6 +119,91 @@
 
         .country-polygon { fill: var(--map-land); fill-opacity: 1; stroke: var(--map-stroke); stroke-width: 1; }
         .country-polygon:hover { fill: #27384f; stroke: var(--accent-blue); stroke-width: 1.5; cursor: pointer; }
+
+        /* END SCREEN POPUP MIT BLUR-HINTERGRUND */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 16, 23, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .end-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 28px;
+            padding: 30px 35px;
+            max-width: 460px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .end-title {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-box-val {
+            font-size: 2rem;
+            font-weight: 900;
+        }
+
+        .stat-box-label {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--text-sub);
+            text-transform: uppercase;
+        }
+
+        .end-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Schwebender Button, wenn Endscreen minimiert wurde */
+        .reopen-end-btn {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1002;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -131,8 +215,8 @@
                 <div id="lang-de" class="lang-btn active">DE 🇩🇪</div>
                 <div id="lang-en" class="lang-btn">UK 🇬🇧</div>
             </div>
+            <div class="stat-badge">🚩 <span id="country-counter">0 / 0</span></div>
             <div class="stat-badge">⏱️ <span id="global-timer">00:00</span></div>
-            <div class="stat-badge">⚡ <span id="global-xp">0 XP</span></div>
         </div>
     </header>
 
@@ -184,10 +268,38 @@
             <div class="inset-title"><span>🌊 Ozeanien-Fokus</span> ✥</div>
             <div id="inset-oceania-map" class="inset-map"></div>
         </div>
+
+        <!-- SCHWEBENDER REOPEN-BUTTON FÜR DIE KARTE -->
+        <button class="btn-3d btn-gold reopen-end-btn" id="reopen-modal-btn" onclick="openEndScreenModal()">
+            🏆 <span id="i18n-showsummary">Ergebnis anzeigen</span>
+        </button>
+
+        <!-- END SCREEN OVERLAY MODAL -->
+        <div class="modal-overlay" id="end-modal">
+            <div class="end-card">
+                <div class="end-title" id="i18n-congrats">🎉 RUNDE VOLLENDET!</div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-box-val" id="end-accuracy" style="color: var(--accent-green);">100%</div>
+                        <div class="stat-box-label" id="i18n-acc-label">Genauigkeit</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-val" id="end-time" style="color: var(--accent-blue);">00:00</div>
+                        <div class="stat-box-label" id="i18n-time-label">Zeit</div>
+                    </div>
+                </div>
+
+                <div class="end-actions">
+                    <button class="btn-3d" onclick="restartSameGame()">🔄 <span id="i18n-replay">Nochmal spielen</span></button>
+                    <button class="btn-3d btn-blue" onclick="hideEndScreenToInspectMap()">👁️ <span id="i18n-viewmap">Karte ansehen</span></button>
+                    <button class="btn-3d btn-red" onclick="quitGame()">🏠 <span id="i18n-home">Hauptmenü</span></button>
+                </div>
+            </div>
+        </div>
     </section>
 
     <script>
-        // MAPPING DEUTSCH -> ENGLISCH FÜR DEINE LISTEN
         const nameMapDE = {
             "Afghanistan": "Afghanistan", "Algerien": "Algeria", "Angola": "Angola", "Argentinien": "Argentina",
             "Bangladesch": "Bangladesh", "Brasilien": "Brazil", "China": "China", "Demokratische Republik Kongo": "Democratic Republic of the Congo",
@@ -209,16 +321,24 @@
         };
 
         const i18n = {
-            de: { subtitle: "Erkunde die Welt, meistere Geografie & lerne alle Länder.", startbtn: "Spiel starten", back: "Hauptmenü", sec1: "1. Spielmodus wählen", sec2: "2. Schwierigkeitsgrad", mode1: "Suchen & Klicken", mode2: "Erkennen & Benennen", diff1: "Bekannteste (Top 50)", diff2: "UN-Staaten (195)", diff3: "Seterra Style (225+)", diff4: "Alle Territorien (270+)", playbtn: "JETZT SPIELEN", quit: "Abbrechen", find: "Finde: " },
-            en: { subtitle: "Explore the world, master geography & learn all countries.", startbtn: "Start Game", back: "Main Menu", sec1: "1. Select Game Mode", sec2: "2. Difficulty", mode1: "Search & Click", mode2: "Recognise & Type", diff1: "Top 50 Known", diff2: "UN States (195)", diff3: "Seterra Style (225+)", diff4: "All Territories (270+)", playbtn: "PLAY NOW", quit: "Quit", find: "Find: " }
+            de: {
+                subtitle: "Erkunde die Welt, meistere Geografie & lerne alle Länder.", startbtn: "Spiel starten", back: "Hauptmenü", sec1: "1. Spielmodus wählen", sec2: "2. Schwierigkeitsgrad", mode1: "Suchen & Klicken", mode2: "Erkennen & Benennen", diff1: "Bekannteste (Top 50)", diff2: "UN-Staaten (195)", diff3: "Seterra Style (225+)", diff4: "Alle Territorien (270+)", playbtn: "JETZT SPIELEN", quit: "Abbrechen", find: "Finde: ",
+                congrats: "🎉 RUNDE VOLLENDET!", accLabel: "Genauigkeit", timeLabel: "Gesamtzeit", replay: "Nochmal spielen", viewmap: "Karte ansehen", home: "Hauptmenü", showsummary: "Ergebnis anzeigen"
+            },
+            en: {
+                subtitle: "Explore the world, master geography & learn all countries.", startbtn: "Start Game", back: "Main Menu", sec1: "1. Select Game Mode", sec2: "2. Difficulty", mode1: "Search & Click", mode2: "Recognise & Type", diff1: "Top 50 Known", diff2: "UN States (195)", diff3: "Seterra Style (225+)", diff4: "All Territories (270+)", playbtn: "PLAY NOW", quit: "Quit", find: "Find: ",
+                congrats: "🎉 ROUND COMPLETED!", accLabel: "Accuracy", timeLabel: "Total Time", replay: "Play Again", viewmap: "View Map", home: "Main Menu", showsummary: "Show Results"
+            }
         };
 
         let currentLang = 'de', selectedMode = 'click', selectedDifficulty = 'easy';
         let timerInterval = null, secondsElapsed = 0;
         let map = null, insetCaribbean = null, insetOceania = null;
         let currentTarget = null, geoData = null, remainingDeck = [];
+        let totalDeckSize = 0, completedCount = 0;
         let currentAttempts = 0;
-        let solvedCountries = {};
+        let solvedCountries = {}; 
+        let totalAttemptsSpent = 0; // Für exakte Prozentberechnung
 
         function toggleLanguage() {
             currentLang = currentLang === 'de' ? 'en' : 'de';
@@ -237,6 +357,15 @@
             document.getElementById('i18n-diff4').textContent = i18n[currentLang].diff4;
             document.getElementById('i18n-playbtn').textContent = i18n[currentLang].playbtn;
             document.getElementById('i18n-quit').textContent = i18n[currentLang].quit;
+
+            document.getElementById('i18n-congrats').textContent = i18n[currentLang].congrats;
+            document.getElementById('i18n-acc-label').textContent = i18n[currentLang].accLabel;
+            document.getElementById('i18n-time-label').textContent = i18n[currentLang].timeLabel;
+            document.getElementById('i18n-replay').textContent = i18n[currentLang].replay;
+            document.getElementById('i18n-viewmap').textContent = i18n[currentLang].viewmap;
+            document.getElementById('i18n-home').textContent = i18n[currentLang].home;
+            document.getElementById('i18n-showsummary').textContent = i18n[currentLang].showsummary;
+
             if (currentTarget) updatePrompt();
         }
 
@@ -244,7 +373,6 @@
             const engName = feature.properties.name;
             if (currentLang === 'en') return engName;
 
-            // Suche deutschen Namen
             for (const [de, en] of Object.entries(nameMapDE)) {
                 if (en === engName) return de;
             }
@@ -269,16 +397,16 @@
             }, 1000);
         }
 
+        function updateCounter() {
+            document.getElementById('country-counter').textContent = `${completedCount} / ${totalDeckSize}`;
+        }
+
         function initMaps() {
             if (map) return;
 
             map = L.map('map-container', { 
-                center: [20, 0], 
-                zoom: 2, 
-                minZoom: 2, 
-                maxBounds: [[-65, -180], [85, 180]], 
-                maxBoundsViscosity: 1.0,
-                zoomControl: false 
+                center: [20, 0], zoom: 2, minZoom: 2, 
+                maxBounds: [[-65, -180], [85, 180]], maxBoundsViscosity: 1.0, zoomControl: false 
             });
 
             insetCaribbean = L.map('inset-caribbean-map', { center: [15, -73], zoom: 4, zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false });
@@ -314,6 +442,9 @@
 
         function resetDeck() {
             solvedCountries = {};
+            totalAttemptsSpent = 0;
+            completedCount = 0;
+
             if (!geoData) return;
 
             if (selectedDifficulty === 'all') {
@@ -323,9 +454,15 @@
                 const allowedEnglishNames = deList.map(deName => nameMapDE[deName] || deName);
                 remainingDeck = geoData.features.filter(f => allowedEnglishNames.includes(f.properties.name));
             }
+
+            totalDeckSize = remainingDeck.length;
+            updateCounter();
+            refreshAllMapStyles();
         }
 
         function startGame() {
+            document.getElementById('end-modal').classList.remove('active');
+            document.getElementById('reopen-modal-btn').style.display = 'none';
             switchScreen('game-screen');
             startTimer();
             setTimeout(() => {
@@ -340,7 +477,16 @@
             }, 100);
         }
 
-        function quitGame() { clearInterval(timerInterval); switchScreen('main-menu'); }
+        function quitGame() { 
+            clearInterval(timerInterval); 
+            document.getElementById('end-modal').classList.remove('active');
+            document.getElementById('reopen-modal-btn').style.display = 'none';
+            switchScreen('main-menu'); 
+        }
+
+        function restartSameGame() {
+            startGame();
+        }
 
         function updatePrompt() {
             document.getElementById('target-prompt').textContent = `${i18n[currentLang].find}${getCountryDisplayName(currentTarget)}`;
@@ -349,7 +495,12 @@
 
         function nextRound() {
             if (!geoData) return;
-            if (remainingDeck.length === 0) resetDeck();
+
+            if (remainingDeck.length === 0) {
+                triggerVictory();
+                return;
+            }
+
             const index = Math.floor(Math.random() * remainingDeck.length);
             currentTarget = remainingDeck.splice(index, 1)[0];
             updatePrompt();
@@ -359,22 +510,28 @@
             if (solvedCountries[currentTarget.id]) return;
 
             currentAttempts++;
+            totalAttemptsSpent++;
+
             const isCorrect = (feature.id === currentTarget.id || feature.properties.name === currentTarget.properties.name);
 
             if (isCorrect) {
-                let color = '#ffffff'; // 1. Versuch
-                if (currentAttempts === 2) color = '#ffeb3b'; // 2. Versuch
-                else if (currentAttempts === 3) color = '#ff9800'; // 3. Versuch
-                else if (currentAttempts >= 4) color = '#f44336'; // 4. Versuch
+                let color = '#ffffff'; // 1. Versuch (Weiß)
+                if (currentAttempts === 2) color = '#ffeb3b'; // 2. Versuch (Gelb)
+                else if (currentAttempts === 3) color = '#ff9800'; // 3. Versuch (Orange)
+                else if (currentAttempts >= 4) color = '#f44336'; // 4. Versuch (Rot)
 
                 solvedCountries[currentTarget.id] = color;
+                completedCount++;
+                updateCounter();
                 refreshAllMapStyles();
-                setTimeout(() => { nextRound(); }, 400);
+                setTimeout(() => { nextRound(); }, 350);
             } else {
                 if (currentAttempts >= 4) {
                     solvedCountries[currentTarget.id] = '#f44336'; 
+                    completedCount++;
+                    updateCounter();
                     refreshAllMapStyles();
-                    setTimeout(() => { nextRound(); }, 1000);
+                    setTimeout(() => { nextRound(); }, 900);
                 }
             }
         }
@@ -389,6 +546,33 @@
                     }
                 });
             });
+        }
+
+        function triggerVictory() {
+            clearInterval(timerInterval);
+
+            // Prozent-Berechnung basierend auf Versuchen (100% min = 1 Versuch pro Land, max = 4 Versuche)
+            const minAttemptsNeeded = totalDeckSize;
+            let accuracy = Math.round((minAttemptsNeeded / Math.max(totalAttemptsSpent, minAttemptsNeeded)) * 100);
+            if (isNaN(accuracy) || accuracy > 100) accuracy = 100;
+
+            const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+            const secs = String(secondsElapsed % 60).padStart(2, '0');
+
+            document.getElementById('end-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('end-time').textContent = `${mins}:${secs}`;
+
+            openEndScreenModal();
+        }
+
+        function openEndScreenModal() {
+            document.getElementById('end-modal').classList.add('active');
+            document.getElementById('reopen-modal-btn').style.display = 'none';
+        }
+
+        function hideEndScreenToInspectMap() {
+            document.getElementById('end-modal').classList.remove('active');
+            document.getElementById('reopen-modal-btn').style.display = 'inline-flex';
         }
 
         document.addEventListener('DOMContentLoaded', () => {
