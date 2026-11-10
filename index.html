@@ -155,7 +155,7 @@ const EXT30 = "ABH:Abchasien|ASM:Amerikanisch-Samoa|VIR:Amerikanische Jungfernin
 const FB = {TKL:[-9.2,-171.8,"Tokelau"],PCN:[-24.4,-128.3,"Pitcairn Islands"],MSR:[16.74,-62.19,"Montserrat"],AIA:[18.22,-63.05,"Anguilla"],BES:[12.2,-68.27,"Bonaire"],GLP:[16.25,-61.55,"Guadeloupe"],MTQ:[14.65,-61,"Martinique"],ABH:[43.1,41,"Abkhazia"],OSS:[42.35,44,"South Ossetia"],TRN:[47.2,29.4,"Transnistria"],TUV:[-8.5,179.2,"Tuvalu"],NRU:[-0.52,166.93,"Nauru"],NIU:[-19.05,-169.87,"Niue"]};
 const OCE = ["FJI","SLB","VUT","FSM","KIR","NRU","PLW","TON","TUV","WSM","MHL","NCL","PYF","COK","NIU","TKL","WLF","MDV"];
 const COL = ["#ffffff","#ffeb3b","#ff9800","#ff4b4b"]; // 1.–4. Versuch
-const R_CAR = [[9.5,-86],[27,-59]], R_OCE = [[-26,125],[16,180]], R_POLY = [[-26,-180],[-6,-135]], R_OCE_IN = [[-26,125],[16,190]];
+const R_CAR = [[9.5,-86],[27,-59]], R_OCE = [[-26,125],[16,180]], R_CAR_IN = [[9,-84.3],[28.9,-57.9]], R_OCE_IN = [[-39,126.8],[26.7,238.6]];
 const SYN = {USA:["usa","us","america","vereinigte staaten"],ARE:["vae","uae","emirate"],GBR:["uk","gb","grossbritannien","england"],COD:["dr kongo","drc"],COG:["kongo","congo"],RUS:["russland"],CZE:["tschechien"],TUR:["tuerkei"]};
 
 const $ = id => document.getElementById(id);
@@ -218,7 +218,7 @@ function fillOf(id) {
 }
 const polySt = id => ({ fillColor: fillOf(id), fillOpacity: 1, color: '#d6efe0', weight: .5 });
 const dotSt = id => { if (!valid.has(id)) return { radius: 4, fillOpacity: 0, opacity: 0 }; const c = tmp[id] || solved[id] || (mode === 'type' && target && id === fid(target) ? '#ffc800' : '#ffffff'); return { radius: 4, fillColor: c, fillOpacity: 1, color: '#0f3d22', weight: 1.3, opacity: 1 }; };
-const zoneSt = id => { const c = tmp[id] || solved[id]; return valid.has(id) ? { color: '#fff', weight: 1.3, dashArray: '5 4', opacity: 1, fill: true, fillColor: c || '#fff', fillOpacity: c ? .5 : .001 } : { opacity: 0, fillOpacity: 0 }; };
+const zoneSt = id => { const c = tmp[id] || solved[id], v = valid.has(id); return { color: '#fff', weight: 1.5, dashArray: '6 5', opacity: v ? 1 : .85, fill: true, fillColor: c || '#fff', fillOpacity: c && v ? .5 : .001 }; };
 function refresh(id) {
   (layers[id] || []).forEach(l => {
     if (l.zone || l.isDot) l.options.interactive = valid.has(id); // ungültige Zonen/Punkte blockieren keine Klicks
@@ -235,28 +235,23 @@ function setBlink(id, on) { // blinkt per Timer (funktioniert mit Canvas)
 }
 function flash(id) { tmp[id] = '#ff4b4b'; refresh(id); setTimeout(() => { delete tmp[id]; refresh(id); }, 450); }
 
-function zonesOf(g, pad) { // Teilstücke eines Staates zu Gruppen (Zonen) zusammenfassen
-  const ps = g.type === 'Polygon' ? [g.coordinates] : g.coordinates, G = 5;
-  const bs = ps.map(p => { const a = [1e9, 1e9, -1e9, -1e9]; p[0].forEach(c => { a[0] = Math.min(a[0], c[0]); a[1] = Math.min(a[1], c[1]); a[2] = Math.max(a[2], c[0]); a[3] = Math.max(a[3], c[1]); }); return a; });
-  for (let again = true; again;) {
-    again = false;
-    for (let i = 0; i < bs.length && !again; i++) for (let j = i + 1; j < bs.length; j++) {
-      const a = bs[i], b = bs[j];
-      if (a[0] - G <= b[2] && b[0] - G <= a[2] && a[1] - G <= b[3] && b[1] - G <= a[3]) { bs[i] = [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])]; bs.splice(j, 1); again = true; break; }
-    }
-  }
-  return bs.map(b => [[b[1] - pad, b[0] - pad], [b[3] + pad, b[2] + pad]]);
-}
-function addZones(m, data, zb) { // gestrichelte Meereszonen um Inselstaaten, unter dem Land gezeichnet
-  const rs = [];
-  data.forEach(f => { if (f._dot) zonesOf(f.geometry, .8).forEach(r => { const b = L.latLngBounds(r); if (zb.contains(b.getCenter()) && b.getEast() - b.getWest() < 30 && b.getNorth() - b.getSouth() < 30) rs.push([f, r, (r[1][0] - r[0][0]) * (r[1][1] - r[0][1])]); }); });
-  rs.sort((a, b) => b[2] - a[2]).forEach(([f, r]) => {
-    const id = fid(f), z = L.rectangle(r, zoneSt(id)).addTo(m); z.zone = true;
+// Zonen der Inselstaaten: Formen in Pixeln der Seterra-Bilder, per Mercator-Kalibrierung in Koordinaten umgerechnet
+const ZC = {BHS:[[167,32],[262,58],[398,210],[398,228],[385,228],[385,270],[362,291],[215,187],[132,180],[132,165],[165,142]],TCA:[[385,228],[456,228],[456,270],[385,270]],PRI:[[538,334],[636,334],[636,383],[538,383]],VIR:[[636,346],[666,346],[666,383],[636,383]],VGB:[[648,326],[682,326],[682,352],[648,352]]};
+const ZO = {KIR:[[332,181],[412,181],[443,219],[565,219],[565,242],[592,242],[592,212],[571,170],[627,170],[692,255],[692,317],[617,317],[617,277],[527,277],[466,277],[405,247],[332,247]],PYF:[[617,317],[692,317],[692,255],[827,255],[827,437],[770,468],[692,468],[617,415]],MHL:[[228,18],[258,18],[412,118],[412,181],[332,181],[228,105]],MNP:[[98,18],[228,18],[228,105],[147,105],[147,93],[98,93]],FSM:[[68,105],[228,105],[332,181],[332,213],[150,213],[115,157],[68,157]],PLW:[[7,135],[68,105],[68,157],[115,157],[150,213],[97,213],[7,187]],COK:[[527,277],[617,277],[617,411],[505,411],[505,389],[527,389]],FJI:[[368,307],[410,307],[410,341],[455,341],[455,383],[447,411],[368,411]],SLB:[[236,254],[292,254],[292,247],[332,247],[368,307],[332,317],[237,317],[222,282]],NCL:[[237,355],[290,355],[337,392],[368,392],[368,411],[237,411]],VUT:[[237,317],[368,317],[368,392],[337,392],[290,355],[237,355]],TUV:[[332,247],[405,247],[466,277],[466,307],[368,307]],TON:[[455,341],[498,341],[498,389],[505,389],[505,411],[447,411],[455,383]],PCN:[[827,398],[900,398],[900,437],[827,437]],NRU:[[292,213],[332,213],[332,247],[292,247]],WLF:[[410,307],[466,307],[466,341],[410,341]],TKL:[[466,277],[527,277],[527,301],[466,301]],WSM:[[466,301],[498,301],[498,341],[466,341]],ASM:[[498,301],[527,301],[527,369],[498,369]],NIU:[[498,369],[527,369],[527,389],[498,389]],GUM:[[98,93],[147,93],[147,116],[98,116]]};
+const mer = lat => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)) * 180 / Math.PI;
+const unmer = m => (2 * Math.atan(Math.exp(m * Math.PI / 180)) - Math.PI / 2) * 180 / Math.PI;
+const pxC = ([x, y]) => [unmer(mer(18.1) - (y - 363) / 33.1), -77.3 + (x - 232) / 33.1];
+const pxO = ([x, y]) => [unmer(mer(-17.8) - (y - 366) / 8.03), 178 + (x - 412) / 8.05];
+function addZones(m, Z, conv) { // gestrichelte Zonen, unter dem Land gezeichnet; große zuerst
+  const area = p => Math.abs(p.reduce((a, c, i) => { const d = p[(i + 1) % p.length]; return a + c[0] * d[1] - d[0] * c[1]; }, 0)) / 2;
+  Object.entries(Z).sort((a, b) => area(b[1]) - area(a[1])).forEach(([c, p]) => {
+    const f = idx[c]; if (!f) return;
+    const id = fid(f), z = L.polygon(p.map(conv), zoneSt(id)).addTo(m); z.zone = true;
     (layers[id] = layers[id] || []).push(z); z.on('click', e => { L.DomEvent.stopPropagation(e); clicked(f, z); });
   });
 }
-function build(m, data, zb) {
-  if (zb) addZones(m, data, zb); // Ebenen werden EINMAL gebaut und später nur umgefärbt
+function build(m, data, zones, conv) {
+  if (zones) addZones(m, zones, conv); // Ebenen werden EINMAL gebaut und später nur umgefärbt
   L.geoJSON(data, {
     style: f => polySt(fid(f)),
     onEachFeature: (f, l) => { (layers[fid(f)] = layers[fid(f)] || []).push(l); l.on('click', e => { L.DomEvent.stopPropagation(e); clicked(f, l); }); }
@@ -288,23 +283,23 @@ async function initMaps(step) {
   map = mk('map', { minZoom: 1, maxBounds: [[-60, -180], [85, 180]], maxBoundsViscosity: 1 });
   mapCar = mk('map-car', still); mapOce = mk('map-oce', still);
   const hit = (b, w, so, e, n) => b[0] <= e && b[2] >= w && b[1] <= n && b[3] >= so;
-  const wide = f => f._b[2] - f._b[0] >= 100 && !OCE.includes(fid(f)); // z. B. Russland/USA nicht in Ozeanien zeichnen
-  // Ozeanien liegt an der Datumsgrenze: verschobene Kopie, damit Fidschi, Tonga, Samoa usw. sichtbar sind
+  const wide = f => f._b[2] - f._b[0] >= 100 && !OCE.includes(fid(f)) && fid(f) !== 'NZL'; // z. B. Russland/USA nicht in Ozeanien
+  const oce = f => !wide(f) && fid(f) !== 'CHN';
+  // Ozeanien liegt an der Datumsgrenze: verschobene Kopie, damit Fidschi, Tonga, Samoa, Polynesien sichtbar sind
   const sh = f => ({ type: 'Feature', properties: f.properties, geometry: shiftGeom(f.geometry), _c: [f._c[0], f._c[1] + 360], _dot: f._dot, _de: f._de, _b: [f._b[0] + 360, f._b[1], f._b[2] + 360, f._b[3]] });
   await step('Karte wird gebaut: Weltkarte …');
   build(map, geo);
   await step('Karte wird gebaut: Karibik …');
-  build(mapCar, geo.filter(f => hit(f._b, -95, 3, -50, 32)), L.latLngBounds(R_CAR));
+  build(mapCar, geo.filter(f => hit(f._b, -90, 5, -52, 32)), ZC, pxC);
   await step('Karte wird gebaut: Ozeanien …');
-  build(mapOce, geo.filter(f => !wide(f) && hit(f._b, 115, -32, 190, 22)), L.latLngBounds(R_OCE_IN));
-  build(mapOce, geo.filter(f => !wide(f) && hit([f._b[0] + 360, f._b[1], f._b[2] + 360, f._b[3]], 115, -32, 190, 22)).map(sh), L.latLngBounds(R_OCE_IN));
-  [R_CAR, R_OCE, R_POLY].forEach(r => L.rectangle(r, { color: '#fff', weight: 1.5, dashArray: '4 4', fill: false, interactive: false }).addTo(map));
+  build(mapOce, geo.filter(f => oce(f) && hit(f._b, 115, -42, 240, 28)), ZO, pxO);
+  build(mapOce, geo.filter(f => oce(f) && hit([f._b[0] + 360, f._b[1], f._b[2] + 360, f._b[3]], 115, -42, 240, 28)).map(sh));
 }
 function fit() {
   [map, mapCar, mapOce].forEach(m => m.invalidateSize());
   map.fitBounds([[-56, -170], [82, 180]], { animate: false }); map.setMinZoom(map.getZoom());
-  mapCar.fitBounds(R_CAR, { animate: false });
-  mapOce.fitBounds([[-26, 125], [16, 190]], { animate: false });
+  mapCar.fitBounds(R_CAR_IN, { animate: false });
+  mapOce.fitBounds(R_OCE_IN, { animate: false });
 }
 
 // ---------- Spielablauf ----------
@@ -332,7 +327,8 @@ async function startGame() {
       await initMaps(step);
     } catch (e) { console.error(e); $('target-prompt').textContent = '⚠️ Fehler beim Kartenaufbau: ' + e.message + ' (Seite neu laden)'; return; }
   }
-  fit(); resetDeck(); startTimer(); nextRound();
+  try { await step('Karte wird eingepasst …'); fit(); resetDeck(); startTimer(); nextRound(); }
+  catch (e) { console.error(e); $('target-prompt').textContent = '⚠️ Fehler beim Start: ' + e.message; }
 }
 function resetDeck() {
   const L2 = a => [...new Set(a.map(c => idx[c]).filter(Boolean))], un = parse(UN195).map(x => x[0]), ex = parse(EXT30).map(x => x[0]);
