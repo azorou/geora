@@ -37,14 +37,14 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 #game-screen{position:relative;padding:8px}
 .game-prompt-bar{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:10px 20px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 8px 32px #0006;min-width:300px;max-width:92%}
 .prompt-text{font-size:1.2rem;font-weight:800;text-align:center}
-.hint-text{font-size:.95rem;font-weight:800;color:var(--gold);letter-spacing:3px}
+.hint-text{font-size:.95rem;font-weight:800;color:#fff;letter-spacing:3px}
 .type-input-container{display:flex;gap:8px;width:100%;margin-top:4px}
 .type-input{flex:1;min-width:0;background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:8px 14px;color:var(--text);font-size:1rem;font-weight:700;outline:none}
 .type-input.bad{border-color:var(--red)}
 .map-frame{position:relative;flex:1;min-height:0;border:3px solid var(--line);border-radius:12px;overflow:hidden;background:var(--sea)}
 .map-el{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--sea)}
 .leaflet-container{background:var(--sea);cursor:default}
-.inset-box{position:absolute;bottom:0;z-index:999;width:38%;height:35%;background:var(--sea);border:2px solid #fff;overflow:hidden;box-shadow:0 4px 15px #0005}
+.inset-box{position:absolute;bottom:0;z-index:999;width:38%;max-width:480px;min-width:200px;height:150px;background:var(--sea);border:2px solid #fff;overflow:hidden;box-shadow:0 4px 15px #0005}
 .inset-car{left:0;border-top-right-radius:8px}
 .inset-oce{right:0;border-top-left-radius:8px}
 @keyframes blink{0%{fill-opacity:.2;stroke:#ffc800;stroke-width:3px}50%{fill-opacity:1;stroke:#fff;stroke-width:4px}100%{fill-opacity:.2;stroke:#ffc800;stroke-width:3px}}
@@ -60,7 +60,7 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 .stat-box-val{font-size:2rem;font-weight:900}
 .stat-box-label{font-size:.8rem;font-weight:800;color:var(--sub);text-transform:uppercase}
 @media(max-width:768px){
-  .inset-box{width:46%;height:26%}
+  .inset-box{width:46%}
   .game-prompt-bar{top:12px;min-width:calc(100% - 30px)}
   .top-bar{padding:0 8px}.logo{font-size:1.2rem}
 }
@@ -189,14 +189,14 @@ function indexGeo() { // Länder über ADM0_A3 / ISO_A3 finden, Seterra-Namen se
 }
 function prep(f) { // Mittelpunkt des größten Teilstücks + Entscheidung, ob ein Klick-Punkt nötig ist
   const g = f.geometry, ps = g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
-  let best = [0, 0], ba = -1, minx = 1e9, maxx = -1e9, miny = 1e9, maxy = -1e9;
+  let best = [0, 0], lb = [0, 0, 0, 0], ba = -1, minx = 1e9, maxx = -1e9, miny = 1e9, maxy = -1e9;
   ps.forEach(p => {
     let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
     p[0].forEach(c => { x0 = Math.min(x0, c[0]); x1 = Math.max(x1, c[0]); y0 = Math.min(y0, c[1]); y1 = Math.max(y1, c[1]); });
     minx = Math.min(minx, x0); maxx = Math.max(maxx, x1); miny = Math.min(miny, y0); maxy = Math.max(maxy, y1);
-    const a = (x1 - x0) * (y1 - y0); if (a > ba) { ba = a; best = [(y0 + y1) / 2, (x0 + x1) / 2]; }
+    const a = (x1 - x0) * (y1 - y0); if (a > ba) { ba = a; best = [(y0 + y1) / 2, (x0 + x1) / 2]; lb = [x0, y0, x1, y1]; }
   });
-  f._b = [minx, miny, maxx, maxy]; f._c = best; f._dot = (maxx - minx < 3.5) || OCE.includes(fid(f));
+  f._lb = lb; f._b = [minx, miny, maxx, maxy]; f._c = best; f._dot = (maxx - minx < 3.5) || OCE.includes(fid(f));
 }
 function shiftGeom(g) { const m = c => typeof c[0] === 'number' ? [c[0] + 360, c[1]] : c.map(m); return { type: g.type, coordinates: m(g.coordinates) }; }
 
@@ -286,7 +286,7 @@ function simp(g, tol = .05) { // Linien ausdünnen (kaum sichtbar, spart viel Re
 }
 async function initMaps(step) {
   const still = { dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false };
-  map = mk('map', { minZoom: 1, maxBounds: [[-60, -180], [85, 180]], maxBoundsViscosity: 1 });
+  map = mk('map', { minZoom: 1, maxBounds: [[-85, -180], [85, 180]], maxBoundsViscosity: 1 });
   mapCar = mk('map-car', still); mapOce = mk('map-oce', still);
   const hit = (b, w, so, e, n) => b[0] <= e && b[2] >= w && b[1] <= n && b[3] >= so;
   const wide = f => f._b[2] - f._b[0] >= 100 && !OCE.includes(fid(f)) && fid(f) !== 'NZL'; // z. B. Russland/USA nicht in Ozeanien
@@ -301,9 +301,17 @@ async function initMaps(step) {
   build(mapOce, geo.filter(f => oce(f) && hit(f._b, 115, -42, 240, 28)), ZO, pxO);
   build(mapOce, geo.filter(f => oce(f) && hit([f._b[0] + 360, f._b[1], f._b[2] + 360, f._b[3]], 115, -42, 240, 28)).map(sh));
 }
+let insetH = 150;
+function layoutInsets() { // Höhe der Felder passend zur Kartenhöhe; die Weltkarte bekommt darüber ihren Platz
+  const fh = document.querySelector('.map-frame').clientHeight;
+  insetH = Math.max(90, Math.min(230, Math.round(fh * .3)));
+  document.querySelectorAll('.inset-box').forEach(e => e.style.height = insetH + 'px');
+}
+window.addEventListener('resize', () => { if (mapCar) { layoutInsets(); mapCar.invalidateSize(); mapOce.invalidateSize(); } });
 function fit() {
+  layoutInsets();
   [map, mapCar, mapOce].forEach(m => m.invalidateSize());
-  map.fitBounds([[-56, -170], [82, 180]], { animate: false }); map.setMinZoom(map.getZoom());
+  map.fitBounds([[-56, -170], [78, 180]], { animate: false, paddingBottomRight: [0, insetH + 6] }); map.setMinZoom(map.getZoom());
   mapCar.fitBounds(R_CAR_IN, { animate: false });
   mapOce.fitBounds(R_OCE_IN, { animate: false });
 }
@@ -360,7 +368,8 @@ function nextRound() {
   if (mode === 'type') {
     $('target-prompt').textContent = lang === 'en' ? 'Which country is highlighted?' : 'Welches Land ist hervorgehoben?';
     $('type-input').value = ''; $('type-input').focus();
-    if (target._dot) map.flyTo(target._c, 5, { duration: .7 }); // winzige Länder sichtbar machen
+    const b = target._lb; // größtes Teilstück des Landes; nie extremer als Zoom 4,5
+    map.stop(); map.flyToBounds([[b[1], b[0]], [b[3], b[2]]], { paddingTopLeft: [40, 70], paddingBottomRight: [40, insetH + 10], maxZoom: 4.5, duration: .6 });
   } else {
     $('target-prompt').textContent = (lang === 'en' ? 'Find: ' : 'Finde: ') + nameOf(target);
   }
