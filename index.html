@@ -147,7 +147,7 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 // Kartendaten (Natural Earth). 50m ist schnell; 10m (Fallback) hat mehr Inseln, ist aber ~24 MB groß.
 const BASE = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/";
 const CDN = "https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/";
-const DATA = [CDN + "ne_50m_admin_0_countries.geojson", BASE + "ne_50m_admin_0_countries.geojson", CDN + "ne_10m_admin_0_countries.geojson", BASE + "ne_10m_admin_0_countries.geojson"];
+const DATA = ["countries.geojson", CDN + "ne_50m_admin_0_countries.geojson", BASE + "ne_50m_admin_0_countries.geojson", CDN + "ne_10m_admin_0_countries.geojson"];
 const TOP = "AFG DZA AGO ARG BGD BRA CHN COD DEU FRA GHA IND IDN IRQ IRN ITA JPN YEM CAN KEN COL MYS MAR MEX MOZ MMR NPL NGA PAK PER PHL POL RUS SAU ESP SDN ZAF KOR TZA THA TUR USA UGA UKR UZB VEN GBR VNM EGY ETH".split(" "); // Seterra: Top 50
 const UN195 = "AFG:Afghanistan|ALB:Albanien|DZA:Algerien|AND:Andorra|AGO:Angola|ATG:Antigua und Barbuda|ARG:Argentinien|ARM:Armenien|AZE:Aserbaidschan|AUS:Australien|BHR:Bahrain|BGD:Bangladesch|BRB:Barbados|BLR:Belarus|BEL:Belgien|BLZ:Belize|BEN:Benin|BTN:Bhutan|BOL:Bolivien|BIH:Bosnien-Herzegowina|BWA:Botswana|BRA:Brasilien|BRN:Brunei|BGR:Bulgarien|BFA:Burkina Faso|BDI:Burundi|CHL:Chile|CHN:China|CRI:Costa Rica|COD:Demokratische Republik Kongo|DEU:Deutschland|BHS:Die Bahamas|DMA:Dominica|DOM:Dominikanische Republik|DJI:Dschibuti|DNK:Dänemark|ECU:Ecuador|SLV:El Salvador|CIV:Elfenbeinküste|ERI:Eritrea|EST:Estland|SWZ:Eswatini|FJI:Fidschi|FIN:Finnland|FRA:Frankreich|GAB:Gabun|GMB:Gambia|GEO:Georgien|GHA:Ghana|GRD:Grenada|GRC:Griechenland|GTM:Guatemala|GIN:Guinea|GNB:Guinea-Bissau|GUY:Guyana|HTI:Haiti|HND:Honduras|IND:Indien|IDN:Indonesien|IRQ:Irak|IRN:Iran|IRL:Irland|ISL:Island|ISR:Israel|ITA:Italien|JAM:Jamaika|JPN:Japan|YEM:Jemen|JOR:Jordanien|KHM:Kambodscha|CMR:Kamerun|CAN:Kanada|CPV:Kap Verde|KAZ:Kasachstan|QAT:Katar|KEN:Kenia|KGZ:Kirgisistan|KIR:Kiribati|COL:Kolumbien|COM:Komoren|HRV:Kroatien|CUB:Kuba|KWT:Kuwait|LAO:Laos|LSO:Lesotho|LVA:Lettland|LBN:Libanon|LBR:Liberia|LBY:Libyen|LIE:Liechtenstein|LTU:Litauen|LUX:Luxemburg|MDG:Madagaskar|MWI:Malawi|MYS:Malaysia|MDV:Malediven|MLI:Mali|MLT:Malta|MAR:Marokko|MHL:Marshallinseln|MRT:Mauretanien|MUS:Mauritius|MEX:Mexiko|FSM:Mikronesien|MDA:Moldawien|MCO:Monaco|MNG:Mongolei|MNE:Montenegro|MOZ:Mosambik|MMR:Myanmar|NAM:Namibia|NRU:Nauru|NPL:Nepal|NZL:Neuseeland|NIC:Nicaragua|NLD:Niederlande|NER:Niger|NGA:Nigeria|PRK:Nordkorea|MKD:Nordmazedonien|NOR:Norwegen|OMN:Oman|TLS:Ost Timor|PAK:Pakistan|PLW:Palau|PSE:Palästina|PAN:Panama|PNG:Papua-Neuguinea|PRY:Paraguay|PER:Peru|PHL:Philippinen|POL:Polen|PRT:Portugal|COG:Republik Kongo|RWA:Ruanda|ROU:Rumänien|RUS:Russland|SLB:Salomonen|ZMB:Sambia|WSM:Samoa|SMR:San Marino|SAU:Saudi-Arabien|SWE:Schweden|CHE:Schweiz|SEN:Senegal|SRB:Serbien|SYC:Seychellen|SLE:Sierra Leone|ZWE:Simbabwe|SGP:Singapur|SVK:Slowakei|SVN:Slowenien|SOM:Somalia|ESP:Spanien|LKA:Sri Lanka|KNA:St. Kitts und Nevis|LCA:St. Lucia|VCT:St. Vincent und die Grenadinen|SDN:Sudan|SUR:Surinam|SYR:Syrien|STP:São Tomé und Príncipe|ZAF:Südafrika|KOR:Südkorea|SSD:Südsudan|TJK:Tadschikistan|TZA:Tansania|THA:Thailand|TGO:Togo|TON:Tonga|TTO:Trinidad und Tobago|TCD:Tschad|CZE:Tschechien|TUN:Tunesien|TKM:Turkmenistan|TUV:Tuvalu|TUR:Türkei|USA:USA|UGA:Uganda|UKR:Ukraine|HUN:Ungarn|URY:Uruguay|UZB:Usbekistan|VUT:Vanuatu|VAT:Vatikanstadt|VEN:Venezuela|ARE:Vereinigte Arabische Emirate|GBR:Vereinigtes Königreich|VNM:Vietnam|CAF:Zentralafrikanische Republik|CYP:Zypern|EGY:Ägypten|GNQ:Äquatorialguinea|ETH:Äthiopien|AUT:Österreich"; // Seterra: 195 Länder (Code:deutscher Name)
 const EXT30 = "ABH:Abchasien|ASM:Amerikanisch-Samoa|VIR:Amerikanische Jungferninseln|AIA:Anguilla|ABW:Aruba|BES:Bonaire|VGB:Britische Jungferninseln|CYM:Cayman Islands|COK:Cookinseln|CUW:Curaçao|PYF:Französisch-Polynesien|GRL:Grönland|GLP:Guadeloupe|GUM:Guam|KOS:Kosovo|MTQ:Martinique|MSR:Montserrat|NCL:Neukaledonien|NIU:Niue|MNP:Nördliche Marianen|PCN:Pitcairninseln|PRI:Puerto Rico|SOL:Somaliland|OSS:Südossetien|TWN:Taiwan|TKL:Tokelau|TRN:Transnistrien|TCA:Turks- und Caicosinseln|WLF:Wallis und Futuna|ESH:West-Sahara"; // Seterra: +30 Gebiete = 225
@@ -155,7 +155,7 @@ const EXT30 = "ABH:Abchasien|ASM:Amerikanisch-Samoa|VIR:Amerikanische Jungfernin
 const FB = {TKL:[-9.2,-171.8,"Tokelau"],PCN:[-24.4,-128.3,"Pitcairn Islands"],MSR:[16.74,-62.19,"Montserrat"],AIA:[18.22,-63.05,"Anguilla"],BES:[12.2,-68.27,"Bonaire"],GLP:[16.25,-61.55,"Guadeloupe"],MTQ:[14.65,-61,"Martinique"],ABH:[43.1,41,"Abkhazia"],OSS:[42.35,44,"South Ossetia"],TRN:[47.2,29.4,"Transnistria"],TUV:[-8.5,179.2,"Tuvalu"],NRU:[-0.52,166.93,"Nauru"],NIU:[-19.05,-169.87,"Niue"]};
 const OCE = ["FJI","SLB","VUT","FSM","KIR","NRU","PLW","TON","TUV","WSM","MHL","NCL","PYF","COK","NIU","TKL","WLF","MDV"];
 const COL = ["#ffffff","#ffeb3b","#ff9800","#ff4b4b"]; // 1.–4. Versuch
-const R_CAR = [[9.5,-86],[27,-59]], R_OCE = [[-26,125],[16,180]], R_POLY = [[-26,-180],[-6,-135]];
+const R_CAR = [[9.5,-86],[27,-59]], R_OCE = [[-26,125],[16,180]], R_POLY = [[-26,-180],[-6,-135]], R_OCE_IN = [[-26,125],[16,190]];
 const SYN = {USA:["usa","us","america","vereinigte staaten"],ARE:["vae","uae","emirate"],GBR:["uk","gb","grossbritannien","england"],COD:["dr kongo","drc"],COG:["kongo","congo"],RUS:["russland"],CZE:["tschechien"],TUR:["tuerkei"]};
 
 const $ = id => document.getElementById(id);
@@ -189,20 +189,22 @@ function indexGeo() { // Länder über ADM0_A3 / ISO_A3 finden, Seterra-Namen se
 }
 function prep(f) { // Mittelpunkt des größten Teilstücks + Entscheidung, ob ein Klick-Punkt nötig ist
   const g = f.geometry, ps = g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
-  let best = [0, 0], ba = -1, minx = 1e9, maxx = -1e9;
+  let best = [0, 0], ba = -1, minx = 1e9, maxx = -1e9, miny = 1e9, maxy = -1e9;
   ps.forEach(p => {
     let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
     p[0].forEach(c => { x0 = Math.min(x0, c[0]); x1 = Math.max(x1, c[0]); y0 = Math.min(y0, c[1]); y1 = Math.max(y1, c[1]); });
-    minx = Math.min(minx, x0); maxx = Math.max(maxx, x1);
+    minx = Math.min(minx, x0); maxx = Math.max(maxx, x1); miny = Math.min(miny, y0); maxy = Math.max(maxy, y1);
     const a = (x1 - x0) * (y1 - y0); if (a > ba) { ba = a; best = [(y0 + y1) / 2, (x0 + x1) / 2]; }
   });
-  f._c = best; f._dot = (maxx - minx < 3.5) || OCE.includes(fid(f));
+  f._b = [minx, miny, maxx, maxy]; f._c = best; f._dot = (maxx - minx < 3.5) || OCE.includes(fid(f));
 }
 function shiftGeom(g) { const m = c => typeof c[0] === 'number' ? [c[0] + 360, c[1]] : c.map(m); return { type: g.type, coordinates: m(g.coordinates) }; }
 
-async function loadData() {
-  for (const u of DATA) {
-    try { const r = await fetch(u); if (!r.ok) continue; const j = await r.json(); return j.features.filter(f => fid(f) !== 'ATA'); } catch (e) {}
+async function loadData() { // 1. lokale Datei countries.geojson, danach Internet-Quellen mit Zeitlimit
+  for (let i = 0; i < DATA.length; i++) {
+    $('target-prompt').textContent = 'Karte wird geladen … (Quelle ' + (i + 1) + '/' + DATA.length + ')';
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), i === 0 ? 20000 : 45000);
+    try { const r = await fetch(DATA[i], { signal: ctl.signal }); if (!r.ok) continue; const j = await r.json(); return j.features.filter(f => fid(f) !== 'ATA'); } catch (e) {} finally { clearTimeout(to); }
   }
   return null;
 }
@@ -216,12 +218,45 @@ function fillOf(id) {
 }
 const polySt = id => ({ fillColor: fillOf(id), fillOpacity: 1, color: '#d6efe0', weight: .5 });
 const dotSt = id => { if (!valid.has(id)) return { radius: 4, fillOpacity: 0, opacity: 0 }; const c = tmp[id] || solved[id] || (mode === 'type' && target && id === fid(target) ? '#ffc800' : '#ffffff'); return { radius: 4, fillColor: c, fillOpacity: 1, color: '#0f3d22', weight: 1.3, opacity: 1 }; };
-function refresh(id) { (layers[id] || []).forEach(l => l.setStyle(l.isDot ? dotSt(id) : polySt(id))); }
+const zoneSt = id => { const c = tmp[id] || solved[id]; return valid.has(id) ? { color: '#fff', weight: 1.3, dashArray: '5 4', opacity: 1, fill: true, fillColor: c || '#fff', fillOpacity: c ? .5 : .001 } : { opacity: 0, fillOpacity: 0 }; };
+function refresh(id) {
+  (layers[id] || []).forEach(l => {
+    if (l.zone || l.isDot) l.options.interactive = valid.has(id); // ungültige Zonen/Punkte blockieren keine Klicks
+    l.setStyle(l.zone ? zoneSt(id) : l.isDot ? dotSt(id) : polySt(id));
+  });
+}
 function refreshAll() { Object.keys(layers).forEach(refresh); }
-function setBlink(id, on) { (layers[id] || []).forEach(l => { const el = l.getElement && l.getElement(); if (el) el.classList.toggle('blinking-country', on); }); }
+let blinkT = null, blinkId = null;
+function setBlink(id, on) { // blinkt per Timer (funktioniert mit Canvas)
+  clearInterval(blinkT);
+  if (blinkId) { const o = blinkId; blinkId = null; delete tmp[o]; refresh(o); }
+  if (!on) return;
+  blinkId = id; let k = 0; blinkT = setInterval(() => { tmp[id] = (k++ % 2) ? '#ffffff' : '#ffc800'; refresh(id); }, 400);
+}
 function flash(id) { tmp[id] = '#ff4b4b'; refresh(id); setTimeout(() => { delete tmp[id]; refresh(id); }, 450); }
 
-function build(m, data) { // Ebenen werden EINMAL gebaut und später nur umgefärbt
+function zonesOf(g, pad) { // Teilstücke eines Staates zu Gruppen (Zonen) zusammenfassen
+  const ps = g.type === 'Polygon' ? [g.coordinates] : g.coordinates, G = 5;
+  const bs = ps.map(p => { const a = [1e9, 1e9, -1e9, -1e9]; p[0].forEach(c => { a[0] = Math.min(a[0], c[0]); a[1] = Math.min(a[1], c[1]); a[2] = Math.max(a[2], c[0]); a[3] = Math.max(a[3], c[1]); }); return a; });
+  for (let again = true; again;) {
+    again = false;
+    for (let i = 0; i < bs.length && !again; i++) for (let j = i + 1; j < bs.length; j++) {
+      const a = bs[i], b = bs[j];
+      if (a[0] - G <= b[2] && b[0] - G <= a[2] && a[1] - G <= b[3] && b[1] - G <= a[3]) { bs[i] = [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])]; bs.splice(j, 1); again = true; break; }
+    }
+  }
+  return bs.map(b => [[b[1] - pad, b[0] - pad], [b[3] + pad, b[2] + pad]]);
+}
+function addZones(m, data, zb) { // gestrichelte Meereszonen um Inselstaaten, unter dem Land gezeichnet
+  const rs = [];
+  data.forEach(f => { if (f._dot) zonesOf(f.geometry, .8).forEach(r => { const b = L.latLngBounds(r); if (zb.contains(b.getCenter()) && b.getEast() - b.getWest() < 30 && b.getNorth() - b.getSouth() < 30) rs.push([f, r, (r[1][0] - r[0][0]) * (r[1][1] - r[0][1])]); }); });
+  rs.sort((a, b) => b[2] - a[2]).forEach(([f, r]) => {
+    const id = fid(f), z = L.rectangle(r, zoneSt(id)).addTo(m); z.zone = true;
+    (layers[id] = layers[id] || []).push(z); z.on('click', e => { L.DomEvent.stopPropagation(e); clicked(f, z); });
+  });
+}
+function build(m, data, zb) {
+  if (zb) addZones(m, data, zb); // Ebenen werden EINMAL gebaut und später nur umgefärbt
   L.geoJSON(data, {
     style: f => polySt(fid(f)),
     onEachFeature: (f, l) => { (layers[fid(f)] = layers[fid(f)] || []).push(l); l.on('click', e => { L.DomEvent.stopPropagation(e); clicked(f, l); }); }
@@ -233,14 +268,18 @@ function build(m, data) { // Ebenen werden EINMAL gebaut und später nur umgefä
     d.on('click', e => { L.DomEvent.stopPropagation(e); clicked(f, d); });
   });
 }
-function mk(id, o) { return L.map(id, Object.assign({ zoomControl: false, attributionControl: false, zoomSnap: .25 }, o)); }
+function mk(id, o) { return L.map(id, Object.assign({ preferCanvas: true, zoomControl: false, attributionControl: false, zoomSnap: .25 }, o)); }
 function initMaps() {
   const still = { dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false };
   map = mk('map', { minZoom: 1, maxBounds: [[-60, -180], [85, 180]], maxBoundsViscosity: 1 });
   mapCar = mk('map-car', still); mapOce = mk('map-oce', still);
-  build(map, geo); build(mapCar, geo); build(mapOce, geo);
+  const hit = (f, w, so, e, n) => f._b[0] <= e && f._b[2] >= w && f._b[1] <= n && f._b[3] >= so;
   // Ozeanien liegt an der Datumsgrenze: verschobene Kopie, damit Fidschi, Tonga, Samoa usw. sichtbar sind
-  build(mapOce, geo.map(f => ({ type: 'Feature', properties: f.properties, geometry: shiftGeom(f.geometry), _c: [f._c[0], f._c[1] + 360], _dot: f._dot, _de: f._de })));
+  const sh = f => ({ type: 'Feature', properties: f.properties, geometry: shiftGeom(f.geometry), _c: [f._c[0], f._c[1] + 360], _dot: f._dot, _de: f._de, _b: [f._b[0] + 360, f._b[1], f._b[2] + 360, f._b[3]] });
+  build(map, geo);
+  build(mapCar, geo.filter(f => hit(f, -95, 3, -50, 32)), L.latLngBounds(R_CAR));
+  build(mapOce, geo.filter(f => hit(f, 115, -32, 190, 22)), L.latLngBounds(R_OCE_IN));
+  build(mapOce, geo.map(sh).filter(f => hit(f, 115, -32, 190, 22)), L.latLngBounds(R_OCE_IN));
   [R_CAR, R_OCE, R_POLY].forEach(r => L.rectangle(r, { color: '#fff', weight: 1.5, dashArray: '4 4', fill: false, interactive: false }).addTo(map));
 }
 function fit() {
@@ -268,6 +307,7 @@ async function startGame() {
     $('target-prompt').textContent = 'Karte wird geladen …';
     geo = await loadData();
     if (!geo) { $('target-prompt').textContent = '⚠️ Kartendaten konnten nicht geladen werden. Bitte im normalen Browser öffnen (z. B. über GitHub Pages), nicht in einem Vorschau-Fenster.'; return; }
+    $('target-prompt').textContent = 'Karte wird aufgebaut …'; await new Promise(r => setTimeout(r, 40));
     indexGeo(); geo.forEach(prep); initMaps();
   }
   fit(); resetDeck(); startTimer(); nextRound();
@@ -280,7 +320,7 @@ function resetDeck() {
   Object.keys(layers).forEach(id => setBlink(id, false)); refreshAll(); counter();
 }
 function quitGame() {
-  clearInterval(timerI); $('end-modal').classList.remove('active');
+  clearInterval(timerI); setBlink(null, false); $('end-modal').classList.remove('active');
   $('game-stats').style.display = 'none'; $('settings-btn').style.display = 'flex'; switchScreen('main-menu');
 }
 function hint() { $('hint').textContent = practice ? '' : '●'.repeat(4 - tries) + '○'.repeat(tries); }
@@ -313,7 +353,7 @@ function startPractice() {
 function clicked(f, l) {
   if (!target || locked) return;
   const id = fid(f);
-  if (l.isDot && !valid.has(id)) return;
+  if ((l.isDot || l.zone) && !valid.has(id)) return;
   clearTimeout(l._tt);
   l.bindTooltip(nameOf(f), { permanent: true, direction: 'center', className: 'country-label-temp' }).openTooltip();
   l._tt = setTimeout(() => l.unbindTooltip(), 1800);
