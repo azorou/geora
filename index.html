@@ -263,7 +263,13 @@ function build(m, data, zones, conv) {
     d.on('click', e => { L.DomEvent.stopPropagation(e); clicked(f, d); });
   });
 }
-function mk(id, o) { return L.map(id, Object.assign({ preferCanvas: true, zoomControl: false, attributionControl: false, zoomSnap: .25 }, o)); }
+function mk(id, o) {
+  // Zeichenfläche (Renderer) ZUERST anmelden, sonst fehlt ihr beim Laden die Größe und Leaflet bricht mit "reading 'min'" ab
+  const rend = L.canvas();
+  const m = L.map(id, Object.assign({ renderer: rend, zoomControl: false, attributionControl: false, zoomSnap: .25 }, o));
+  m.addLayer(rend);
+  return m;
+}
 const step = async t => { $('target-prompt').textContent = t; await new Promise(r => setTimeout(r, 30)); };
 function simp(g, tol = .05) { // Linien ausdünnen (kaum sichtbar, spart viel Rechenzeit)
   const ring = r => {
