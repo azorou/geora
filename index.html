@@ -269,17 +269,35 @@ function build(m, data, zb) {
   });
 }
 function mk(id, o) { return L.map(id, Object.assign({ preferCanvas: true, zoomControl: false, attributionControl: false, zoomSnap: .25 }, o)); }
-function initMaps() {
+const step = async t => { $('target-prompt').textContent = t; await new Promise(r => setTimeout(r, 30)); };
+function simp(g, tol = .05) { // Linien ausdünnen (kaum sichtbar, spart viel Rechenzeit)
+  const ring = r => {
+    if (r.length < 12) return r;
+    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    r.forEach(c => { x0 = Math.min(x0, c[0]); x1 = Math.max(x1, c[0]); y0 = Math.min(y0, c[1]); y1 = Math.max(y1, c[1]); });
+    if (x1 - x0 < 1 && y1 - y0 < 1) return r; // winzige Inseln unverändert lassen
+    const o = [r[0]]; let l = r[0];
+    for (let i = 1; i < r.length - 1; i++) if (Math.abs(r[i][0] - l[0]) + Math.abs(r[i][1] - l[1]) >= tol) { o.push(r[i]); l = r[i]; }
+    o.push(r[r.length - 1]); return o.length >= 4 ? o : r;
+  };
+  const poly = p => p.map(ring);
+  return g.type === 'Polygon' ? { type: 'Polygon', coordinates: poly(g.coordinates) } : { type: 'MultiPolygon', coordinates: g.coordinates.map(poly) };
+}
+async function initMaps(step) {
   const still = { dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false };
   map = mk('map', { minZoom: 1, maxBounds: [[-60, -180], [85, 180]], maxBoundsViscosity: 1 });
   mapCar = mk('map-car', still); mapOce = mk('map-oce', still);
-  const hit = (f, w, so, e, n) => f._b[0] <= e && f._b[2] >= w && f._b[1] <= n && f._b[3] >= so;
+  const hit = (b, w, so, e, n) => b[0] <= e && b[2] >= w && b[1] <= n && b[3] >= so;
+  const wide = f => f._b[2] - f._b[0] >= 100 && !OCE.includes(fid(f)); // z. B. Russland/USA nicht in Ozeanien zeichnen
   // Ozeanien liegt an der Datumsgrenze: verschobene Kopie, damit Fidschi, Tonga, Samoa usw. sichtbar sind
   const sh = f => ({ type: 'Feature', properties: f.properties, geometry: shiftGeom(f.geometry), _c: [f._c[0], f._c[1] + 360], _dot: f._dot, _de: f._de, _b: [f._b[0] + 360, f._b[1], f._b[2] + 360, f._b[3]] });
+  await step('Karte wird gebaut: Weltkarte …');
   build(map, geo);
-  build(mapCar, geo.filter(f => hit(f, -95, 3, -50, 32)), L.latLngBounds(R_CAR));
-  build(mapOce, geo.filter(f => hit(f, 115, -32, 190, 22)), L.latLngBounds(R_OCE_IN));
-  build(mapOce, geo.map(sh).filter(f => hit(f, 115, -32, 190, 22)), L.latLngBounds(R_OCE_IN));
+  await step('Karte wird gebaut: Karibik …');
+  build(mapCar, geo.filter(f => hit(f._b, -95, 3, -50, 32)), L.latLngBounds(R_CAR));
+  await step('Karte wird gebaut: Ozeanien …');
+  build(mapOce, geo.filter(f => !wide(f) && hit(f._b, 115, -32, 190, 22)), L.latLngBounds(R_OCE_IN));
+  build(mapOce, geo.filter(f => !wide(f) && hit([f._b[0] + 360, f._b[1], f._b[2] + 360, f._b[3]], 115, -32, 190, 22)).map(sh), L.latLngBounds(R_OCE_IN));
   [R_CAR, R_OCE, R_POLY].forEach(r => L.rectangle(r, { color: '#fff', weight: 1.5, dashArray: '4 4', fill: false, interactive: false }).addTo(map));
 }
 function fit() {
@@ -305,10 +323,14 @@ async function startGame() {
   if (typeof L === 'undefined') { $('target-prompt').textContent = '⚠️ Kartenbibliothek (Leaflet) konnte nicht geladen werden.'; return; }
   if (!geo) {
     $('target-prompt').textContent = 'Karte wird geladen …';
-    geo = await loadData();
-    if (!geo) { $('target-prompt').textContent = '⚠️ Kartendaten konnten nicht geladen werden. Bitte im normalen Browser öffnen (z. B. über GitHub Pages), nicht in einem Vorschau-Fenster.'; return; }
-    $('target-prompt').textContent = 'Karte wird aufgebaut …'; await new Promise(r => setTimeout(r, 40));
-    indexGeo(); geo.forEach(prep); initMaps();
+    const data = await loadData();
+    if (!data) { $('target-prompt').textContent = '⚠️ Kartendaten konnten nicht geladen werden. Bitte im normalen Browser öffnen (z. B. über GitHub Pages), nicht in einem Vorschau-Fenster.'; return; }
+    try {
+      await step('Karte wird vorbereitet …');
+      data.forEach(f => { if (f.geometry && /Polygon/.test(f.geometry.type)) f.geometry = simp(f.geometry); });
+      geo = data; indexGeo(); geo.forEach(prep);
+      await initMaps(step);
+    } catch (e) { console.error(e); $('target-prompt').textContent = '⚠️ Fehler beim Kartenaufbau: ' + e.message + ' (Seite neu laden)'; return; }
   }
   fit(); resetDeck(); startTimer(); nextRound();
 }
