@@ -38,6 +38,7 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 .game-prompt-bar{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:10px 20px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 8px 32px #0006;min-width:300px;max-width:92%}
 .prompt-text{font-size:1.2rem;font-weight:800;text-align:center}
 .hint-text{font-size:.95rem;font-weight:800;color:#fff;letter-spacing:3px}
+.flag{height:26px;border-radius:4px;box-shadow:0 1px 5px #0008;margin-bottom:2px}
 .letters{font-size:1.15rem;font-weight:800;color:#fff;letter-spacing:2px;text-align:center;min-height:1.4em}
 .type-input-container{display:flex;gap:8px;width:100%;margin-top:4px}
 .type-input{flex:1;min-width:0;background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:8px 14px;color:var(--text);font-size:1rem;font-weight:700;outline:none}
@@ -94,6 +95,8 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
       <div class="option-card selected" id="lang-de-card" onclick="setLanguage('de')">🇩🇪 Deutsch</div>
       <div class="option-card" id="lang-en-card" onclick="setLanguage('en')">🇬🇧 English (UK)</div>
     </div>
+    <div class="section-title">Spieloptionen</div>
+    <div class="option-grid opts"></div>
   </div>
 </section>
 
@@ -111,6 +114,8 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
       <div class="option-card" onclick="selectDifficulty('un',this)">UN-Staaten (195)</div>
       <div class="option-card" onclick="selectDifficulty('standard',this)">Länder & Territorien (225)</div>
     </div>
+    <div class="section-title">3. Optionen</div>
+    <div class="option-grid opts"></div>
     <div style="margin-top:25px;text-align:center">
       <button class="btn-3d btn-gold" style="width:280px" onclick="startGame()">🚀 JETZT SPIELEN</button>
     </div>
@@ -119,6 +124,7 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 
 <section id="game-screen" class="screen">
   <div class="game-prompt-bar">
+    <img id="flag" class="flag" alt="" style="display:none" onerror="this.style.display='none'">
     <div id="target-prompt" class="prompt-text"></div>
     <div id="hint" class="hint-text"></div>
     <div id="letters" class="letters"></div>
@@ -155,6 +161,7 @@ const TOP = "AFG DZA AGO ARG BGD BRA CHN COD DEU FRA GHA IND IDN IRQ IRN ITA JPN
 const UN195 = "AFG:Afghanistan|ALB:Albanien|DZA:Algerien|AND:Andorra|AGO:Angola|ATG:Antigua und Barbuda|ARG:Argentinien|ARM:Armenien|AZE:Aserbaidschan|AUS:Australien|BHR:Bahrain|BGD:Bangladesch|BRB:Barbados|BLR:Belarus|BEL:Belgien|BLZ:Belize|BEN:Benin|BTN:Bhutan|BOL:Bolivien|BIH:Bosnien-Herzegowina|BWA:Botswana|BRA:Brasilien|BRN:Brunei|BGR:Bulgarien|BFA:Burkina Faso|BDI:Burundi|CHL:Chile|CHN:China|CRI:Costa Rica|COD:Demokratische Republik Kongo|DEU:Deutschland|BHS:Die Bahamas|DMA:Dominica|DOM:Dominikanische Republik|DJI:Dschibuti|DNK:Dänemark|ECU:Ecuador|SLV:El Salvador|CIV:Elfenbeinküste|ERI:Eritrea|EST:Estland|SWZ:Eswatini|FJI:Fidschi|FIN:Finnland|FRA:Frankreich|GAB:Gabun|GMB:Gambia|GEO:Georgien|GHA:Ghana|GRD:Grenada|GRC:Griechenland|GTM:Guatemala|GIN:Guinea|GNB:Guinea-Bissau|GUY:Guyana|HTI:Haiti|HND:Honduras|IND:Indien|IDN:Indonesien|IRQ:Irak|IRN:Iran|IRL:Irland|ISL:Island|ISR:Israel|ITA:Italien|JAM:Jamaika|JPN:Japan|YEM:Jemen|JOR:Jordanien|KHM:Kambodscha|CMR:Kamerun|CAN:Kanada|CPV:Kap Verde|KAZ:Kasachstan|QAT:Katar|KEN:Kenia|KGZ:Kirgisistan|KIR:Kiribati|COL:Kolumbien|COM:Komoren|HRV:Kroatien|CUB:Kuba|KWT:Kuwait|LAO:Laos|LSO:Lesotho|LVA:Lettland|LBN:Libanon|LBR:Liberia|LBY:Libyen|LIE:Liechtenstein|LTU:Litauen|LUX:Luxemburg|MDG:Madagaskar|MWI:Malawi|MYS:Malaysia|MDV:Malediven|MLI:Mali|MLT:Malta|MAR:Marokko|MHL:Marshallinseln|MRT:Mauretanien|MUS:Mauritius|MEX:Mexiko|FSM:Mikronesien|MDA:Moldawien|MCO:Monaco|MNG:Mongolei|MNE:Montenegro|MOZ:Mosambik|MMR:Myanmar|NAM:Namibia|NRU:Nauru|NPL:Nepal|NZL:Neuseeland|NIC:Nicaragua|NLD:Niederlande|NER:Niger|NGA:Nigeria|PRK:Nordkorea|MKD:Nordmazedonien|NOR:Norwegen|OMN:Oman|TLS:Ost Timor|PAK:Pakistan|PLW:Palau|PSE:Palästina|PAN:Panama|PNG:Papua-Neuguinea|PRY:Paraguay|PER:Peru|PHL:Philippinen|POL:Polen|PRT:Portugal|COG:Republik Kongo|RWA:Ruanda|ROU:Rumänien|RUS:Russland|SLB:Salomonen|ZMB:Sambia|WSM:Samoa|SMR:San Marino|SAU:Saudi-Arabien|SWE:Schweden|CHE:Schweiz|SEN:Senegal|SRB:Serbien|SYC:Seychellen|SLE:Sierra Leone|ZWE:Simbabwe|SGP:Singapur|SVK:Slowakei|SVN:Slowenien|SOM:Somalia|ESP:Spanien|LKA:Sri Lanka|KNA:St. Kitts und Nevis|LCA:St. Lucia|VCT:St. Vincent und die Grenadinen|SDN:Sudan|SUR:Surinam|SYR:Syrien|STP:São Tomé und Príncipe|ZAF:Südafrika|KOR:Südkorea|SSD:Südsudan|TJK:Tadschikistan|TZA:Tansania|THA:Thailand|TGO:Togo|TON:Tonga|TTO:Trinidad und Tobago|TCD:Tschad|CZE:Tschechien|TUN:Tunesien|TKM:Turkmenistan|TUV:Tuvalu|TUR:Türkei|USA:USA|UGA:Uganda|UKR:Ukraine|HUN:Ungarn|URY:Uruguay|UZB:Usbekistan|VUT:Vanuatu|VAT:Vatikanstadt|VEN:Venezuela|ARE:Vereinigte Arabische Emirate|GBR:Vereinigtes Königreich|VNM:Vietnam|CAF:Zentralafrikanische Republik|CYP:Zypern|EGY:Ägypten|GNQ:Äquatorialguinea|ETH:Äthiopien|AUT:Österreich"; // Seterra: 195 Länder (Code:deutscher Name)
 const EXT30 = "ABH:Abchasien|ASM:Amerikanisch-Samoa|VIR:Amerikanische Jungferninseln|AIA:Anguilla|ABW:Aruba|BES:Bonaire|VGB:Britische Jungferninseln|CYM:Cayman Islands|COK:Cookinseln|CUW:Curaçao|PYF:Französisch-Polynesien|GRL:Grönland|GLP:Guadeloupe|GUM:Guam|KOS:Kosovo|MTQ:Martinique|MSR:Montserrat|NCL:Neukaledonien|NIU:Niue|MNP:Nördliche Marianen|PCN:Pitcairninseln|PRI:Puerto Rico|SOL:Somaliland|OSS:Südossetien|TWN:Taiwan|TKL:Tokelau|TRN:Transnistrien|TCA:Turks- und Caicosinseln|WLF:Wallis und Futuna|ESH:West-Sahara"; // Seterra: +30 Gebiete = 225
 // Falls ein Gebiet in den Kartendaten fehlt, wird es als kleiner Punkt ergänzt: [Breite, Länge, englischer Name]
+const FLAGFB = {KOS:'xk',TWN:'tw',ESH:'eh',PSE:'ps',GLP:'gp',MTQ:'mq',BES:'bq',TKL:'tk',PCN:'pn',MSR:'ms',AIA:'ai',NIU:'nu',TUV:'tv',NRU:'nr'}; // falls die Kartendaten keinen 2-Buchstaben-Code haben
 const FB = {TKL:[-9.2,-171.8,"Tokelau"],PCN:[-24.4,-128.3,"Pitcairn Islands"],MSR:[16.74,-62.19,"Montserrat"],AIA:[18.22,-63.05,"Anguilla"],BES:[12.2,-68.27,"Bonaire"],GLP:[16.25,-61.55,"Guadeloupe"],MTQ:[14.65,-61,"Martinique"],ABH:[43.1,41,"Abkhazia"],OSS:[42.35,44,"South Ossetia"],TRN:[47.2,29.4,"Transnistria"],TUV:[-8.5,179.2,"Tuvalu"],NRU:[-0.52,166.93,"Nauru"],NIU:[-19.05,-169.87,"Niue"]};
 const OCE = ["FJI","SLB","VUT","FSM","KIR","NRU","PLW","TON","TUV","WSM","MHL","NCL","PYF","COK","NIU","TKL","WLF","MDV"];
 const COL = ["#ffffff","#ffeb3b","#ff9800","#ff4b4b"]; // 1.–4. Versuch
@@ -162,6 +169,20 @@ const R_CAR = [[9.5,-86],[27,-59]], R_OCE = [[-26,125],[16,180]], R_CAR_IN = [[9
 const SYN = {USA:["usa","us","america","vereinigte staaten"],ARE:["vae","uae","emirate"],GBR:["uk","gb","grossbritannien","england"],COD:["dr kongo","drc"],COG:["kongo","congo"],RUS:["russland"],CZE:["tschechien"],TUR:["tuerkei"]};
 
 const $ = id => document.getElementById(id);
+// Optionen (werden im Browser gemerkt)
+let opts = { zoom: true, flag: false };
+try { Object.assign(opts, JSON.parse(localStorage.getItem('geora-opts') || '{}')); } catch (e) {}
+function renderOpts() { // gleiche Schalter in Einstellungen und Spielauswahl
+  document.querySelectorAll('.opts').forEach(c => {
+    c.innerHTML = '';
+    [['zoom', '🔍 Automatischer Zoom', 'im Eingabemodus'], ['flag', '🏳️ Flagge anzeigen', 'klein in der Aufgabe']].forEach(([k, t, sub]) => {
+      const d = document.createElement('div'); d.className = 'option-card' + (opts[k] ? ' selected' : '');
+      d.innerHTML = t + '<br><small style="color:var(--sub)">' + sub + ' · ' + (opts[k] ? 'AN' : 'AUS') + '</small>';
+      d.onclick = () => { opts[k] = !opts[k]; try { localStorage.setItem('geora-opts', JSON.stringify(opts)); } catch (e) {} renderOpts(); showFlag(); };
+      c.appendChild(d);
+    });
+  });
+}
 let lang = 'de', mode = 'click', diff = 'easy';
 let geo = null, map = null, mapCar = null, mapOce = null;
 let layers = {}, solved = {}, tmp = {}, valid = new Set();
@@ -187,7 +208,7 @@ function indexGeo() { // Länder über ADM0_A3 / ISO_A3 finden, Seterra-Namen se
       const f = { type: 'Feature', properties: { ADM0_A3: c, NAME: en, NAME_LONG: en, POP_EST: 1 }, geometry: { type: 'Polygon', coordinates: [[[lo - d, la - d], [lo + d, la - d], [lo + d, la + d], [lo - d, la + d], [lo - d, la - d]]] } };
       geo.push(f); idx[c] = f;
     }
-    if (idx[c]) idx[c]._de = n;
+    if (idx[c]) { idx[c]._de = n; idx[c]._code = c; }
   });
 }
 function prep(f) { // Mittelpunkt des größten Teilstücks + Entscheidung, ob ein Klick-Punkt nötig ist
@@ -356,24 +377,24 @@ function resetDeck() {
   Object.keys(layers).forEach(id => setBlink(id, false)); refreshAll(); counter();
 }
 function quitGame() {
-  clearInterval(timerI); setBlink(null, false); $('end-modal').classList.remove('active');
+  clearInterval(timerI); setBlink(null, false); $('flag').style.display = 'none'; $('end-modal').classList.remove('active');
   $('game-stats').style.display = 'none'; $('settings-btn').style.display = 'flex'; switchScreen('main-menu');
 }
 function hint() { $('hint').textContent = practice ? '' : '●'.repeat(4 - tries) + '○'.repeat(tries); }
 function nextRound() {
   locked = false; tries = 0; practice = false;
   if (!deck.length) {
-    clearInterval(timerI); $('hint').textContent = '';
+    clearInterval(timerI); $('hint').textContent = ''; $('flag').style.display = 'none';
     $('end-acc').textContent = Math.round(100 * total / Math.max(guesses, total)) + '%'; $('end-time').textContent = $('timer').textContent;
     $('end-modal').classList.add('active'); return;
   }
   target = deck.splice(Math.random() * deck.length | 0, 1)[0];
-  refresh(fid(target)); hint(); hintN = 0; showLetters();
+  refresh(fid(target)); hint(); hintN = 0; showLetters(); showFlag();
   if (mode === 'type') {
     $('target-prompt').textContent = lang === 'en' ? 'Which country is highlighted?' : 'Welches Land ist hervorgehoben?';
     $('type-input').value = ''; $('type-input').focus();
-    const b = target._lb; // größtes Teilstück des Landes; nie extremer als Zoom 4,5
-    map.stop(); map.flyToBounds([[b[1], b[0]], [b[3], b[2]]], { paddingTopLeft: [40, 70], paddingBottomRight: [40, insetH + 10], maxZoom: 4.5, duration: .6 });
+    const b = target._lb; // größtes Teilstück des Landes; sanfter Zoom (max. 3,25), abschaltbar in den Optionen
+    if (opts.zoom) { map.stop(); map.flyToBounds([[b[1], b[0]], [b[3], b[2]]], { paddingTopLeft: [60, 90], paddingBottomRight: [60, insetH + 30], maxZoom: 3.25, duration: .6 }); }
   } else {
     $('target-prompt').textContent = (lang === 'en' ? 'Find: ' : 'Finde: ') + nameOf(target);
   }
@@ -381,6 +402,15 @@ function nextRound() {
 function finish(color) {
   const id = fid(target); solved[id] = color; setBlink(id, false);
   done++; counter(); refresh(id); locked = true; $('hint').textContent = ''; $('letters').textContent = ''; setTimeout(nextRound, 400);
+}
+function flagCode(f) {
+  const p = f.properties; let c = p.ISO_A2_EH; if (!c || c === '-99') c = p.ISO_A2; if (!c || c === '-99') c = FLAGFB[f._code || fid(f)];
+  return c && c !== '-99' ? c.toLowerCase() : null;
+}
+function showFlag() { // kleine Flagge in der Aufgabe (flagcdn.com)
+  const im = $('flag'), c = opts.flag && target ? flagCode(target) : null;
+  if (!c) { im.style.display = 'none'; return; }
+  im.src = 'https://flagcdn.com/w40/' + c + '.png'; im.srcset = 'https://flagcdn.com/w80/' + c + '.png 2x'; im.style.display = 'block';
 }
 let hintN = 0; // so viele Buchstaben sind aufgedeckt
 const isLetter = c => /[\p{L}\p{N}]/u.test(c);
@@ -429,6 +459,7 @@ function submitGuess() {
   inp.classList.add('bad'); setTimeout(() => inp.classList.remove('bad'), 400); inp.value = '';
   if (tries >= 4) startPractice(); else { revealMore(); hint(); }
 }
+renderOpts();
 document.addEventListener('DOMContentLoaded', () => { $('type-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitGuess(); }); });
 </script>
 </body>
