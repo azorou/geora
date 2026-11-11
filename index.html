@@ -38,6 +38,7 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 .game-prompt-bar{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:10px 20px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 8px 32px #0006;min-width:300px;max-width:92%}
 .prompt-text{font-size:1.2rem;font-weight:800;text-align:center}
 .hint-text{font-size:.95rem;font-weight:800;color:#fff;letter-spacing:3px}
+.letters{font-size:1.15rem;font-weight:800;color:#fff;letter-spacing:2px;text-align:center;min-height:1.4em}
 .type-input-container{display:flex;gap:8px;width:100%;margin-top:4px}
 .type-input{flex:1;min-width:0;background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:8px 14px;color:var(--text);font-size:1rem;font-weight:700;outline:none}
 .type-input.bad{border-color:var(--red)}
@@ -120,9 +121,11 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
   <div class="game-prompt-bar">
     <div id="target-prompt" class="prompt-text"></div>
     <div id="hint" class="hint-text"></div>
+    <div id="letters" class="letters"></div>
     <div id="type-wrap" class="type-input-container" style="display:none">
       <input type="text" id="type-input" class="type-input" placeholder="Land eingeben..." autocomplete="off" autocapitalize="off" spellcheck="false">
       <button class="btn-3d btn-blue" style="padding:8px 16px;font-size:.85rem" onclick="submitGuess()">OK</button>
+      <button class="btn-3d btn-gold" style="padding:8px 14px;font-size:.85rem" onclick="tip()">💡 Tipp</button>
     </div>
   </div>
   <div class="map-frame">
@@ -285,9 +288,9 @@ function simp(g, tol = .05) { // Linien ausdünnen (kaum sichtbar, spart viel Re
   return g.type === 'Polygon' ? { type: 'Polygon', coordinates: poly(g.coordinates) } : { type: 'MultiPolygon', coordinates: g.coordinates.map(poly) };
 }
 async function initMaps(step) {
-  const still = { dragging: false, touchZoom: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false };
   map = mk('map', { minZoom: 1, maxBounds: [[-85, -180], [85, 180]], maxBoundsViscosity: 1 });
-  mapCar = mk('map-car', still); mapOce = mk('map-oce', still);
+  mapCar = mk('map-car', { minZoom: 1, maxBounds: [[3, -90], [34, -52]], maxBoundsViscosity: 1 });
+  mapOce = mk('map-oce', { minZoom: 1, maxBounds: [[-45, 120], [32, 245]], maxBoundsViscosity: 1 });
   const hit = (b, w, so, e, n) => b[0] <= e && b[2] >= w && b[1] <= n && b[3] >= so;
   const wide = f => f._b[2] - f._b[0] >= 100 && !OCE.includes(fid(f)) && fid(f) !== 'NZL'; // z. B. Russland/USA nicht in Ozeanien
   const oce = f => !wide(f) && fid(f) !== 'CHN';
@@ -310,10 +313,11 @@ function layoutInsets() { // Höhe der Felder passend zur Kartenhöhe; die Weltk
 window.addEventListener('resize', () => { if (mapCar) { layoutInsets(); mapCar.invalidateSize(); mapOce.invalidateSize(); } });
 function fit() {
   layoutInsets();
-  [map, mapCar, mapOce].forEach(m => m.invalidateSize());
+  [map, mapCar, mapOce].forEach(m => { m.invalidateSize(); m.setMinZoom(0); });
   map.fitBounds([[-56, -170], [78, 180]], { animate: false, paddingBottomRight: [0, insetH + 6] }); map.setMinZoom(map.getZoom());
   mapCar.fitBounds(R_CAR_IN, { animate: false });
   mapOce.fitBounds(R_OCE_IN, { animate: false });
+  mapCar.setMinZoom(mapCar.getZoom()); mapOce.setMinZoom(mapOce.getZoom()); // nicht weiter heraus als der Ausschnitt
 }
 
 // ---------- Spielablauf ----------
@@ -364,7 +368,7 @@ function nextRound() {
     $('end-modal').classList.add('active'); return;
   }
   target = deck.splice(Math.random() * deck.length | 0, 1)[0];
-  refresh(fid(target)); hint();
+  refresh(fid(target)); hint(); hintN = 0; showLetters();
   if (mode === 'type') {
     $('target-prompt').textContent = lang === 'en' ? 'Which country is highlighted?' : 'Welches Land ist hervorgehoben?';
     $('type-input').value = ''; $('type-input').focus();
@@ -376,10 +380,23 @@ function nextRound() {
 }
 function finish(color) {
   const id = fid(target); solved[id] = color; setBlink(id, false);
-  done++; counter(); refresh(id); locked = true; $('hint').textContent = ''; setTimeout(nextRound, 400);
+  done++; counter(); refresh(id); locked = true; $('hint').textContent = ''; $('letters').textContent = ''; setTimeout(nextRound, 400);
 }
+let hintN = 0; // so viele Buchstaben sind aufgedeckt
+const isLetter = c => /[\p{L}\p{N}]/u.test(c);
+function showLetters() { // z. B. "D e _ _ _ _ _ _ _ _"
+  if (mode !== 'type' || !target || practice) { $('letters').textContent = ''; return; }
+  let k = 0;
+  $('letters').textContent = [...nameOf(target)].map(ch => isLetter(ch) ? (k++ < hintN ? ch : '_') : (ch === ' ' ? '\u00a0\u00a0' : ch)).join(' ');
+}
+function revealMore() { // nie alle Buchstaben verraten
+  const total = [...nameOf(target)].filter(isLetter).length;
+  if (hintN < total - 1) hintN++;
+  showLetters();
+}
+function tip() { if (mode === 'type' && target && !locked && !practice) { revealMore(); $('type-input').focus(); } }
 function startPractice() {
-  practice = true; hint(); setBlink(fid(target), true);
+  practice = true; hint(); showLetters(); setBlink(fid(target), true);
   $('target-prompt').textContent = mode === 'type' ? 'Schreibe ab: ' + nameOf(target) : 'Klicke auf das blinkende Land!';
 }
 
@@ -410,7 +427,7 @@ function submitGuess() {
   tries++; guesses++;
   if (ok) return finish(COL[tries - 1]);
   inp.classList.add('bad'); setTimeout(() => inp.classList.remove('bad'), 400); inp.value = '';
-  if (tries >= 4) startPractice(); else hint();
+  if (tries >= 4) startPractice(); else { revealMore(); hint(); }
 }
 document.addEventListener('DOMContentLoaded', () => { $('type-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitGuess(); }); });
 </script>
