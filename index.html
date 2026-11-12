@@ -35,11 +35,14 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 .option-card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;text-align:center;font-weight:700}
 .option-card.selected{border-color:var(--blue);background:#1cb0f61a}
 #game-screen{position:relative;padding:8px}
-.game-prompt-bar{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:10px 20px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 8px 32px #0006;min-width:300px;max-width:92%}
+.game-prompt-bar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:8px 18px;display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 16px;box-shadow:0 8px 32px #0006;width:min(94%,720px)}
 .prompt-text{font-size:1.2rem;font-weight:800;text-align:center}
 .hint-text{font-size:.95rem;font-weight:800;color:#fff;letter-spacing:3px}
-.flag{height:26px;border-radius:4px;box-shadow:0 1px 5px #0008;margin-bottom:2px}
-.letters{font-size:1.15rem;font-weight:800;color:#fff;letter-spacing:2px;text-align:center;min-height:1.4em}
+.flag{height:24px;border-radius:4px;box-shadow:0 1px 5px #0008}
+.opt-title{font-weight:800;color:var(--sub);margin:14px 0 6px;font-size:.95rem}
+.legend{display:flex;gap:12px;align-items:center;font-weight:800;font-size:.85rem}
+.lg{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid #0008;margin-right:4px;vertical-align:-2px}
+.letters{flex-basis:100%;font-size:1.15rem;font-weight:800;color:#fff;letter-spacing:2px;text-align:center;min-height:1.4em}
 .type-input-container{display:flex;gap:8px;width:100%;margin-top:4px}
 .type-input{flex:1;min-width:0;background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:8px 14px;color:var(--text);font-size:1rem;font-weight:700;outline:none}
 .type-input.bad{border-color:var(--red)}
@@ -63,7 +66,8 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 .stat-box-label{font-size:.8rem;font-weight:800;color:var(--sub);text-transform:uppercase}
 @media(max-width:768px){
   .inset-box{width:46%}
-  .game-prompt-bar{top:12px;min-width:calc(100% - 30px)}
+  .game-prompt-bar{top:8px;width:96%;padding:6px 12px}
+  .hide-s{display:none}
   .top-bar{padding:0 8px}.logo{font-size:1.2rem}
 }
 </style>
@@ -77,7 +81,7 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
       <div class="stat-badge">⏱️ <span id="timer">00:00</span></div>
       <button class="btn-3d btn-red" style="padding:6px 12px;font-size:.8rem" onclick="quitGame()">✖️ Abbrechen</button>
     </div>
-    <button class="icon-btn" id="settings-btn" onclick="switchScreen('settings-screen')">⚙️ Einstellungen</button>
+    <button class="icon-btn" id="settings-btn" onclick="openSettings()">⚙️ <span class="hide-s">Einstellungen</span></button>
   </div>
 </header>
 
@@ -89,7 +93,7 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 
 <section id="settings-screen" class="screen">
   <div class="config-container">
-    <button class="btn-3d btn-blue" style="padding:6px 14px;font-size:.85rem" onclick="switchScreen('main-menu')">← Hauptmenü</button>
+    <button id="settings-back" class="btn-3d btn-blue" style="padding:6px 14px;font-size:.85rem" onclick="closeSettings()">← Hauptmenü</button>
     <div class="section-title">Sprache der Ländernamen / Language</div>
     <div class="option-grid">
       <div class="option-card selected" id="lang-de-card" onclick="setLanguage('de')">🇩🇪 Deutsch</div>
@@ -123,7 +127,7 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 </section>
 
 <section id="game-screen" class="screen">
-  <div class="game-prompt-bar">
+  <div id="prompt-bar" class="game-prompt-bar">
     <img id="flag" class="flag" alt="" style="display:none" onerror="this.style.display='none'">
     <div id="target-prompt" class="prompt-text"></div>
     <div id="hint" class="hint-text"></div>
@@ -133,6 +137,12 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
       <button class="btn-3d btn-blue" style="padding:8px 16px;font-size:.85rem" onclick="submitGuess()">OK</button>
       <button class="btn-3d btn-gold" style="padding:8px 14px;font-size:.85rem" onclick="tip()">💡 Tipp</button>
     </div>
+  </div>
+  <div id="review-bar" class="game-prompt-bar" style="display:none">
+    <div class="prompt-text">📋 Auswertung</div>
+    <div id="legend" class="legend"></div>
+    <button class="btn-3d" style="padding:6px 12px;font-size:.8rem" onclick="backToResult()">↩ Ergebnis</button>
+    <button class="btn-3d btn-red" style="padding:6px 12px;font-size:.8rem" onclick="quitGame()">🏠 Menü</button>
   </div>
   <div class="map-frame">
     <div id="map" class="map-el"></div>
@@ -146,8 +156,9 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
         <div class="stat-box"><div class="stat-box-val" id="end-acc" style="color:#58cc02">100%</div><div class="stat-box-label">Genauigkeit</div></div>
         <div class="stat-box"><div class="stat-box-val" id="end-time" style="color:var(--blue)">00:00</div><div class="stat-box-label">Zeit</div></div>
       </div>
-      <button class="btn-3d" onclick="startGame()">🔄 Nochmal spielen</button>
-      <button class="btn-3d btn-red" style="margin-top:10px" onclick="quitGame()">🏠 Hauptmenü</button>
+      <button class="btn-3d btn-blue" style="width:100%" onclick="startReview()">🗺️ Karte ansehen</button>
+      <button class="btn-3d" style="width:100%;margin-top:10px" onclick="startGame()">🔄 Nochmal spielen</button>
+      <button class="btn-3d btn-red" style="width:100%;margin-top:10px" onclick="quitGame()">🏠 Hauptmenü</button>
     </div>
   </div>
 </section>
@@ -164,30 +175,48 @@ const EXT30 = "ABH:Abchasien|ASM:Amerikanisch-Samoa|VIR:Amerikanische Jungfernin
 const FLAGFB = {KOS:'xk',TWN:'tw',ESH:'eh',PSE:'ps',GLP:'gp',MTQ:'mq',BES:'bq',TKL:'tk',PCN:'pn',MSR:'ms',AIA:'ai',NIU:'nu',TUV:'tv',NRU:'nr'}; // falls die Kartendaten keinen 2-Buchstaben-Code haben
 const FB = {TKL:[-9.2,-171.8,"Tokelau"],PCN:[-24.4,-128.3,"Pitcairn Islands"],MSR:[16.74,-62.19,"Montserrat"],AIA:[18.22,-63.05,"Anguilla"],BES:[12.2,-68.27,"Bonaire"],GLP:[16.25,-61.55,"Guadeloupe"],MTQ:[14.65,-61,"Martinique"],ABH:[43.1,41,"Abkhazia"],OSS:[42.35,44,"South Ossetia"],TRN:[47.2,29.4,"Transnistria"],TUV:[-8.5,179.2,"Tuvalu"],NRU:[-0.52,166.93,"Nauru"],NIU:[-19.05,-169.87,"Niue"]};
 const OCE = ["FJI","SLB","VUT","FSM","KIR","NRU","PLW","TON","TUV","WSM","MHL","NCL","PYF","COK","NIU","TKL","WLF","MDV"];
-const COL = ["#ffffff","#ffeb3b","#ff9800","#ff4b4b"]; // 1.–4. Versuch
+const THEMES = { // Farbmodi: Meer, Land, Land außerhalb des Modus, Grenzen, Grenzen gelöster Länder, Hervorhebung, Zonen, Farben für 1.–4. Versuch
+  classic: { sea: '#a5d0dc', land: '#1e8449', off: '#8dbcc6', line: '#d6efe0', solvedLine: '#0f3d22', hi: '#b44cff', zone: '#ffffff', att: ['#ffffff', '#ffeb3b', '#ff9800', '#ff4b4b'] },
+  night:   { sea: '#0a1624', land: '#2f4f73', off: '#15283b', line: '#5c7ea6', solvedLine: '#0a1624', hi: '#00e5ff', zone: '#9fb6d3', att: ['#ffffff', '#fff176', '#ffb74d', '#ef5350'] },
+  sand:    { sea: '#cfe6ee', land: '#cdb98b', off: '#e4ddc6', line: '#fbf6e8', solvedLine: '#5b4a24', hi: '#d81b60', zone: '#ffffff', att: ['#ffffff', '#fff59d', '#ffb74d', '#e53935'] }
+};
+const th = () => THEMES[opts.theme] || THEMES.classic;
 const R_CAR = [[9.5,-86],[27,-59]], R_OCE = [[-26,125],[16,180]], R_CAR_IN = [[9,-84.3],[28.9,-57.9]], R_OCE_IN = [[-39,126.8],[26.7,238.6]];
 const SYN = {USA:["usa","us","america","vereinigte staaten"],ARE:["vae","uae","emirate"],GBR:["uk","gb","grossbritannien","england"],COD:["dr kongo","drc"],COG:["kongo","congo"],RUS:["russland"],CZE:["tschechien"],TUR:["tuerkei"]};
 
 const $ = id => document.getElementById(id);
 // Optionen (werden im Browser gemerkt)
-let opts = { zoom: true, flag: false };
+let opts = { zoom: 'soft', flag: false, theme: 'classic' };
 try { Object.assign(opts, JSON.parse(localStorage.getItem('geora-opts') || '{}')); } catch (e) {}
-function renderOpts() { // gleiche Schalter in Einstellungen und Spielauswahl
+if (opts.zoom === true) opts.zoom = 'soft'; if (opts.zoom === false) opts.zoom = 'off'; if (!THEMES[opts.theme]) opts.theme = 'classic';
+const OPTDEF = [
+  ['zoom', '🔍 Zoom im Eingabemodus', [['off', 'Aus'], ['soft', 'Sanft'], ['mid', 'Mittel'], ['strong', 'Stark']]],
+  ['flag', '🏳️ Flagge in der Aufgabe', [[false, 'Aus'], [true, 'An']]],
+  ['theme', '🎨 Farbmodus', [['classic', 'Klassisch'], ['night', 'Nacht'], ['sand', 'Sand']]]
+];
+const ZOOM = { soft: 3, mid: 4, strong: 5 };
+function renderOpts() { // gleiche Optionen in Einstellungen und Spielauswahl
   document.querySelectorAll('.opts').forEach(c => {
-    c.innerHTML = '';
-    [['zoom', '🔍 Automatischer Zoom', 'im Eingabemodus'], ['flag', '🏳️ Flagge anzeigen', 'klein in der Aufgabe']].forEach(([k, t, sub]) => {
-      const d = document.createElement('div'); d.className = 'option-card' + (opts[k] ? ' selected' : '');
-      d.innerHTML = t + '<br><small style="color:var(--sub)">' + sub + ' · ' + (opts[k] ? 'AN' : 'AUS') + '</small>';
-      d.onclick = () => { opts[k] = !opts[k]; try { localStorage.setItem('geora-opts', JSON.stringify(opts)); } catch (e) {} renderOpts(); showFlag(); };
-      c.appendChild(d);
+    c.innerHTML = ''; c.style.display = 'block';
+    OPTDEF.forEach(([k, title, ch]) => {
+      const h = document.createElement('div'); h.className = 'opt-title'; h.textContent = title; c.appendChild(h);
+      const g = document.createElement('div'); g.className = 'option-grid';
+      ch.forEach(([v, label]) => {
+        const d = document.createElement('div'); d.className = 'option-card' + (opts[k] === v ? ' selected' : ''); d.textContent = label;
+        d.onclick = () => { opts[k] = v; try { localStorage.setItem('geora-opts', JSON.stringify(opts)); } catch (e) {} renderOpts(); applyOpts(); };
+        g.appendChild(d);
+      });
+      c.appendChild(g);
     });
   });
 }
+function applyTheme() { document.documentElement.style.setProperty('--sea', th().sea); }
+function applyOpts() { applyTheme(); if (Object.keys(layers).length) refreshAll(); renderPrompt(); }
 let lang = 'de', mode = 'click', diff = 'easy';
 let geo = null, map = null, mapCar = null, mapOce = null;
 let layers = {}, solved = {}, tmp = {}, valid = new Set();
 let deck = [], target = null, tries = 0, done = 0, total = 0, guesses = 0;
-let practice = false, locked = false, timerI = null, secs = 0;
+let practice = false, locked = false, timerI = null, secs = 0, inGame = false, reviewing = false, over = false;
 
 const fid = f => f.properties.ADM0_A3 || f.properties.ISO_A3 || f.properties.NAME;
 const nameOf = (f, l = lang) => { const p = f.properties; return l === 'en' ? (p.NAME_LONG || p.NAME) : (f._de || p.NAME_DE || p.NAME_LONG || p.NAME); };
@@ -234,15 +263,15 @@ async function loadData() { // 1. lokale Datei countries.geojson, danach Interne
 }
 
 // ---------- Darstellung ----------
+const solvedColor = id => tmp[id] || (solved[id] !== undefined ? th().att[(solved[id] || 4) - 1] : null); // solved: 1–4 = Versuch, 0 = nicht gewusst
 function fillOf(id) {
-  if (tmp[id]) return tmp[id];
-  if (solved[id]) return solved[id];
-  if (mode === 'type' && target && id === fid(target)) return '#ffc800';
-  return valid.has(id) ? '#1e8449' : '#8dbcc6';
+  const c = solvedColor(id); if (c) return c;
+  if (mode === 'type' && target && id === fid(target)) return th().hi;
+  return valid.has(id) ? th().land : th().off;
 }
-const polySt = id => ({ fillColor: fillOf(id), fillOpacity: 1, color: '#d6efe0', weight: .5 });
-const dotSt = id => { if (!valid.has(id)) return { radius: 4, fillOpacity: 0, opacity: 0 }; const c = tmp[id] || solved[id] || (mode === 'type' && target && id === fid(target) ? '#ffc800' : '#ffffff'); return { radius: 4, fillColor: c, fillOpacity: 1, color: '#0f3d22', weight: 1.3, opacity: 1 }; };
-const zoneSt = id => { const c = tmp[id] || solved[id], v = valid.has(id); return { color: '#fff', weight: 1.5, dashArray: '6 5', opacity: v ? 1 : .85, fill: true, fillColor: c || '#fff', fillOpacity: c && v ? .5 : .001 }; };
+const polySt = id => { const sv = solvedColor(id); return { fillColor: fillOf(id), fillOpacity: 1, color: sv ? th().solvedLine : th().line, weight: sv ? .9 : .5 }; }; // gelöste Länder: dunklere, deutlichere Grenzen
+const dotSt = id => { if (!valid.has(id)) return { radius: 4, fillOpacity: 0, opacity: 0 }; const c = solvedColor(id) || (mode === 'type' && target && id === fid(target) ? th().hi : '#ffffff'); return { radius: 4, fillColor: c, fillOpacity: 1, color: '#0f3d22', weight: 1.3, opacity: 1 }; };
+const zoneSt = id => { const c = solvedColor(id), v = valid.has(id); return { color: th().zone, weight: 1.5, dashArray: '6 5', opacity: v ? 1 : .85, fill: true, fillColor: c || '#fff', fillOpacity: c && v ? .5 : .001 }; };
 function refresh(id) {
   (layers[id] || []).forEach(l => {
     if (l.zone || l.isDot) l.options.interactive = valid.has(id); // ungültige Zonen/Punkte blockieren keine Klicks
@@ -255,7 +284,7 @@ function setBlink(id, on) { // blinkt per Timer (funktioniert mit Canvas)
   clearInterval(blinkT);
   if (blinkId) { const o = blinkId; blinkId = null; delete tmp[o]; refresh(o); }
   if (!on) return;
-  blinkId = id; let k = 0; blinkT = setInterval(() => { tmp[id] = (k++ % 2) ? '#ffffff' : '#ffc800'; refresh(id); }, 400);
+  blinkId = id; let k = 0; blinkT = setInterval(() => { tmp[id] = (k++ % 2) ? '#ffffff' : th().hi; refresh(id); }, 400);
 }
 function flash(id) { tmp[id] = '#ff4b4b'; refresh(id); setTimeout(() => { delete tmp[id]; refresh(id); }, 450); }
 
@@ -342,15 +371,14 @@ function fit() {
 }
 
 // ---------- Spielablauf ----------
-function startTimer() {
-  clearInterval(timerI); secs = 0; $('timer').textContent = '00:00';
-  timerI = setInterval(() => { secs++; $('timer').textContent = String(secs / 60 | 0).padStart(2, '0') + ':' + String(secs % 60).padStart(2, '0'); }, 1000);
-}
+function tick() { secs++; $('timer').textContent = String(secs / 60 | 0).padStart(2, '0') + ':' + String(secs % 60).padStart(2, '0'); }
+function runTimer() { clearInterval(timerI); timerI = setInterval(tick, 1000); }
+function startTimer() { secs = 0; $('timer').textContent = '00:00'; runTimer(); }
 const counter = () => $('counter').textContent = done + ' / ' + total;
 
 async function startGame() {
   $('end-modal').classList.remove('active');
-  $('game-stats').style.display = 'flex'; $('settings-btn').style.display = 'none';
+  $('game-stats').style.display = 'flex'; inGame = true; over = false; reviewing = false; $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex'; applyTheme();
   $('type-wrap').style.display = mode === 'type' ? 'flex' : 'none';
   switchScreen('game-screen');
   clearInterval(timerI); target = null; $('hint').textContent = '';
@@ -378,29 +406,30 @@ function resetDeck() {
 }
 function quitGame() {
   clearInterval(timerI); setBlink(null, false); $('flag').style.display = 'none'; $('end-modal').classList.remove('active');
-  $('game-stats').style.display = 'none'; $('settings-btn').style.display = 'flex'; switchScreen('main-menu');
+  $('game-stats').style.display = 'none'; inGame = false; reviewing = false; $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex'; switchScreen('main-menu');
 }
 function hint() { $('hint').textContent = practice ? '' : '●'.repeat(4 - tries) + '○'.repeat(tries); }
 function nextRound() {
   locked = false; tries = 0; practice = false;
   if (!deck.length) {
-    clearInterval(timerI); $('hint').textContent = ''; $('flag').style.display = 'none';
+    clearInterval(timerI); over = true; target = null; $('hint').textContent = ''; $('letters').textContent = ''; $('flag').style.display = 'none';
     $('end-acc').textContent = Math.round(100 * total / Math.max(guesses, total)) + '%'; $('end-time').textContent = $('timer').textContent;
     $('end-modal').classList.add('active'); return;
   }
   target = deck.splice(Math.random() * deck.length | 0, 1)[0];
-  refresh(fid(target)); hint(); hintN = 0; showLetters(); showFlag();
+  refresh(fid(target)); hintN = 0;
+  renderPrompt();
   if (mode === 'type') {
-    $('target-prompt').textContent = lang === 'en' ? 'Which country is highlighted?' : 'Welches Land ist hervorgehoben?';
     $('type-input').value = ''; $('type-input').focus();
-    const b = target._lb; // größtes Teilstück des Landes; sanfter Zoom (max. 3,25), abschaltbar in den Optionen
-    if (opts.zoom) { map.stop(); map.flyToBounds([[b[1], b[0]], [b[3], b[2]]], { paddingTopLeft: [60, 90], paddingBottomRight: [60, insetH + 30], maxZoom: 3.25, duration: .6 }); }
-  } else {
-    $('target-prompt').textContent = (lang === 'en' ? 'Find: ' : 'Finde: ') + nameOf(target);
+    const z = ZOOM[opts.zoom];
+    if (z) { // sanfter Zoom auf das größte Teilstück; oben bleibt Platz für das Aufgabenfeld
+      const b = target._lb, top = $('prompt-bar').offsetHeight + 40;
+      map.stop(); map.flyToBounds([[b[1], b[0]], [b[3], b[2]]], { paddingTopLeft: [60, top], paddingBottomRight: [60, insetH + 30], maxZoom: z, duration: .6 });
+    }
   }
 }
-function finish(color) {
-  const id = fid(target); solved[id] = color; setBlink(id, false);
+function finish(n) { // n = Versuche (1–4), 0 = nicht gewusst
+  const id = fid(target); solved[id] = n; setBlink(id, false);
   done++; counter(); refresh(id); locked = true; $('hint').textContent = ''; $('letters').textContent = ''; setTimeout(nextRound, 400);
 }
 function flagCode(f) {
@@ -425,23 +454,30 @@ function revealMore() { // nie alle Buchstaben verraten
   showLetters();
 }
 function tip() { if (mode === 'type' && target && !locked && !practice) { revealMore(); $('type-input').focus(); } }
-function startPractice() {
-  practice = true; hint(); showLetters(); setBlink(fid(target), true);
-  $('target-prompt').textContent = mode === 'type' ? 'Schreibe ab: ' + nameOf(target) : 'Klicke auf das blinkende Land!';
+function renderPrompt() { // Aufgabentext, Versuche, Tipps und Flagge neu zeichnen (auch nach Änderung der Optionen)
+  if (!target || over || reviewing) return;
+  const en = lang === 'en';
+  $('target-prompt').textContent = practice
+    ? (mode === 'type' ? (en ? 'Copy: ' : 'Schreibe ab: ') + nameOf(target) : en ? 'Click the blinking country!' : 'Klicke auf das blinkende Land!')
+    : mode === 'type' ? (en ? 'Which country is highlighted?' : 'Welches Land ist hervorgehoben?') : (en ? 'Find: ' : 'Finde: ') + nameOf(target);
+  hint(); showLetters(); showFlag();
 }
+function startPractice() { practice = true; setBlink(fid(target), true); renderPrompt(); }
 
 function clicked(f, l) {
-  if (!target || locked) return;
   const id = fid(f);
   if ((l.isDot || l.zone) && !valid.has(id)) return;
-  clearTimeout(l._tt);
-  l.bindTooltip(nameOf(f), { permanent: true, direction: 'center', className: 'country-label-temp' }).openTooltip();
-  l._tt = setTimeout(() => l.unbindTooltip(), 1800);
-  if (mode !== 'click') return;
+  if (mode === 'click' || reviewing || over) { // Namensschild; im Eingabemodus nicht, sonst wäre die Lösung verraten
+    const n = solved[id], lab = reviewing && n !== undefined ? ' · ' + (n ? (lang === 'en' ? 'try ' + n : n + '. Versuch') : (lang === 'en' ? 'not known' : 'nicht gewusst')) : '';
+    clearTimeout(l._tt);
+    l.bindTooltip(nameOf(f) + lab, { permanent: true, direction: 'center', className: 'country-label-temp' }).openTooltip();
+    l._tt = setTimeout(() => l.unbindTooltip(), 1800);
+  }
+  if (!target || locked || over || reviewing || mode !== 'click') return;
   const tid = fid(target);
-  if (practice) { if (id === tid) finish('#ff4b4b'); else flash(id); return; }
+  if (practice) { if (id === tid) finish(0); else flash(id); return; }
   tries++; guesses++;
-  if (id === tid) finish(COL[tries - 1]);
+  if (id === tid) finish(tries);
   else { flash(id); if (tries >= 4) startPractice(); else hint(); }
 }
 
@@ -453,13 +489,32 @@ function submitGuess() {
   const inp = $('type-input'), g = inp.value; if (!n1(g)) return;
   const p = target.properties, id = fid(target);
   const ok = [target._de, p.NAME_DE, p.NAME_LONG, p.NAME, p.NAME_EN, id, ...(SYN[id] || [])].filter(Boolean).some(n => n1(n) === n1(g) || n2(n) === n2(g));
-  if (practice) { if (ok) finish('#ff4b4b'); return; }
+  if (practice) { if (ok) finish(0); return; }
   tries++; guesses++;
-  if (ok) return finish(COL[tries - 1]);
+  if (ok) return finish(tries);
   inp.classList.add('bad'); setTimeout(() => inp.classList.remove('bad'), 400); inp.value = '';
   if (tries >= 4) startPractice(); else { revealMore(); hint(); }
 }
-renderOpts();
+// ---------- Einstellungen während des Spiels, Auswertung ----------
+function openSettings() {
+  if (inGame) clearInterval(timerI); // Zeit pausiert, solange die Einstellungen offen sind
+  $('settings-back').textContent = inGame ? '← Zurück zum Spiel' : '← Hauptmenü';
+  renderOpts(); switchScreen('settings-screen');
+}
+function closeSettings() {
+  if (!inGame) { switchScreen('main-menu'); return; }
+  switchScreen('game-screen');
+  [map, mapCar, mapOce].forEach(m => m && m.invalidateSize());
+  if (!over && !reviewing) runTimer();
+  renderPrompt();
+}
+function startReview() { // Karte nach der Runde ansehen: Farben zeigen die Versuche, Klick zeigt Name und Versuche
+  reviewing = true; $('end-modal').classList.remove('active'); $('prompt-bar').style.display = 'none';
+  $('legend').innerHTML = th().att.map((c, i) => '<span><span class="lg" style="background:' + c + '"></span>' + (i < 3 ? i + 1 : '4 / ✖') + '</span>').join('');
+  $('review-bar').style.display = 'flex';
+}
+function backToResult() { reviewing = false; $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex'; $('end-modal').classList.add('active'); }
+renderOpts(); applyTheme();
 document.addEventListener('DOMContentLoaded', () => { $('type-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitGuess(); }); });
 </script>
 </body>
