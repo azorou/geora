@@ -26,14 +26,13 @@ export const THEMES = {
 };
 export const ZOOM = { soft: 3, mid: 4, strong: 5 }; // maximale Zoomstufe im Eingabemodus
 export const OPTDEF = [
-  ['zoom', '🔍 Zoom im Eingabemodus', [['off', 'Aus'], ['soft', 'Sanft'], ['mid', 'Mittel'], ['strong', 'Stark']]],
-  ['flag', '🏳️ Flagge in der Aufgabe', [[false, 'Aus'], [true, 'An']]],
-  ['theme', '🎨 Farbmodus', [['classic', 'Klassisch'], ['night', 'Nacht'], ['sand', 'Sand']]]
+  ['zoom', 'Zoom im Eingabemodus', [['off', 'Aus'], ['soft', 'Sanft'], ['mid', 'Mittel'], ['strong', 'Stark']], 'zoom'],
+  ['flag', 'Flagge in der Aufgabe', [[false, 'Aus'], [true, 'An']], 'flag'],
+  ['theme', 'Farbmodus', [['classic', 'Klassisch'], ['night', 'Nacht'], ['sand', 'Sand']], 'theme']
 ];
 
-// Punkte: Anteil je Versuch (1.–4.) und Abzug je Tipp; Genauigkeit in % = XP
+// Punkte: Anteil je Versuch (1.–4.); Tipps zählen als Versuch; Genauigkeit in % = XP
 export const ATT_SCORE = [1, 0.75, 0.5, 0.25];
-export const TIP_COST = 0.1;
 
 // Abgabe-Effekt: Ring wächst vom Landesmittelpunkt nach außen und verblasst (r = Pixel, ms = Dauer)
 export const RIPPLE = { ok: '#58cc02', bad: '#ff4b4b', r: 56, ms: 650 };

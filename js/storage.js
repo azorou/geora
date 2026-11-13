@@ -60,16 +60,16 @@ export function pushCloud() { if (activeKey === 'guest' || !isLoggedIn()) return
 export async function syncNow() {
   if (activeKey === 'guest' || !isLoggedIn()) return;
   if (syncing) { again = true; return; }
-  syncing = true; hooks.onStatus(tr('☁️ Synchronisiere …'), '');
+  syncing = true; hooks.onStatus(tr('Synchronisiere …'), '');
   try {
     const remote = await getRemote(), before = JSON.stringify(profile.opts);
     profile = merge(profile, remote); save();
     if (JSON.stringify(profile) !== JSON.stringify(remote)) await putRemote(profile); // nur schreiben, wenn sich etwas geändert hat
-    hooks.onStatus(tr('☁️ Gespeichert'), 'ok');
+    hooks.onStatus(tr('Gespeichert'), 'ok');
     if (JSON.stringify(profile.opts) !== before) hooks.onChange();
   } catch (e) {
     if (e && e.code === 'session') hooks.onSessionLost();
-    else { console.error(e); hooks.onStatus(tr('⚠️ Synchronisierung fehlgeschlagen – wird später erneut versucht'), 'err'); }
+    else { console.error(e); hooks.onStatus(tr('Synchronisierung fehlgeschlagen – wird später erneut versucht'), 'err'); }
   }
   syncing = false;
   if (again) { again = false; pushCloud(); }

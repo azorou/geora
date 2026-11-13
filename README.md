@@ -26,8 +26,8 @@ Nach einem Update ggf. mit Strg+F5 neu laden (Browser-Zwischenspeicher).
 2. Im Projekt: **SQL Editor → New query**, den kompletten Inhalt von `supabase.sql` einfügen, **Run**.
 3. **Project Settings → API Keys** (bzw. „Data API“): *Project URL* und den **publishable bzw. anon** Key kopieren.
    **Niemals** den `secret`/`service_role` Key verwenden!
-4. In `config.js` beides eintragen, Datei auf GitHub hochladen.
-5. Fertig: Im Spiel oben auf ⚡ XP → Konto → Registrieren.
+4. In `config.js` beides eintragen, Datei auf GitHub hochladen (bei diesem Projekt schon erledigt).
+5. Fertig: Im Spiel oben auf XP → Konto → Registrieren.
 
 Falls „Data API“ im Projekt ausgeschaltet ist: Project Settings → Data API → einschalten (Schema `public` muss freigegeben sein).
 
@@ -38,7 +38,7 @@ Falls „Data API“ im Projekt ausgeschaltet ist: Project Settings → Data API
 - Pro Konto werden höchstens ca. 6–10 KB gespeichert (siehe storage.js).
 
 ## Werte zum Anpassen
-- `js/data.js`: `TIP_COST` (Abzug je Tipp, 0.1 = 10 %), `ATT_SCORE` (Punkte je Versuch), Farbmodi `THEMES`, Zoomstufen `ZOOM`.
+- `js/data.js`: `ATT_SCORE` (Punkte je Versuch), Farbmodi `THEMES`, Zoomstufen `ZOOM`.
 - XP pro Runde = Genauigkeit in Prozent (in `js/game.js`, Funktion `endRound`).
 
 
@@ -47,3 +47,6 @@ Falls „Data API“ im Projekt ausgeschaltet ist: Project Settings → Data API
 - `manifest.webmanifest` und `icons/`: App-Symbol für den Startbildschirm (Android: Chrome-Menü → "Zum Startbildschirm hinzufügen"). Die Symbole entstehen aus `icons/icon.svg`.
 - Abgabe-Effekt: Größe, Dauer und Farben stehen in `RIPPLE` (`js/data.js`).
 - Die kleinen Karten (Karibik, Ozeanien) lassen sich am Eckgriff in der Größe ändern; sie bleiben in ihrer Ecke.
+- `js/info.js`: kleine "i"-Knöpfe. Texte (Deutsch/English) stehen in `INFO`; im HTML `<button class="info" data-i="schlüssel">`, im Code `infoBtn('schlüssel')`.
+- Tipps verbrauchen einen Versuch (gleicher Abzug wie ein Fehlversuch, nicht beim letzten Versuch). Tippfehler (1 Buchstabe ab 5, 2 ab 8 Zeichen) zeigen "Meintest du …?" ohne Versuch und ohne Abzug (`nearMiss` in `game.js`).
+- `config.js` ist mit dem Supabase-Projekt ausgefüllt (öffentlicher publishable-Key).

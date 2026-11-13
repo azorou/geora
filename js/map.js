@@ -79,6 +79,18 @@ export function setBlink(id, on) { // blinkt per Timer (funktioniert mit Canvas)
   if (!on) return;
   blinkId = id; let k = 0; blinkT = setInterval(() => { S.tmp[id] = (k++ % 2) ? '#ffffff' : th().hi; refresh(id); }, 400);
 }
+export function flyToBoundsInside(m, b, o) { // wie flyToBounds, nur wird der Ausschnitt vorher in die Kartengrenzen geschoben; sonst springt Leaflet nach dem Flug zurück
+  const bounds = L.latLngBounds(b), tl = L.point(o.paddingTopLeft || [0, 0]), br = L.point(o.paddingBottomRight || [0, 0]);
+  let z = m.getBoundsZoom(bounds, false, tl.add(br)); if (o.maxZoom) z = Math.min(z, o.maxZoom);
+  if (!isFinite(z)) return;
+  let c = m.project(bounds.getSouthWest(), z).add(m.project(bounds.getNorthEast(), z)).divideBy(2).add(br.subtract(tl).divideBy(2)); // gleicher Mittelpunkt wie bei Leaflet
+  if (m.options.maxBounds) {
+    const mb = L.latLngBounds(m.options.maxBounds), nw = m.project(mb.getNorthWest(), z), se = m.project(mb.getSouthEast(), z), h = m.getSize().divideBy(2);
+    const lim = (v, lo, hi) => lo > hi ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, v)); // Ansicht ganz in die Karte; ist die Karte kleiner als die Ansicht: mittig
+    c = L.point(lim(c.x, nw.x + h.x, se.x - h.x), lim(c.y, nw.y + h.y, se.y - h.y));
+  }
+  m.flyTo(m.unproject(c, z), z, o);
+}
 export function ripple(m, ll, color) { // Abgabe-Effekt wie bei Seterra: durchsichtiger Ring wächst vom Landesmittelpunkt nach außen und verblasst
   if (!m || !ll || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
   if (m === S.mapOce && ll[1] < 0) ll = [ll[0], ll[1] + 360]; // Ozeanien-Karte läuft über die Datumsgrenze

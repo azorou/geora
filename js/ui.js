@@ -3,6 +3,7 @@ import { $, S, th, switchScreen } from './state.js';
 import { OPTDEF } from './data.js';
 import { refreshAll, loadData } from './map.js';
 import { tr, applyLang } from './i18n.js';
+import { initInfo, infoBtn } from './info.js';
 import { startGame, quitGame, submitGuess, tip, startReview, backToResult, renderPrompt, clicked, pauseGame, resumeGame, updateXP } from './game.js';
 import { hooks, getProfile, totalXP, roundsPlayed, saveOpts, afterLogin, afterLogout, MODES, DIFFS } from './storage.js';
 import { isConfigured, currentUser, register, login, logout, deleteAccount, errText } from './account.js';
@@ -16,8 +17,8 @@ const markLang = () => { $('lang-de-card').classList.toggle('selected', S.lang =
 function renderOpts() {
   document.querySelectorAll('.opts').forEach(c => {
     c.innerHTML = ''; c.style.display = 'block';
-    OPTDEF.forEach(([k, title, ch]) => {
-      const h = document.createElement('div'); h.className = 'opt-title'; h.textContent = tr(title); c.appendChild(h);
+    OPTDEF.forEach(([k, title, ch, inf]) => {
+      const h = document.createElement('div'); h.className = 'opt-title'; h.textContent = tr(title); if (inf) h.insertAdjacentHTML('beforeend', infoBtn(inf)); c.appendChild(h);
       const g = document.createElement('div'); g.className = 'option-grid';
       ch.forEach(([v, label]) => {
         const d = document.createElement('div'); d.className = 'option-card' + (S.opts[k] === v ? ' selected' : ''); d.textContent = tr(label);
@@ -56,13 +57,13 @@ const row = (a, b) => '<div class="pf-row"><span>' + a + '</span><span>' + b + '
 function renderProfile() {
   const box = $('profile-body'), p = getProfile(); if (!box) return;
   let h = '';
-  if (!isConfigured()) h += '<div class="pf-box">☁️ Konten sind noch nicht eingerichtet (siehe README.md und config.js). Dein Fortschritt wird bis dahin nur auf diesem Gerät gespeichert.</div>';
-  else if (S.user) h += '<div class="pf-box">👤 Angemeldet als <b>' + esc(S.user.name) + '</b><div id="sync-status" class="msg"></div><button class="btn-3d btn-red" data-act="logout" style="padding:8px 14px;font-size:.85rem">Abmelden</button> <button class="btn-3d" data-act="deleteAccount" style="padding:8px 14px;font-size:.85rem;background:#555;box-shadow:0 4px 0 #333">Konto löschen</button></div>';
-  else h += '<div class="pf-box"><div class="opt-title" style="margin-top:0">Konto – Fortschritt auf allen Geräten</div><input id="acc-user" class="field" placeholder="Benutzername" autocomplete="username" autocapitalize="off" spellcheck="false"><input id="acc-pass" class="field" type="password" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="current-password"><div id="acc-msg" class="msg"></div><button class="btn-3d" data-act="login" style="padding:8px 14px;font-size:.85rem">Anmelden</button> <button class="btn-3d btn-blue" data-act="register" style="padding:8px 14px;font-size:.85rem">Registrieren</button><div style="font-size:.8rem;color:var(--sub);margin-top:8px">Ohne E-Mail: Wer sein Passwort vergisst, kann es nicht zurücksetzen. Bitte kein Passwort verwenden, das du woanders nutzt.</div></div>';
+  if (!isConfigured()) h += '<div class="pf-box">Konten sind noch nicht eingerichtet (siehe README.md und config.js). Dein Fortschritt wird bis dahin nur auf diesem Gerät gespeichert.</div>';
+  else if (S.user) h += '<div class="pf-box">Angemeldet als <b>' + esc(S.user.name) + '</b><div id="sync-status" class="msg"></div><button class="btn-3d btn-red" data-act="logout" style="padding:8px 14px;font-size:.85rem">Abmelden</button> <button class="btn-3d" data-act="deleteAccount" style="padding:8px 14px;font-size:.85rem;background:#555;box-shadow:0 4px 0 #333">Konto löschen</button></div>';
+  else h += '<div class="pf-box"><div class="opt-title" style="margin-top:0">Konto – Fortschritt auf allen Geräten' + infoBtn('account') + '</div><input id="acc-user" class="field" placeholder="Benutzername" autocomplete="username" autocapitalize="off" spellcheck="false"><input id="acc-pass" class="field" type="password" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="current-password"><div id="acc-msg" class="msg"></div><button class="btn-3d" data-act="login" style="padding:8px 14px;font-size:.85rem">Anmelden</button> <button class="btn-3d btn-blue" data-act="register" style="padding:8px 14px;font-size:.85rem">Registrieren</button><div style="font-size:.8rem;color:var(--sub);margin-top:8px">Ohne E-Mail: Wer sein Passwort vergisst, kann es nicht zurücksetzen. Bitte kein Passwort verwenden, das du woanders nutzt.</div></div>';
   const best = Object.entries(p.best || {}).map(([k, [acc, secs]]) => { const [m, d] = k.split(':'); return row(esc(MODES[m] === 'click' ? 'Pin' : tr('Eingabe')) + ' · ' + ['Top 50', 'UN', '225'][d], acc + ' % · ' + fmt(secs)); }).join('');
   const last = p.rounds.slice(-10).reverse().map(r => row(new Date(r[1] * 1000).toLocaleDateString(S.lang === 'en' ? 'en-GB' : 'de-DE', { day: '2-digit', month: '2-digit' }) + ' · ' + (r[2] ? tr('Eingabe') : 'Pin') + ' · ' + ['Top 50', 'UN', '225'][r[3]], r[4] + ' % · +' + r[5] + ' XP')).join('');
-  h += '<div class="pf-box"><div class="opt-title" style="margin-top:0">Statistik</div>' + row('⚡ XP gesamt', totalXP()) + row('🎮 Runden', roundsPlayed()) + '</div>';
-  if (best) h += '<div class="pf-box"><div class="opt-title" style="margin-top:0">Bestwerte (Genauigkeit · Zeit)</div>' + best + '</div>';
+  h += '<div class="pf-box"><div class="opt-title" style="margin-top:0">Statistik' + infoBtn('xp') + '</div>' + row('XP gesamt', totalXP()) + row('Runden', roundsPlayed()) + '</div>';
+  if (best) h += '<div class="pf-box"><div class="opt-title" style="margin-top:0">Bestwerte (Genauigkeit · Zeit)' + infoBtn('best') + '</div>' + best + '</div>';
   if (last) h += '<div class="pf-box"><div class="opt-title" style="margin-top:0">Letzte Runden</div>' + last + '</div>';
   box.innerHTML = h; applyLang(box);
 }
@@ -105,7 +106,7 @@ export function boot() {
   hooks.onSessionLost = () => { S.user = null; afterLogout(); renderProfile(); };
   if (!getProfile().opts) { try { const o = JSON.parse(localStorage.getItem('geora-opts') || 'null'); if (o) getProfile().opts = o; } catch (e) {} } // Einstellungen aus der alten Einzeldatei-Version
   applyProfileOpts(); renderOpts(); applyTheme(); updateXP(); renderProfile();
-  document.addEventListener('click', dispatch);
+  initInfo(); document.addEventListener('click', dispatch);
   $('type-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitGuess(); });
   const u = currentUser();
   if (isConfigured() && u) { S.user = u; renderProfile(); afterLogin(u.name).catch(console.error); }
