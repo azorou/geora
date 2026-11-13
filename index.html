@@ -8,69 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#0b1017;--card:#151d2a;--green:#2d8a4e;--green-s:#1e5e34;--blue:#1cb0f6;--blue-s:#1899d6;--gold:#ffc800;--gold-s:#d7a200;--red:#ff4b4b;--red-s:#ea2b2b;--text:#fff;--sub:#8295a9;--line:#233146;--sea:#a5d0dc}
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Nunito',sans-serif;user-select:none;-webkit-user-select:none}
-input{user-select:text;-webkit-user-select:text}
-html,body{height:100%}
-body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-.screen{display:none;width:100%;flex:1;min-height:0;flex-direction:column}
-.screen.active{display:flex}
-.btn-3d{background:var(--green);color:#fff;border:0;border-radius:16px;padding:14px 22px;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 4px 0 var(--green-s);text-transform:uppercase;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .1s}
-.btn-3d:active{transform:translateY(3px);box-shadow:0 1px 0 var(--green-s)}
-.btn-blue{background:var(--blue);box-shadow:0 4px 0 var(--blue-s)}
-.btn-gold{background:var(--gold);color:#2b1f00;box-shadow:0 4px 0 var(--gold-s)}
-.btn-red{background:var(--red);box-shadow:0 4px 0 var(--red-s)}
-.top-bar{height:60px;flex:none;background:var(--card);border-bottom:2px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:1000}
-.logo{font-size:1.5rem;font-weight:900;color:#58cc02;display:flex;gap:8px}
-.top-controls{display:flex;align-items:center;gap:10px}
-.icon-btn{background:#ffffff0d;border:2px solid var(--line);border-radius:14px;padding:6px 12px;font-weight:800;font-size:.9rem;cursor:pointer;color:var(--text);display:flex;gap:6px}
-.stat-badge{background:#ffffff0d;border:1px solid var(--line);padding:6px 12px;border-radius:12px;font-weight:800;font-size:.9rem;white-space:nowrap}
-#main-menu{align-items:center;justify-content:center;padding:20px;text-align:center;background:radial-gradient(circle,var(--card),var(--bg))}
-.hero-title{font-size:3.5rem;font-weight:900;color:#2d8a4e}
-.hero-subtitle{color:var(--sub);font-size:1.1rem;max-width:450px;margin-bottom:25px}
-.config-container{max-width:600px;margin:0 auto;width:100%;padding:20px;overflow-y:auto}
-.section-title{font-size:1.1rem;font-weight:800;margin:20px 0 10px;color:var(--sub);text-transform:uppercase}
-.option-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
-.option-card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;text-align:center;font-weight:700}
-.option-card.selected{border-color:var(--blue);background:#1cb0f61a}
-#game-screen{position:relative;padding:8px}
-.game-prompt-bar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:8px 18px;display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 16px;box-shadow:0 8px 32px #0006;width:min(94%,720px)}
-.prompt-text{font-size:1.2rem;font-weight:800;text-align:center}
-.hint-text{font-size:.95rem;font-weight:800;color:#fff;letter-spacing:3px}
-.flag{height:24px;border-radius:4px;box-shadow:0 1px 5px #0008}
-.opt-title{font-weight:800;color:var(--sub);margin:14px 0 6px;font-size:.95rem}
-.legend{display:flex;gap:12px;align-items:center;font-weight:800;font-size:.85rem}
-.lg{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid #0008;margin-right:4px;vertical-align:-2px}
-.letters{flex-basis:100%;font-size:1.15rem;font-weight:800;color:#fff;letter-spacing:2px;text-align:center;min-height:1.4em}
-.type-input-container{display:flex;gap:8px;width:100%;margin-top:4px}
-.type-input{flex:1;min-width:0;background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:8px 14px;color:var(--text);font-size:1rem;font-weight:700;outline:none}
-.type-input.bad{border-color:var(--red)}
-.map-frame{position:relative;flex:1;min-height:0;border:3px solid var(--line);border-radius:12px;overflow:hidden;background:var(--sea)}
-.map-el{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--sea)}
-.leaflet-container{background:var(--sea);cursor:default}
-.inset-box{position:absolute;bottom:0;z-index:999;width:38%;max-width:480px;min-width:200px;height:150px;background:var(--sea);border:2px solid #fff;overflow:hidden;box-shadow:0 4px 15px #0005}
-.inset-car{left:0;border-top-right-radius:8px}
-.inset-oce{right:0;border-top-left-radius:8px}
-@keyframes blink{0%{fill-opacity:.2;stroke:#ffc800;stroke-width:3px}50%{fill-opacity:1;stroke:#fff;stroke-width:4px}100%{fill-opacity:.2;stroke:#ffc800;stroke-width:3px}}
-.blinking-country{animation:blink .8s infinite ease-in-out}
-.leaflet-tooltip.country-label-temp{background:#fffffff2!important;border:1px solid #1e293b!important;border-radius:6px!important;color:#000!important;font-size:.85rem!important;font-weight:800!important;padding:3px 8px!important;box-shadow:0 2px 8px #0005!important;pointer-events:none;animation:fio 1.8s ease forwards}
-@keyframes fio{0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}}
-.modal-overlay{position:absolute;inset:0;background:#0b1017a6;backdrop-filter:blur(12px);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.active{display:flex}
-.end-card{background:var(--card);border:2px solid var(--line);border-radius:28px;padding:30px 35px;max-width:460px;width:100%;text-align:center}
-.end-title{font-size:2rem;font-weight:900;margin-bottom:20px;color:var(--gold)}
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:25px}
-.stat-box{background:#ffffff0a;border:1px solid var(--line);border-radius:18px;padding:16px}
-.stat-box-val{font-size:2rem;font-weight:900}
-.stat-box-label{font-size:.8rem;font-weight:800;color:var(--sub);text-transform:uppercase}
-@media(max-width:768px){
-  .inset-box{width:46%}
-  .game-prompt-bar{top:8px;width:96%;padding:6px 12px}
-  .hide-s{display:none}
-  .top-bar{padding:0 8px}.logo{font-size:1.2rem}
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="top-bar">
@@ -79,49 +17,59 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
     <div id="game-stats" style="display:none;align-items:center;gap:8px">
       <div class="stat-badge">🚩 <span id="counter">0 / 0</span></div>
       <div class="stat-badge">⏱️ <span id="timer">00:00</span></div>
-      <button class="btn-3d btn-red" style="padding:6px 12px;font-size:.8rem" onclick="quitGame()">✖️ Abbrechen</button>
+      <button class="btn-3d btn-red" style="padding:6px 12px;font-size:.8rem" data-act="quitGame">✖️ <span class="hide-s">Abbrechen</span></button>
     </div>
-    <button class="icon-btn" id="settings-btn" onclick="openSettings()">⚙️ <span class="hide-s">Einstellungen</span></button>
+    <button class="icon-btn" data-act="openProfile">⚡ <span id="xp">0</span><span class="hide-s">&nbsp;XP</span></button>
+    <button class="icon-btn" data-act="openSettings">⚙️ <span class="hide-s">Einstellungen</span></button>
   </div>
 </header>
-
 <section id="main-menu" class="screen active">
   <h1 class="hero-title">GEORA</h1>
-  <p class="hero-subtitle">Erkunde die Welt, meistere Geografie & lerne alle Länder.</p>
-  <button class="btn-3d" style="width:280px" onclick="switchScreen('mode-selection')">🗺️ Länder-Quiz</button>
+  <p class="hero-subtitle">Erkunde die Welt, meistere Geografie &amp; lerne alle Länder.</p>
+  <div id="boot-msg" style="display:none;color:#ffb74d;font-weight:800;max-width:420px;margin-bottom:16px">⚠️ Geora konnte nicht starten. Bitte über GitHub Pages oder einen lokalen Server öffnen (nicht per Doppelklick auf die Datei) und alle Dateien samt Ordner <b>js</b> hochladen.</div>
+  <button class="btn-3d" style="width:280px" data-act="goto" data-to="mode-selection">🗺️ Länder-Quiz</button>
+  <button class="btn-3d btn-blue" style="width:280px;margin-top:14px" data-act="openProfile">👤 Profil &amp; Konto</button>
 </section>
 
 <section id="settings-screen" class="screen">
   <div class="config-container">
-    <button id="settings-back" class="btn-3d btn-blue" style="padding:6px 14px;font-size:.85rem" onclick="closeSettings()">← Hauptmenü</button>
+    <button class="btn-3d btn-blue back-label" style="padding:6px 14px;font-size:.85rem" data-act="closeOverlay">← Hauptmenü</button>
     <div class="section-title">Sprache der Ländernamen / Language</div>
     <div class="option-grid">
-      <div class="option-card selected" id="lang-de-card" onclick="setLanguage('de')">🇩🇪 Deutsch</div>
-      <div class="option-card" id="lang-en-card" onclick="setLanguage('en')">🇬🇧 English (UK)</div>
+      <div class="option-card selected" id="lang-de-card" data-act="setLanguage" data-v="de">🇩🇪 Deutsch</div>
+      <div class="option-card" id="lang-en-card" data-act="setLanguage" data-v="en">🇬🇧 English (UK)</div>
     </div>
     <div class="section-title">Spieloptionen</div>
     <div class="option-grid opts"></div>
   </div>
 </section>
 
+<section id="profile-screen" class="screen">
+  <div class="config-container">
+    <button class="btn-3d btn-blue back-label" style="padding:6px 14px;font-size:.85rem" data-act="closeOverlay">← Hauptmenü</button>
+    <div class="section-title">Profil</div>
+    <div id="profile-body"></div>
+  </div>
+</section>
+
 <section id="mode-selection" class="screen">
   <div class="config-container">
-    <button class="btn-3d btn-blue" style="padding:6px 14px;font-size:.85rem" onclick="switchScreen('main-menu')">← Hauptmenü</button>
+    <button class="btn-3d btn-blue" style="padding:6px 14px;font-size:.85rem" data-act="goto" data-to="main-menu">← Hauptmenü</button>
     <div class="section-title">1. Spielmodus wählen</div>
     <div class="option-grid">
-      <div class="option-card selected" onclick="selectMode('click',this)"><div style="font-size:1.6rem">👆</div>Pin</div>
-      <div class="option-card" onclick="selectMode('type',this)"><div style="font-size:1.6rem">✍️</div>Eingabe</div>
+      <div class="option-card selected" data-act="selectMode" data-v="click"><div style="font-size:1.6rem">👆</div>Pin</div>
+      <div class="option-card" data-act="selectMode" data-v="type"><div style="font-size:1.6rem">✍️</div>Eingabe</div>
     </div>
     <div class="section-title">2. Schwierigkeitsgrad</div>
     <div class="option-grid">
-      <div class="option-card selected" onclick="selectDifficulty('easy',this)">Top 50</div>
-      <div class="option-card" onclick="selectDifficulty('un',this)">UN-Staaten (195)</div>
-      <div class="option-card" onclick="selectDifficulty('standard',this)">Länder & Territorien (225)</div>
+      <div class="option-card selected" data-act="selectDifficulty" data-v="easy">Top 50</div>
+      <div class="option-card" data-act="selectDifficulty" data-v="un">UN-Staaten (195)</div>
+      <div class="option-card" data-act="selectDifficulty" data-v="standard">Länder &amp; Territorien (225)</div>
     </div>
     <div class="section-title">3. Optionen</div>
     <div class="option-grid opts"></div>
     <div style="margin-top:25px;text-align:center">
-      <button class="btn-3d btn-gold" style="width:280px" onclick="startGame()">🚀 JETZT SPIELEN</button>
+      <button class="btn-3d btn-gold" style="width:280px" data-act="startGame">🚀 JETZT SPIELEN</button>
     </div>
   </div>
 </section>
@@ -134,15 +82,15 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
     <div id="letters" class="letters"></div>
     <div id="type-wrap" class="type-input-container" style="display:none">
       <input type="text" id="type-input" class="type-input" placeholder="Land eingeben..." autocomplete="off" autocapitalize="off" spellcheck="false">
-      <button class="btn-3d btn-blue" style="padding:8px 16px;font-size:.85rem" onclick="submitGuess()">OK</button>
-      <button class="btn-3d btn-gold" style="padding:8px 14px;font-size:.85rem" onclick="tip()">💡 Tipp</button>
+      <button class="btn-3d btn-blue" style="padding:8px 16px;font-size:.85rem" data-act="submitGuess">OK</button>
+      <button class="btn-3d btn-gold" style="padding:8px 14px;font-size:.85rem" data-act="tip">💡 Tipp</button>
     </div>
   </div>
   <div id="review-bar" class="game-prompt-bar" style="display:none">
     <div class="prompt-text">📋 Auswertung</div>
     <div id="legend" class="legend"></div>
-    <button class="btn-3d" style="padding:6px 12px;font-size:.8rem" onclick="backToResult()">↩ Ergebnis</button>
-    <button class="btn-3d btn-red" style="padding:6px 12px;font-size:.8rem" onclick="quitGame()">🏠 Menü</button>
+    <button class="btn-3d" style="padding:6px 12px;font-size:.8rem" data-act="backToResult">↩ Ergebnis</button>
+    <button class="btn-3d btn-red" style="padding:6px 12px;font-size:.8rem" data-act="quitGame">🏠 Menü</button>
   </div>
   <div class="map-frame">
     <div id="map" class="map-el"></div>
@@ -154,368 +102,17 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
       <div class="end-title">🎉 RUNDE VOLLENDET!</div>
       <div class="stats-grid">
         <div class="stat-box"><div class="stat-box-val" id="end-acc" style="color:#58cc02">100%</div><div class="stat-box-label">Genauigkeit</div></div>
+        <div class="stat-box"><div class="stat-box-val" id="end-xp" style="color:var(--gold)">+0</div><div class="stat-box-label">XP</div></div>
         <div class="stat-box"><div class="stat-box-val" id="end-time" style="color:var(--blue)">00:00</div><div class="stat-box-label">Zeit</div></div>
+        <div class="stat-box"><div class="stat-box-val" id="end-tips">0</div><div class="stat-box-label">Tipps</div></div>
       </div>
-      <button class="btn-3d btn-blue" style="width:100%" onclick="startReview()">🗺️ Karte ansehen</button>
-      <button class="btn-3d" style="width:100%;margin-top:10px" onclick="startGame()">🔄 Nochmal spielen</button>
-      <button class="btn-3d btn-red" style="width:100%;margin-top:10px" onclick="quitGame()">🏠 Hauptmenü</button>
+      <button class="btn-3d btn-blue" style="width:100%" data-act="startReview">🗺️ Karte ansehen</button>
+      <button class="btn-3d" style="width:100%;margin-top:10px" data-act="startGame">🔄 Nochmal spielen</button>
+      <button class="btn-3d btn-red" style="width:100%;margin-top:10px" data-act="quitGame">🏠 Hauptmenü</button>
     </div>
   </div>
 </section>
-
-<script>
-// Kartendaten (Natural Earth). 50m ist schnell; 10m (Fallback) hat mehr Inseln, ist aber ~24 MB groß.
-const BASE = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/";
-const CDN = "https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/";
-const DATA = ["countries.geojson", CDN + "ne_50m_admin_0_countries.geojson", BASE + "ne_50m_admin_0_countries.geojson", CDN + "ne_10m_admin_0_countries.geojson"];
-const TOP = "AFG DZA AGO ARG BGD BRA CHN COD DEU FRA GHA IND IDN IRQ IRN ITA JPN YEM CAN KEN COL MYS MAR MEX MOZ MMR NPL NGA PAK PER PHL POL RUS SAU ESP SDN ZAF KOR TZA THA TUR USA UGA UKR UZB VEN GBR VNM EGY ETH".split(" "); // Seterra: Top 50
-const UN195 = "AFG:Afghanistan|ALB:Albanien|DZA:Algerien|AND:Andorra|AGO:Angola|ATG:Antigua und Barbuda|ARG:Argentinien|ARM:Armenien|AZE:Aserbaidschan|AUS:Australien|BHR:Bahrain|BGD:Bangladesch|BRB:Barbados|BLR:Belarus|BEL:Belgien|BLZ:Belize|BEN:Benin|BTN:Bhutan|BOL:Bolivien|BIH:Bosnien-Herzegowina|BWA:Botswana|BRA:Brasilien|BRN:Brunei|BGR:Bulgarien|BFA:Burkina Faso|BDI:Burundi|CHL:Chile|CHN:China|CRI:Costa Rica|COD:Demokratische Republik Kongo|DEU:Deutschland|BHS:Die Bahamas|DMA:Dominica|DOM:Dominikanische Republik|DJI:Dschibuti|DNK:Dänemark|ECU:Ecuador|SLV:El Salvador|CIV:Elfenbeinküste|ERI:Eritrea|EST:Estland|SWZ:Eswatini|FJI:Fidschi|FIN:Finnland|FRA:Frankreich|GAB:Gabun|GMB:Gambia|GEO:Georgien|GHA:Ghana|GRD:Grenada|GRC:Griechenland|GTM:Guatemala|GIN:Guinea|GNB:Guinea-Bissau|GUY:Guyana|HTI:Haiti|HND:Honduras|IND:Indien|IDN:Indonesien|IRQ:Irak|IRN:Iran|IRL:Irland|ISL:Island|ISR:Israel|ITA:Italien|JAM:Jamaika|JPN:Japan|YEM:Jemen|JOR:Jordanien|KHM:Kambodscha|CMR:Kamerun|CAN:Kanada|CPV:Kap Verde|KAZ:Kasachstan|QAT:Katar|KEN:Kenia|KGZ:Kirgisistan|KIR:Kiribati|COL:Kolumbien|COM:Komoren|HRV:Kroatien|CUB:Kuba|KWT:Kuwait|LAO:Laos|LSO:Lesotho|LVA:Lettland|LBN:Libanon|LBR:Liberia|LBY:Libyen|LIE:Liechtenstein|LTU:Litauen|LUX:Luxemburg|MDG:Madagaskar|MWI:Malawi|MYS:Malaysia|MDV:Malediven|MLI:Mali|MLT:Malta|MAR:Marokko|MHL:Marshallinseln|MRT:Mauretanien|MUS:Mauritius|MEX:Mexiko|FSM:Mikronesien|MDA:Moldawien|MCO:Monaco|MNG:Mongolei|MNE:Montenegro|MOZ:Mosambik|MMR:Myanmar|NAM:Namibia|NRU:Nauru|NPL:Nepal|NZL:Neuseeland|NIC:Nicaragua|NLD:Niederlande|NER:Niger|NGA:Nigeria|PRK:Nordkorea|MKD:Nordmazedonien|NOR:Norwegen|OMN:Oman|TLS:Ost Timor|PAK:Pakistan|PLW:Palau|PSE:Palästina|PAN:Panama|PNG:Papua-Neuguinea|PRY:Paraguay|PER:Peru|PHL:Philippinen|POL:Polen|PRT:Portugal|COG:Republik Kongo|RWA:Ruanda|ROU:Rumänien|RUS:Russland|SLB:Salomonen|ZMB:Sambia|WSM:Samoa|SMR:San Marino|SAU:Saudi-Arabien|SWE:Schweden|CHE:Schweiz|SEN:Senegal|SRB:Serbien|SYC:Seychellen|SLE:Sierra Leone|ZWE:Simbabwe|SGP:Singapur|SVK:Slowakei|SVN:Slowenien|SOM:Somalia|ESP:Spanien|LKA:Sri Lanka|KNA:St. Kitts und Nevis|LCA:St. Lucia|VCT:St. Vincent und die Grenadinen|SDN:Sudan|SUR:Surinam|SYR:Syrien|STP:São Tomé und Príncipe|ZAF:Südafrika|KOR:Südkorea|SSD:Südsudan|TJK:Tadschikistan|TZA:Tansania|THA:Thailand|TGO:Togo|TON:Tonga|TTO:Trinidad und Tobago|TCD:Tschad|CZE:Tschechien|TUN:Tunesien|TKM:Turkmenistan|TUV:Tuvalu|TUR:Türkei|USA:USA|UGA:Uganda|UKR:Ukraine|HUN:Ungarn|URY:Uruguay|UZB:Usbekistan|VUT:Vanuatu|VAT:Vatikanstadt|VEN:Venezuela|ARE:Vereinigte Arabische Emirate|GBR:Vereinigtes Königreich|VNM:Vietnam|CAF:Zentralafrikanische Republik|CYP:Zypern|EGY:Ägypten|GNQ:Äquatorialguinea|ETH:Äthiopien|AUT:Österreich"; // Seterra: 195 Länder (Code:deutscher Name)
-const EXT30 = "ABH:Abchasien|ASM:Amerikanisch-Samoa|VIR:Amerikanische Jungferninseln|AIA:Anguilla|ABW:Aruba|BES:Bonaire|VGB:Britische Jungferninseln|CYM:Cayman Islands|COK:Cookinseln|CUW:Curaçao|PYF:Französisch-Polynesien|GRL:Grönland|GLP:Guadeloupe|GUM:Guam|KOS:Kosovo|MTQ:Martinique|MSR:Montserrat|NCL:Neukaledonien|NIU:Niue|MNP:Nördliche Marianen|PCN:Pitcairninseln|PRI:Puerto Rico|SOL:Somaliland|OSS:Südossetien|TWN:Taiwan|TKL:Tokelau|TRN:Transnistrien|TCA:Turks- und Caicosinseln|WLF:Wallis und Futuna|ESH:West-Sahara"; // Seterra: +30 Gebiete = 225
-// Falls ein Gebiet in den Kartendaten fehlt, wird es als kleiner Punkt ergänzt: [Breite, Länge, englischer Name]
-const FLAGFB = {KOS:'xk',TWN:'tw',ESH:'eh',PSE:'ps',GLP:'gp',MTQ:'mq',BES:'bq',TKL:'tk',PCN:'pn',MSR:'ms',AIA:'ai',NIU:'nu',TUV:'tv',NRU:'nr'}; // falls die Kartendaten keinen 2-Buchstaben-Code haben
-const FB = {TKL:[-9.2,-171.8,"Tokelau"],PCN:[-24.4,-128.3,"Pitcairn Islands"],MSR:[16.74,-62.19,"Montserrat"],AIA:[18.22,-63.05,"Anguilla"],BES:[12.2,-68.27,"Bonaire"],GLP:[16.25,-61.55,"Guadeloupe"],MTQ:[14.65,-61,"Martinique"],ABH:[43.1,41,"Abkhazia"],OSS:[42.35,44,"South Ossetia"],TRN:[47.2,29.4,"Transnistria"],TUV:[-8.5,179.2,"Tuvalu"],NRU:[-0.52,166.93,"Nauru"],NIU:[-19.05,-169.87,"Niue"]};
-const OCE = ["FJI","SLB","VUT","FSM","KIR","NRU","PLW","TON","TUV","WSM","MHL","NCL","PYF","COK","NIU","TKL","WLF","MDV"];
-const THEMES = { // Farbmodi: Meer, Land, Land außerhalb des Modus, Grenzen, Grenzen gelöster Länder, Hervorhebung, Zonen, Farben für 1.–4. Versuch
-  classic: { sea: '#a5d0dc', land: '#1e8449', off: '#8dbcc6', line: '#d6efe0', solvedLine: '#0f3d22', hi: '#b44cff', zone: '#ffffff', att: ['#ffffff', '#ffeb3b', '#ff9800', '#ff4b4b'] },
-  night:   { sea: '#0a1624', land: '#2f4f73', off: '#15283b', line: '#5c7ea6', solvedLine: '#0a1624', hi: '#00e5ff', zone: '#9fb6d3', att: ['#ffffff', '#fff176', '#ffb74d', '#ef5350'] },
-  sand:    { sea: '#cfe6ee', land: '#cdb98b', off: '#e4ddc6', line: '#fbf6e8', solvedLine: '#5b4a24', hi: '#d81b60', zone: '#ffffff', att: ['#ffffff', '#fff59d', '#ffb74d', '#e53935'] }
-};
-const th = () => THEMES[opts.theme] || THEMES.classic;
-const R_CAR = [[9.5,-86],[27,-59]], R_OCE = [[-26,125],[16,180]], R_CAR_IN = [[9,-84.3],[28.9,-57.9]], R_OCE_IN = [[-39,126.8],[26.7,238.6]];
-const SYN = {USA:["usa","us","america","vereinigte staaten"],ARE:["vae","uae","emirate"],GBR:["uk","gb","grossbritannien","england"],COD:["dr kongo","drc"],COG:["kongo","congo"],RUS:["russland"],CZE:["tschechien"],TUR:["tuerkei"]};
-
-const $ = id => document.getElementById(id);
-// Optionen (werden im Browser gemerkt)
-let opts = { zoom: 'soft', flag: false, theme: 'classic' };
-try { Object.assign(opts, JSON.parse(localStorage.getItem('geora-opts') || '{}')); } catch (e) {}
-if (opts.zoom === true) opts.zoom = 'soft'; if (opts.zoom === false) opts.zoom = 'off'; if (!THEMES[opts.theme]) opts.theme = 'classic';
-const OPTDEF = [
-  ['zoom', '🔍 Zoom im Eingabemodus', [['off', 'Aus'], ['soft', 'Sanft'], ['mid', 'Mittel'], ['strong', 'Stark']]],
-  ['flag', '🏳️ Flagge in der Aufgabe', [[false, 'Aus'], [true, 'An']]],
-  ['theme', '🎨 Farbmodus', [['classic', 'Klassisch'], ['night', 'Nacht'], ['sand', 'Sand']]]
-];
-const ZOOM = { soft: 3, mid: 4, strong: 5 };
-function renderOpts() { // gleiche Optionen in Einstellungen und Spielauswahl
-  document.querySelectorAll('.opts').forEach(c => {
-    c.innerHTML = ''; c.style.display = 'block';
-    OPTDEF.forEach(([k, title, ch]) => {
-      const h = document.createElement('div'); h.className = 'opt-title'; h.textContent = title; c.appendChild(h);
-      const g = document.createElement('div'); g.className = 'option-grid';
-      ch.forEach(([v, label]) => {
-        const d = document.createElement('div'); d.className = 'option-card' + (opts[k] === v ? ' selected' : ''); d.textContent = label;
-        d.onclick = () => { opts[k] = v; try { localStorage.setItem('geora-opts', JSON.stringify(opts)); } catch (e) {} renderOpts(); applyOpts(); };
-        g.appendChild(d);
-      });
-      c.appendChild(g);
-    });
-  });
-}
-function applyTheme() { document.documentElement.style.setProperty('--sea', th().sea); }
-function applyOpts() { applyTheme(); if (Object.keys(layers).length) refreshAll(); renderPrompt(); }
-let lang = 'de', mode = 'click', diff = 'easy';
-let geo = null, map = null, mapCar = null, mapOce = null;
-let layers = {}, solved = {}, tmp = {}, valid = new Set();
-let deck = [], target = null, tries = 0, done = 0, total = 0, guesses = 0;
-let practice = false, locked = false, timerI = null, secs = 0, inGame = false, reviewing = false, over = false;
-
-const fid = f => f.properties.ADM0_A3 || f.properties.ISO_A3 || f.properties.NAME;
-const nameOf = (f, l = lang) => { const p = f.properties; return l === 'en' ? (p.NAME_LONG || p.NAME) : (f._de || p.NAME_DE || p.NAME_LONG || p.NAME); };
-
-function setLanguage(l) { lang = l; $('lang-de-card').classList.toggle('selected', l === 'de'); $('lang-en-card').classList.toggle('selected', l === 'en'); }
-function switchScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $(id).classList.add('active'); }
-function pickCard(el) { el.parentElement.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); }
-function selectMode(m, el) { mode = m; pickCard(el); }
-function selectDifficulty(d, el) { diff = d; pickCard(el); }
-
-// ---------- Daten vorbereiten ----------
-const idx = {}, parse = s => s.split("|").map(x => x.split(":"));
-function indexGeo() { // Länder über ADM0_A3 / ISO_A3 finden, Seterra-Namen setzen, fehlende Gebiete ergänzen
-  geo.forEach(f => { const p = f.properties; [p.ADM0_A3, p.ISO_A3, p.ISO_A3_EH].forEach(c => { if (c && c !== '-99' && !idx[c]) idx[c] = f; }); });
-  [...parse(UN195), ...parse(EXT30)].forEach(([c, n]) => {
-    if (!idx[c] && FB[c]) {
-      const [la, lo, en] = FB[c], d = .15;
-      const f = { type: 'Feature', properties: { ADM0_A3: c, NAME: en, NAME_LONG: en, POP_EST: 1 }, geometry: { type: 'Polygon', coordinates: [[[lo - d, la - d], [lo + d, la - d], [lo + d, la + d], [lo - d, la + d], [lo - d, la - d]]] } };
-      geo.push(f); idx[c] = f;
-    }
-    if (idx[c]) { idx[c]._de = n; idx[c]._code = c; }
-  });
-}
-function prep(f) { // Mittelpunkt des größten Teilstücks + Entscheidung, ob ein Klick-Punkt nötig ist
-  const g = f.geometry, ps = g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
-  let best = [0, 0], lb = [0, 0, 0, 0], ba = -1, minx = 1e9, maxx = -1e9, miny = 1e9, maxy = -1e9;
-  ps.forEach(p => {
-    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
-    p[0].forEach(c => { x0 = Math.min(x0, c[0]); x1 = Math.max(x1, c[0]); y0 = Math.min(y0, c[1]); y1 = Math.max(y1, c[1]); });
-    minx = Math.min(minx, x0); maxx = Math.max(maxx, x1); miny = Math.min(miny, y0); maxy = Math.max(maxy, y1);
-    const a = (x1 - x0) * (y1 - y0); if (a > ba) { ba = a; best = [(y0 + y1) / 2, (x0 + x1) / 2]; lb = [x0, y0, x1, y1]; }
-  });
-  f._lb = lb; f._b = [minx, miny, maxx, maxy]; f._c = best; f._dot = (maxx - minx < 3.5) || OCE.includes(fid(f));
-}
-function shiftGeom(g) { const m = c => typeof c[0] === 'number' ? [c[0] + 360, c[1]] : c.map(m); return { type: g.type, coordinates: m(g.coordinates) }; }
-
-async function loadData() { // 1. lokale Datei countries.geojson, danach Internet-Quellen mit Zeitlimit
-  for (let i = 0; i < DATA.length; i++) {
-    $('target-prompt').textContent = 'Karte wird geladen … (Quelle ' + (i + 1) + '/' + DATA.length + ')';
-    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), i === 0 ? 20000 : 45000);
-    try { const r = await fetch(DATA[i], { signal: ctl.signal }); if (!r.ok) continue; const j = await r.json(); return j.features.filter(f => fid(f) !== 'ATA'); } catch (e) {} finally { clearTimeout(to); }
-  }
-  return null;
-}
-
-// ---------- Darstellung ----------
-const solvedColor = id => tmp[id] || (solved[id] !== undefined ? th().att[(solved[id] || 4) - 1] : null); // solved: 1–4 = Versuch, 0 = nicht gewusst
-function fillOf(id) {
-  const c = solvedColor(id); if (c) return c;
-  if (mode === 'type' && target && id === fid(target)) return th().hi;
-  return valid.has(id) ? th().land : th().off;
-}
-const polySt = id => { const sv = solvedColor(id); return { fillColor: fillOf(id), fillOpacity: 1, color: sv ? th().solvedLine : th().line, weight: sv ? .9 : .5 }; }; // gelöste Länder: dunklere, deutlichere Grenzen
-const dotSt = id => { if (!valid.has(id)) return { radius: 4, fillOpacity: 0, opacity: 0 }; const c = solvedColor(id) || (mode === 'type' && target && id === fid(target) ? th().hi : '#ffffff'); return { radius: 4, fillColor: c, fillOpacity: 1, color: '#0f3d22', weight: 1.3, opacity: 1 }; };
-const zoneSt = id => { const c = solvedColor(id), v = valid.has(id); return { color: th().zone, weight: 1.5, dashArray: '6 5', opacity: v ? 1 : .85, fill: true, fillColor: c || '#fff', fillOpacity: c && v ? .5 : .001 }; };
-function refresh(id) {
-  (layers[id] || []).forEach(l => {
-    if (l.zone || l.isDot) l.options.interactive = valid.has(id); // ungültige Zonen/Punkte blockieren keine Klicks
-    l.setStyle(l.zone ? zoneSt(id) : l.isDot ? dotSt(id) : polySt(id));
-  });
-}
-function refreshAll() { Object.keys(layers).forEach(refresh); }
-let blinkT = null, blinkId = null;
-function setBlink(id, on) { // blinkt per Timer (funktioniert mit Canvas)
-  clearInterval(blinkT);
-  if (blinkId) { const o = blinkId; blinkId = null; delete tmp[o]; refresh(o); }
-  if (!on) return;
-  blinkId = id; let k = 0; blinkT = setInterval(() => { tmp[id] = (k++ % 2) ? '#ffffff' : th().hi; refresh(id); }, 400);
-}
-function flash(id) { tmp[id] = '#ff4b4b'; refresh(id); setTimeout(() => { delete tmp[id]; refresh(id); }, 450); }
-
-// Zonen der Inselstaaten: Formen in Pixeln der Seterra-Bilder, per Mercator-Kalibrierung in Koordinaten umgerechnet
-const ZC = {BHS:[[167,32],[262,58],[398,210],[398,228],[385,228],[385,270],[362,291],[215,187],[132,180],[132,165],[165,142]],TCA:[[385,228],[456,228],[456,270],[385,270]],PRI:[[538,334],[636,334],[636,383],[538,383]],VIR:[[636,346],[666,346],[666,383],[636,383]],VGB:[[648,326],[682,326],[682,352],[648,352]]};
-const ZO = {KIR:[[332,181],[412,181],[443,219],[565,219],[565,242],[592,242],[592,212],[571,170],[627,170],[692,255],[692,317],[617,317],[617,277],[527,277],[466,277],[405,247],[332,247]],PYF:[[617,317],[692,317],[692,255],[827,255],[827,437],[770,468],[692,468],[617,415]],MHL:[[228,18],[258,18],[412,118],[412,181],[332,181],[228,105]],MNP:[[98,18],[228,18],[228,105],[147,105],[147,93],[98,93]],FSM:[[68,105],[228,105],[332,181],[332,213],[150,213],[115,157],[68,157]],PLW:[[7,135],[68,105],[68,157],[115,157],[150,213],[97,213],[7,187]],COK:[[527,277],[617,277],[617,411],[505,411],[505,389],[527,389]],FJI:[[368,307],[410,307],[410,341],[455,341],[455,383],[447,411],[368,411]],SLB:[[236,254],[292,254],[292,247],[332,247],[368,307],[332,317],[237,317],[222,282]],NCL:[[237,355],[290,355],[337,392],[368,392],[368,411],[237,411]],VUT:[[237,317],[368,317],[368,392],[337,392],[290,355],[237,355]],TUV:[[332,247],[405,247],[466,277],[466,307],[368,307]],TON:[[455,341],[498,341],[498,389],[505,389],[505,411],[447,411],[455,383]],PCN:[[827,398],[900,398],[900,437],[827,437]],NRU:[[292,213],[332,213],[332,247],[292,247]],WLF:[[410,307],[466,307],[466,341],[410,341]],TKL:[[466,277],[527,277],[527,301],[466,301]],WSM:[[466,301],[498,301],[498,341],[466,341]],ASM:[[498,301],[527,301],[527,369],[498,369]],NIU:[[498,369],[527,369],[527,389],[498,389]],GUM:[[98,93],[147,93],[147,116],[98,116]]};
-const mer = lat => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)) * 180 / Math.PI;
-const unmer = m => (2 * Math.atan(Math.exp(m * Math.PI / 180)) - Math.PI / 2) * 180 / Math.PI;
-const pxC = ([x, y]) => [unmer(mer(18.1) - (y - 363) / 33.1), -77.3 + (x - 232) / 33.1];
-const pxO = ([x, y]) => [unmer(mer(-17.8) - (y - 366) / 8.03), 178 + (x - 412) / 8.05];
-function addZones(m, Z, conv) { // gestrichelte Zonen, unter dem Land gezeichnet; große zuerst
-  const area = p => Math.abs(p.reduce((a, c, i) => { const d = p[(i + 1) % p.length]; return a + c[0] * d[1] - d[0] * c[1]; }, 0)) / 2;
-  Object.entries(Z).sort((a, b) => area(b[1]) - area(a[1])).forEach(([c, p]) => {
-    const f = idx[c]; if (!f) return;
-    const id = fid(f), z = L.polygon(p.map(conv), zoneSt(id)).addTo(m); z.zone = true;
-    (layers[id] = layers[id] || []).push(z); z.on('click', e => { L.DomEvent.stopPropagation(e); clicked(f, z); });
-  });
-}
-function build(m, data, zones, conv) {
-  if (zones) addZones(m, zones, conv); // Ebenen werden EINMAL gebaut und später nur umgefärbt
-  L.geoJSON(data, {
-    style: f => polySt(fid(f)),
-    onEachFeature: (f, l) => { (layers[fid(f)] = layers[fid(f)] || []).push(l); l.on('click', e => { L.DomEvent.stopPropagation(e); clicked(f, l); }); }
-  }).addTo(m);
-  data.forEach(f => {
-    if (!f._dot) return;
-    const d = L.circleMarker(f._c, dotSt(fid(f))).addTo(m); d.isDot = true;
-    (layers[fid(f)] = layers[fid(f)] || []).push(d);
-    d.on('click', e => { L.DomEvent.stopPropagation(e); clicked(f, d); });
-  });
-}
-function mk(id, o) {
-  // Zeichenfläche (Renderer) ZUERST anmelden, sonst fehlt ihr beim Laden die Größe und Leaflet bricht mit "reading 'min'" ab
-  const rend = L.canvas();
-  const m = L.map(id, Object.assign({ renderer: rend, zoomControl: false, attributionControl: false, zoomSnap: .25 }, o));
-  m.addLayer(rend);
-  return m;
-}
-const step = async t => { $('target-prompt').textContent = t; await new Promise(r => setTimeout(r, 30)); };
-function simp(g, tol = .05) { // Linien ausdünnen (kaum sichtbar, spart viel Rechenzeit)
-  const ring = r => {
-    if (r.length < 12) return r;
-    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
-    r.forEach(c => { x0 = Math.min(x0, c[0]); x1 = Math.max(x1, c[0]); y0 = Math.min(y0, c[1]); y1 = Math.max(y1, c[1]); });
-    if (x1 - x0 < 1 && y1 - y0 < 1) return r; // winzige Inseln unverändert lassen
-    const o = [r[0]]; let l = r[0];
-    for (let i = 1; i < r.length - 1; i++) if (Math.abs(r[i][0] - l[0]) + Math.abs(r[i][1] - l[1]) >= tol) { o.push(r[i]); l = r[i]; }
-    o.push(r[r.length - 1]); return o.length >= 4 ? o : r;
-  };
-  const poly = p => p.map(ring);
-  return g.type === 'Polygon' ? { type: 'Polygon', coordinates: poly(g.coordinates) } : { type: 'MultiPolygon', coordinates: g.coordinates.map(poly) };
-}
-async function initMaps(step) {
-  map = mk('map', { minZoom: 1, maxBounds: [[-85, -180], [85, 180]], maxBoundsViscosity: 1 });
-  mapCar = mk('map-car', { minZoom: 1, maxBounds: [[3, -90], [34, -52]], maxBoundsViscosity: 1 });
-  mapOce = mk('map-oce', { minZoom: 1, maxBounds: [[-45, 120], [32, 245]], maxBoundsViscosity: 1 });
-  const hit = (b, w, so, e, n) => b[0] <= e && b[2] >= w && b[1] <= n && b[3] >= so;
-  const wide = f => f._b[2] - f._b[0] >= 100 && !OCE.includes(fid(f)) && fid(f) !== 'NZL'; // z. B. Russland/USA nicht in Ozeanien
-  const oce = f => !wide(f) && fid(f) !== 'CHN';
-  // Ozeanien liegt an der Datumsgrenze: verschobene Kopie, damit Fidschi, Tonga, Samoa, Polynesien sichtbar sind
-  const sh = f => ({ type: 'Feature', properties: f.properties, geometry: shiftGeom(f.geometry), _c: [f._c[0], f._c[1] + 360], _dot: f._dot, _de: f._de, _b: [f._b[0] + 360, f._b[1], f._b[2] + 360, f._b[3]] });
-  await step('Karte wird gebaut: Weltkarte …');
-  build(map, geo);
-  await step('Karte wird gebaut: Karibik …');
-  build(mapCar, geo.filter(f => hit(f._b, -90, 5, -52, 32)), ZC, pxC);
-  await step('Karte wird gebaut: Ozeanien …');
-  build(mapOce, geo.filter(f => oce(f) && hit(f._b, 115, -42, 240, 28)), ZO, pxO);
-  build(mapOce, geo.filter(f => oce(f) && hit([f._b[0] + 360, f._b[1], f._b[2] + 360, f._b[3]], 115, -42, 240, 28)).map(sh));
-}
-let insetH = 150;
-function layoutInsets() { // Höhe der Felder passend zur Kartenhöhe; die Weltkarte bekommt darüber ihren Platz
-  const fh = document.querySelector('.map-frame').clientHeight;
-  insetH = Math.max(90, Math.min(230, Math.round(fh * .3)));
-  document.querySelectorAll('.inset-box').forEach(e => e.style.height = insetH + 'px');
-}
-window.addEventListener('resize', () => { if (mapCar) { layoutInsets(); mapCar.invalidateSize(); mapOce.invalidateSize(); } });
-function fit() {
-  layoutInsets();
-  [map, mapCar, mapOce].forEach(m => { m.invalidateSize(); m.setMinZoom(0); });
-  map.fitBounds([[-56, -170], [78, 180]], { animate: false, paddingBottomRight: [0, insetH + 6] }); map.setMinZoom(map.getZoom());
-  mapCar.fitBounds(R_CAR_IN, { animate: false });
-  mapOce.fitBounds(R_OCE_IN, { animate: false });
-  mapCar.setMinZoom(mapCar.getZoom()); mapOce.setMinZoom(mapOce.getZoom()); // nicht weiter heraus als der Ausschnitt
-}
-
-// ---------- Spielablauf ----------
-function tick() { secs++; $('timer').textContent = String(secs / 60 | 0).padStart(2, '0') + ':' + String(secs % 60).padStart(2, '0'); }
-function runTimer() { clearInterval(timerI); timerI = setInterval(tick, 1000); }
-function startTimer() { secs = 0; $('timer').textContent = '00:00'; runTimer(); }
-const counter = () => $('counter').textContent = done + ' / ' + total;
-
-async function startGame() {
-  $('end-modal').classList.remove('active');
-  $('game-stats').style.display = 'flex'; inGame = true; over = false; reviewing = false; $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex'; applyTheme();
-  $('type-wrap').style.display = mode === 'type' ? 'flex' : 'none';
-  switchScreen('game-screen');
-  clearInterval(timerI); target = null; $('hint').textContent = '';
-  if (typeof L === 'undefined') { $('target-prompt').textContent = '⚠️ Kartenbibliothek (Leaflet) konnte nicht geladen werden.'; return; }
-  if (!geo) {
-    $('target-prompt').textContent = 'Karte wird geladen …';
-    const data = await loadData();
-    if (!data) { $('target-prompt').textContent = '⚠️ Kartendaten konnten nicht geladen werden. Bitte im normalen Browser öffnen (z. B. über GitHub Pages), nicht in einem Vorschau-Fenster.'; return; }
-    try {
-      await step('Karte wird vorbereitet …');
-      data.forEach(f => { if (f.geometry && /Polygon/.test(f.geometry.type)) f.geometry = simp(f.geometry); });
-      geo = data; indexGeo(); geo.forEach(prep);
-      await initMaps(step);
-    } catch (e) { console.error(e); $('target-prompt').textContent = '⚠️ Fehler beim Kartenaufbau: ' + e.message + ' (Seite neu laden)'; return; }
-  }
-  try { await step('Karte wird eingepasst …'); fit(); resetDeck(); startTimer(); nextRound(); }
-  catch (e) { console.error(e); $('target-prompt').textContent = '⚠️ Fehler beim Start: ' + e.message; }
-}
-function resetDeck() {
-  const L2 = a => [...new Set(a.map(c => idx[c]).filter(Boolean))], un = parse(UN195).map(x => x[0]), ex = parse(EXT30).map(x => x[0]);
-  const pool = diff === 'easy' ? L2(TOP) : diff === 'un' ? L2(un) : L2([...un, ...ex]);
-  valid = new Set(pool.map(fid)); deck = [...pool]; // jedes Land genau einmal
-  solved = {}; tmp = {}; done = 0; guesses = 0; total = deck.length; practice = false;
-  Object.keys(layers).forEach(id => setBlink(id, false)); refreshAll(); counter();
-}
-function quitGame() {
-  clearInterval(timerI); setBlink(null, false); $('flag').style.display = 'none'; $('end-modal').classList.remove('active');
-  $('game-stats').style.display = 'none'; inGame = false; reviewing = false; $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex'; switchScreen('main-menu');
-}
-function hint() { $('hint').textContent = practice ? '' : '●'.repeat(4 - tries) + '○'.repeat(tries); }
-function nextRound() {
-  locked = false; tries = 0; practice = false;
-  if (!deck.length) {
-    clearInterval(timerI); over = true; target = null; $('hint').textContent = ''; $('letters').textContent = ''; $('flag').style.display = 'none';
-    $('end-acc').textContent = Math.round(100 * total / Math.max(guesses, total)) + '%'; $('end-time').textContent = $('timer').textContent;
-    $('end-modal').classList.add('active'); return;
-  }
-  target = deck.splice(Math.random() * deck.length | 0, 1)[0];
-  refresh(fid(target)); hintN = 0;
-  renderPrompt();
-  if (mode === 'type') {
-    $('type-input').value = ''; $('type-input').focus();
-    const z = ZOOM[opts.zoom];
-    if (z) { // sanfter Zoom auf das größte Teilstück; oben bleibt Platz für das Aufgabenfeld
-      const b = target._lb, top = $('prompt-bar').offsetHeight + 40;
-      map.stop(); map.flyToBounds([[b[1], b[0]], [b[3], b[2]]], { paddingTopLeft: [60, top], paddingBottomRight: [60, insetH + 30], maxZoom: z, duration: .6 });
-    }
-  }
-}
-function finish(n) { // n = Versuche (1–4), 0 = nicht gewusst
-  const id = fid(target); solved[id] = n; setBlink(id, false);
-  done++; counter(); refresh(id); locked = true; $('hint').textContent = ''; $('letters').textContent = ''; setTimeout(nextRound, 400);
-}
-function flagCode(f) {
-  const p = f.properties; let c = p.ISO_A2_EH; if (!c || c === '-99') c = p.ISO_A2; if (!c || c === '-99') c = FLAGFB[f._code || fid(f)];
-  return c && c !== '-99' ? c.toLowerCase() : null;
-}
-function showFlag() { // kleine Flagge in der Aufgabe (flagcdn.com)
-  const im = $('flag'), c = opts.flag && target ? flagCode(target) : null;
-  if (!c) { im.style.display = 'none'; return; }
-  im.src = 'https://flagcdn.com/w40/' + c + '.png'; im.srcset = 'https://flagcdn.com/w80/' + c + '.png 2x'; im.style.display = 'block';
-}
-let hintN = 0; // so viele Buchstaben sind aufgedeckt
-const isLetter = c => /[\p{L}\p{N}]/u.test(c);
-function showLetters() { // z. B. "D e _ _ _ _ _ _ _ _"
-  if (mode !== 'type' || !target || practice) { $('letters').textContent = ''; return; }
-  let k = 0;
-  $('letters').textContent = [...nameOf(target)].map(ch => isLetter(ch) ? (k++ < hintN ? ch : '_') : (ch === ' ' ? '\u00a0\u00a0' : ch)).join(' ');
-}
-function revealMore() { // nie alle Buchstaben verraten
-  const total = [...nameOf(target)].filter(isLetter).length;
-  if (hintN < total - 1) hintN++;
-  showLetters();
-}
-function tip() { if (mode === 'type' && target && !locked && !practice) { revealMore(); $('type-input').focus(); } }
-function renderPrompt() { // Aufgabentext, Versuche, Tipps und Flagge neu zeichnen (auch nach Änderung der Optionen)
-  if (!target || over || reviewing) return;
-  const en = lang === 'en';
-  $('target-prompt').textContent = practice
-    ? (mode === 'type' ? (en ? 'Copy: ' : 'Schreibe ab: ') + nameOf(target) : en ? 'Click the blinking country!' : 'Klicke auf das blinkende Land!')
-    : mode === 'type' ? (en ? 'Which country is highlighted?' : 'Welches Land ist hervorgehoben?') : (en ? 'Find: ' : 'Finde: ') + nameOf(target);
-  hint(); showLetters(); showFlag();
-}
-function startPractice() { practice = true; setBlink(fid(target), true); renderPrompt(); }
-
-function clicked(f, l) {
-  const id = fid(f);
-  if ((l.isDot || l.zone) && !valid.has(id)) return;
-  if (mode === 'click' || reviewing || over) { // Namensschild; im Eingabemodus nicht, sonst wäre die Lösung verraten
-    const n = solved[id], lab = reviewing && n !== undefined ? ' · ' + (n ? (lang === 'en' ? 'try ' + n : n + '. Versuch') : (lang === 'en' ? 'not known' : 'nicht gewusst')) : '';
-    clearTimeout(l._tt);
-    l.bindTooltip(nameOf(f) + lab, { permanent: true, direction: 'center', className: 'country-label-temp' }).openTooltip();
-    l._tt = setTimeout(() => l.unbindTooltip(), 1800);
-  }
-  if (!target || locked || over || reviewing || mode !== 'click') return;
-  const tid = fid(target);
-  if (practice) { if (id === tid) finish(0); else flash(id); return; }
-  tries++; guesses++;
-  if (id === tid) finish(tries);
-  else { flash(id); if (tries >= 4) startPractice(); else hint(); }
-}
-
-// ---------- Eingabe-Modus ----------
-const n1 = t => (t || '').toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/[^a-z0-9]/g, '');
-const n2 = t => (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss').replace(/[^a-z0-9]/g, '');
-function submitGuess() {
-  if (!target || mode !== 'type' || locked) return;
-  const inp = $('type-input'), g = inp.value; if (!n1(g)) return;
-  const p = target.properties, id = fid(target);
-  const ok = [target._de, p.NAME_DE, p.NAME_LONG, p.NAME, p.NAME_EN, id, ...(SYN[id] || [])].filter(Boolean).some(n => n1(n) === n1(g) || n2(n) === n2(g));
-  if (practice) { if (ok) finish(0); return; }
-  tries++; guesses++;
-  if (ok) return finish(tries);
-  inp.classList.add('bad'); setTimeout(() => inp.classList.remove('bad'), 400); inp.value = '';
-  if (tries >= 4) startPractice(); else { revealMore(); hint(); }
-}
-// ---------- Einstellungen während des Spiels, Auswertung ----------
-function openSettings() {
-  if (inGame) clearInterval(timerI); // Zeit pausiert, solange die Einstellungen offen sind
-  $('settings-back').textContent = inGame ? '← Zurück zum Spiel' : '← Hauptmenü';
-  renderOpts(); switchScreen('settings-screen');
-}
-function closeSettings() {
-  if (!inGame) { switchScreen('main-menu'); return; }
-  switchScreen('game-screen');
-  [map, mapCar, mapOce].forEach(m => m && m.invalidateSize());
-  if (!over && !reviewing) runTimer();
-  renderPrompt();
-}
-function startReview() { // Karte nach der Runde ansehen: Farben zeigen die Versuche, Klick zeigt Name und Versuche
-  reviewing = true; $('end-modal').classList.remove('active'); $('prompt-bar').style.display = 'none';
-  $('legend').innerHTML = th().att.map((c, i) => '<span><span class="lg" style="background:' + c + '"></span>' + (i < 3 ? i + 1 : '4 / ✖') + '</span>').join('');
-  $('review-bar').style.display = 'flex';
-}
-function backToResult() { reviewing = false; $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex'; $('end-modal').classList.add('active'); }
-renderOpts(); applyTheme();
-document.addEventListener('DOMContentLoaded', () => { $('type-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitGuess(); }); });
-</script>
+<script>setTimeout(function(){ if(!window.__georaBooted){ var m=document.getElementById('boot-msg'); if(m) m.style.display='block'; } }, 3000);</script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
