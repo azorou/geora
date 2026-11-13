@@ -34,3 +34,6 @@ export const OPTDEF = [
 // Punkte: Anteil je Versuch (1.–4.) und Abzug je Tipp; Genauigkeit in % = XP
 export const ATT_SCORE = [1, 0.75, 0.5, 0.25];
 export const TIP_COST = 0.1;
+
+// Abgabe-Effekt: Ring wächst vom Landesmittelpunkt nach außen und verblasst (r = Pixel, ms = Dauer)
+export const RIPPLE = { ok: '#58cc02', bad: '#ff4b4b', r: 56, ms: 650 };

@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Geora - Das Geografie-Quiz</title>
 <meta name="theme-color" content="#2d8a4e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Geora">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -17,6 +24,7 @@
     <div id="game-stats" style="display:none;align-items:center;gap:8px">
       <div class="stat-badge">🚩 <span id="counter">0 / 0</span></div>
       <div class="stat-badge">⏱️ <span id="timer">00:00</span></div>
+      <div class="stat-badge">🎯 <span id="pct">– %</span></div>
       <button class="btn-3d btn-red" style="padding:6px 12px;font-size:.8rem" data-act="quitGame">✖️ <span class="hide-s">Abbrechen</span></button>
     </div>
     <button class="icon-btn" data-act="openProfile">⚡ <span id="xp">0</span><span class="hide-s">&nbsp;XP</span></button>
@@ -34,7 +42,7 @@
 <section id="settings-screen" class="screen">
   <div class="config-container">
     <button class="btn-3d btn-blue back-label" style="padding:6px 14px;font-size:.85rem" data-act="closeOverlay">← Hauptmenü</button>
-    <div class="section-title">Sprache der Ländernamen / Language</div>
+    <div class="section-title">Sprache / Language</div>
     <div class="option-grid">
       <div class="option-card selected" id="lang-de-card" data-act="setLanguage" data-v="de">🇩🇪 Deutsch</div>
       <div class="option-card" id="lang-en-card" data-act="setLanguage" data-v="en">🇬🇧 English (UK)</div>
@@ -66,8 +74,6 @@
       <div class="option-card" data-act="selectDifficulty" data-v="un">UN-Staaten (195)</div>
       <div class="option-card" data-act="selectDifficulty" data-v="standard">Länder &amp; Territorien (225)</div>
     </div>
-    <div class="section-title">3. Optionen</div>
-    <div class="option-grid opts"></div>
     <div style="margin-top:25px;text-align:center">
       <button class="btn-3d btn-gold" style="width:280px" data-act="startGame">🚀 JETZT SPIELEN</button>
     </div>
@@ -94,8 +100,8 @@
   </div>
   <div class="map-frame">
     <div id="map" class="map-el"></div>
-    <div class="inset-box inset-car"><div id="map-car" class="map-el"></div></div>
-    <div class="inset-box inset-oce"><div id="map-oce" class="map-el"></div></div>
+    <div class="inset-box inset-car" data-box="car"><div id="map-car" class="map-el"></div><div class="inset-grip" title="Größe ändern"></div></div>
+    <div class="inset-box inset-oce" data-box="oce"><div id="map-oce" class="map-el"></div><div class="inset-grip" title="Größe ändern"></div></div>
   </div>
   <div class="modal-overlay" id="end-modal">
     <div class="end-card">

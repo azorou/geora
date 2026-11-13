@@ -40,3 +40,10 @@ Falls „Data API“ im Projekt ausgeschaltet ist: Project Settings → Data API
 ## Werte zum Anpassen
 - `js/data.js`: `TIP_COST` (Abzug je Tipp, 0.1 = 10 %), `ATT_SCORE` (Punkte je Versuch), Farbmodi `THEMES`, Zoomstufen `ZOOM`.
 - XP pro Runde = Genauigkeit in Prozent (in `js/game.js`, Funktion `endRound`).
+
+
+## Neu in dieser Version
+- `js/i18n.js`: Übersetzung der ganzen Oberfläche (Deutsch/English). Neue feste Texte im HTML oder Code auf Deutsch schreiben und die englische Fassung in `EN` ergänzen; im Code `tr('deutscher Text')` verwenden.
+- `manifest.webmanifest` und `icons/`: App-Symbol für den Startbildschirm (Android: Chrome-Menü → "Zum Startbildschirm hinzufügen"). Die Symbole entstehen aus `icons/icon.svg`.
+- Abgabe-Effekt: Größe, Dauer und Farben stehen in `RIPPLE` (`js/data.js`).
+- Die kleinen Karten (Karibik, Ozeanien) lassen sich am Eckgriff in der Größe ändern; sie bleiben in ihrer Ecke.

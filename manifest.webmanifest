@@ -1,0 +1,16 @@
+{
+  "name": "Geora – Das Geografie-Quiz",
+  "short_name": "Geora",
+  "description": "Länder auf der Karte finden und Geografie lernen",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1017",
+  "theme_color": "#2d8a4e",
+  "lang": "de",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

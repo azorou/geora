@@ -67,3 +67,17 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 .msg.err{color:var(--red)}.msg.ok{color:#58cc02}
 .end-card .stats-grid{grid-template-columns:1fr 1fr}
 
+
+/* Größen-Griff der kleinen Karten (Karibik: oben rechts, Ozeanien: oben links) */
+.inset-grip{position:absolute;top:0;width:30px;height:30px;z-index:1001;touch-action:none;background:#0b1017b3}
+.inset-car .inset-grip{right:0;cursor:nesw-resize;border-bottom-left-radius:10px}
+.inset-oce .inset-grip{left:0;cursor:nwse-resize;border-bottom-right-radius:10px}
+.inset-grip::after{content:'';position:absolute;top:7px;width:11px;height:11px;border:0 solid #fff}
+.inset-car .inset-grip::after{right:7px;border-top-width:3px;border-right-width:3px}
+.inset-oce .inset-grip::after{left:7px;border-top-width:3px;border-left-width:3px}
+.top-controls{margin-left:auto}
+@media(max-width:768px){
+  .stat-badge{padding:5px 8px;font-size:.8rem}
+  .top-controls,#game-stats{gap:5px!important}
+  .ingame .logo{display:none} /* im Spiel Platz für Zähler, Zeit und Prozent */
+}

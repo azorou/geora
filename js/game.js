@@ -1,7 +1,8 @@
 // Spielablauf: Runde, Klicks, Eingabe, Tipps, Punkte/XP, Auswertung
 import { $, S, th, fid, nameOf, switchScreen } from './state.js';
-import { TOP, UN195, EXT30, FLAGFB, SYN, ZOOM, TIP_COST, ATT_SCORE } from './data.js';
-import { parse, indexGeo, prep, simp, loadData, initMaps, fit, refresh, refreshAll, setBlink, flash } from './map.js';
+import { TOP, UN195, EXT30, FLAGFB, SYN, ZOOM, TIP_COST, ATT_SCORE, RIPPLE } from './data.js';
+import { parse, indexGeo, prep, simp, loadData, initMaps, fit, refresh, refreshAll, setBlink, flash, ripple } from './map.js';
+import { tr } from './i18n.js';
 import { recordRound, totalXP } from './storage.js';
 
 const step = async t => { $('target-prompt').textContent = t; await new Promise(r => setTimeout(r, 30)); };
@@ -16,26 +17,26 @@ export const resumeGame = () => { if (S.inGame && !S.over && !S.reviewing) runTi
 // ---------- Start / Ende ----------
 export async function startGame() {
   $('end-modal').classList.remove('active');
-  $('game-stats').style.display = 'flex'; S.inGame = true; S.over = false; S.reviewing = false;
+  $('game-stats').style.display = 'flex'; S.inGame = true; S.over = false; S.reviewing = false; document.body.classList.add('ingame');
   $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex';
   document.documentElement.style.setProperty('--sea', th().sea);
   $('type-wrap').style.display = S.mode === 'type' ? 'flex' : 'none';
   switchScreen('game-screen');
   clearInterval(S.timerI); S.target = null; $('hint').textContent = '';
-  if (typeof L === 'undefined') { $('target-prompt').textContent = '⚠️ Kartenbibliothek (Leaflet) konnte nicht geladen werden.'; return; }
+  if (typeof L === 'undefined') { $('target-prompt').textContent = tr('⚠️ Kartenbibliothek (Leaflet) konnte nicht geladen werden.'); return; }
   if (!S.geo) {
-    $('target-prompt').textContent = 'Karte wird geladen …';
-    const data = await loadData();
-    if (!data) { $('target-prompt').textContent = '⚠️ Kartendaten konnten nicht geladen werden. Bitte im normalen Browser öffnen (z. B. über GitHub Pages), nicht in einem Vorschau-Fenster.'; return; }
+    $('target-prompt').textContent = tr('Karte wird geladen …');
+    const data = await (S.geoLoad || (S.geoLoad = loadData())); // Download startet schon beim Öffnen der Seite (siehe boot in ui.js)
+    if (!data) { S.geoLoad = null; $('target-prompt').textContent = tr('⚠️ Kartendaten konnten nicht geladen werden. Bitte im normalen Browser öffnen (z. B. über GitHub Pages), nicht in einem Vorschau-Fenster.'); return; }
     try {
-      await step('Karte wird vorbereitet …');
+      await step(tr('Karte wird vorbereitet …'));
       data.forEach(f => { if (f.geometry && /Polygon/.test(f.geometry.type)) f.geometry = simp(f.geometry); });
       S.geo = data; indexGeo(); S.geo.forEach(prep);
       await initMaps(step);
-    } catch (e) { console.error(e); S.geo = null; $('target-prompt').textContent = '⚠️ Fehler beim Kartenaufbau: ' + e.message + ' (Seite neu laden)'; return; }
+    } catch (e) { console.error(e); S.geo = null; S.geoLoad = null; $('target-prompt').textContent = tr('⚠️ Fehler beim Kartenaufbau:') + ' ' + e.message + ' ' + tr('(Seite neu laden)'); return; }
   }
-  try { await step('Karte wird eingepasst …'); fit(); resetDeck(); S.secs = 0; $('timer').textContent = '00:00'; runTimer(); nextRound(); }
-  catch (e) { console.error(e); $('target-prompt').textContent = '⚠️ Fehler beim Start: ' + e.message; }
+  try { await step(tr('Karte wird eingepasst …')); fit(); resetDeck(); S.secs = 0; $('timer').textContent = '00:00'; runTimer(); nextRound(); }
+  catch (e) { console.error(e); $('target-prompt').textContent = tr('⚠️ Fehler beim Start:') + ' ' + e.message; }
 }
 function resetDeck() {
   const L2 = a => [...new Set(a.map(c => S.idx[c]).filter(Boolean))], un = parse(UN195).map(x => x[0]), ex = parse(EXT30).map(x => x[0]);
@@ -44,10 +45,12 @@ function resetDeck() {
   S.solved = {}; S.tmp = {}; S.tipsBy = {}; S.done = 0; S.score = 0; S.tipsTotal = 0; S.total = S.deck.length; S.practice = false;
   setBlink(null, false); refreshAll(); counter();
 }
-const counter = () => { $('counter').textContent = S.done + ' / ' + S.total; };
+const counter = () => { // Durchlauf-Prozent = Durchschnitt der bisher beantworteten Länder (am Ende gleich der Genauigkeit)
+  $('counter').textContent = S.done + ' / ' + S.total; $('pct').textContent = (S.done ? Math.round(100 * S.score / S.done) : '–') + ' %';
+};
 export function quitGame() {
   clearInterval(S.timerI); setBlink(null, false); $('flag').style.display = 'none'; $('end-modal').classList.remove('active');
-  $('game-stats').style.display = 'none'; S.inGame = false; S.reviewing = false; S.target = null;
+  $('game-stats').style.display = 'none'; document.body.classList.remove('ingame'); S.inGame = false; S.reviewing = false; S.target = null;
   $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex'; switchScreen('main-menu');
 }
 
@@ -70,10 +73,9 @@ function showLetters() { // z. B. "D e _ _ _ _ _ _ _ _"
 }
 export function renderPrompt() { // Aufgabentext, Versuche, Tipps und Flagge neu zeichnen (auch nach Änderung der Optionen)
   if (!S.target || S.over || S.reviewing) return;
-  const en = S.lang === 'en';
   $('target-prompt').textContent = S.practice
-    ? (S.mode === 'type' ? (en ? 'Copy: ' : 'Schreibe ab: ') + nameOf(S.target) : en ? 'Click the blinking country!' : 'Klicke auf das blinkende Land!')
-    : S.mode === 'type' ? (en ? 'Which country is highlighted?' : 'Welches Land ist hervorgehoben?') : (en ? 'Find: ' : 'Finde: ') + nameOf(S.target);
+    ? (S.mode === 'type' ? tr('Schreibe ab: ') + nameOf(S.target) : tr('Klicke auf das blinkende Land!'))
+    : S.mode === 'type' ? tr('Welches Land ist hervorgehoben?') : tr('Finde: ') + nameOf(S.target);
   hint(); showLetters(); showFlag();
 }
 
@@ -115,16 +117,17 @@ export function clicked(f, l) {
   if ((l.isDot || l.zone) && !S.valid.has(id)) return;
   if (S.mode === 'click' || S.reviewing || S.over) { // Namensschild; im Eingabemodus nicht, sonst wäre die Lösung verraten
     const n = S.solved[id], tp = S.tipsBy[id] ? ' · 💡×' + S.tipsBy[id] : '';
-    const lab = S.reviewing && n !== undefined ? ' · ' + (n ? (S.lang === 'en' ? 'try ' + n : n + '. Versuch') : (S.lang === 'en' ? 'not known' : 'nicht gewusst')) + tp : '';
+    const lab = S.reviewing && n !== undefined ? ' · ' + (n ? (S.lang === 'en' ? 'try ' + n : n + '. Versuch') : tr('nicht gewusst')) + tp : '';
     clearTimeout(l._tt);
     l.bindTooltip(nameOf(f) + lab, { permanent: true, direction: 'center', className: 'country-label-temp' }).openTooltip();
     l._tt = setTimeout(() => l.unbindTooltip(), 1800);
   }
   if (!S.target || S.locked || S.over || S.reviewing || S.mode !== 'click') return;
   const tid = fid(S.target);
-  if (S.practice) { if (id === tid) finish(0); else flash(id); return; }
+  const ok = id === tid; ripple(l._map, f._c, ok ? RIPPLE.ok : RIPPLE.bad); // Effekt auf der Karte, auf der geklickt wurde
+  if (S.practice) { if (ok) finish(0); else flash(id); return; }
   S.tries++;
-  if (id === tid) finish(S.tries);
+  if (ok) finish(S.tries);
   else { flash(id); if (S.tries >= 4) startPractice(); else hint(); }
 }
 
@@ -136,6 +139,7 @@ export function submitGuess() {
   const inp = $('type-input'), g = inp.value; if (!n1(g)) return;
   const p = S.target.properties, id = fid(S.target);
   const ok = [S.target._de, p.NAME_DE, p.NAME_LONG, p.NAME, p.NAME_EN, id, ...(SYN[id] || [])].filter(Boolean).some(n => n1(n) === n1(g) || n2(n) === n2(g));
+  ripple(S.map, S.target._c, ok ? RIPPLE.ok : RIPPLE.bad);
   if (S.practice) { if (ok) finish(0); return; }
   S.tries++;
   if (ok) return finish(S.tries);

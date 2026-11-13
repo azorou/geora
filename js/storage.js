@@ -2,6 +2,7 @@
 // Platzsparend: eine Runde ist nur eine kurze Zahlenliste [id, Zeit(s), Modus, Umfang, Genauigkeit, XP, Sekunden, Länder, Tipps];
 // ab 150 Runden werden die ältesten zu Summen (base) zusammengefasst; Bestwerte stehen in "best".
 import { isLoggedIn, getRemote, putRemote } from './account.js';
+import { tr } from './i18n.js';
 
 const KEY = 'geora-profile:', MAXR = 150;
 export const MODES = ['click', 'type'], DIFFS = ['easy', 'un', 'standard'];
@@ -59,16 +60,16 @@ export function pushCloud() { if (activeKey === 'guest' || !isLoggedIn()) return
 export async function syncNow() {
   if (activeKey === 'guest' || !isLoggedIn()) return;
   if (syncing) { again = true; return; }
-  syncing = true; hooks.onStatus('☁️ Synchronisiere …', '');
+  syncing = true; hooks.onStatus(tr('☁️ Synchronisiere …'), '');
   try {
     const remote = await getRemote(), before = JSON.stringify(profile.opts);
     profile = merge(profile, remote); save();
     if (JSON.stringify(profile) !== JSON.stringify(remote)) await putRemote(profile); // nur schreiben, wenn sich etwas geändert hat
-    hooks.onStatus('☁️ Gespeichert', 'ok');
+    hooks.onStatus(tr('☁️ Gespeichert'), 'ok');
     if (JSON.stringify(profile.opts) !== before) hooks.onChange();
   } catch (e) {
     if (e && e.code === 'session') hooks.onSessionLost();
-    else { console.error(e); hooks.onStatus('⚠️ Synchronisierung fehlgeschlagen – wird später erneut versucht', 'err'); }
+    else { console.error(e); hooks.onStatus(tr('⚠️ Synchronisierung fehlgeschlagen – wird später erneut versucht'), 'err'); }
   }
   syncing = false;
   if (again) { again = false; pushCloud(); }

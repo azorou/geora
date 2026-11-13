@@ -8,7 +8,7 @@ export const S = {
   lang: 'de', mode: 'click', diff: 'easy',
   opts: { zoom: 'soft', flag: false, theme: 'classic' },
   user: null,
-  geo: null, idx: {}, map: null, mapCar: null, mapOce: null, insetH: 150,
+  geo: null, idx: {}, map: null, mapCar: null, mapOce: null, insetH: 150, insetSize: { car: null, oce: null }, geoLoad: null,
   layers: {}, solved: {}, tmp: {}, valid: new Set(), tipsBy: {},
   deck: [], target: null, tries: 0, tips: 0, tipsTotal: 0, hintN: 0, done: 0, total: 0, score: 0,
   practice: false, locked: false, inGame: false, reviewing: false, over: false, timerI: null, secs: 0,

@@ -1,6 +1,7 @@
 // Karte: Daten laden, Länder/Zonen/Punkte zeichnen, Farben
-import { DATA, UN195, EXT30, FB, OCE, ZC, ZO, pxC, pxO, R_CAR_IN, R_OCE_IN } from './data.js';
+import { DATA, UN195, EXT30, FB, OCE, ZC, ZO, pxC, pxO, R_CAR_IN, R_OCE_IN, RIPPLE } from './data.js';
 import { $, S, th, fid } from './state.js';
+import { tr } from './i18n.js';
 
 export const parse = s => s.split('|').map(x => x.split(':'));
 
@@ -45,7 +46,7 @@ export function simp(g, tol = .05) { // Linien ausdünnen (kaum sichtbar, spart 
 
 export async function loadData() { // 1. lokale Datei countries.geojson, danach Internet-Quellen mit Zeitlimit
   for (let i = 0; i < DATA.length; i++) {
-    $('target-prompt').textContent = 'Karte wird geladen … (Quelle ' + (i + 1) + '/' + DATA.length + ')';
+    $('target-prompt').textContent = tr('Karte wird geladen …') + ' (' + tr('Quelle') + ' ' + (i + 1) + '/' + DATA.length + ')';
     const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), i === 0 ? 20000 : 45000);
     try { const r = await fetch(DATA[i], { signal: ctl.signal }); if (!r.ok) continue; const j = await r.json(); return j.features.filter(f => fid(f) !== 'ATA'); } catch (e) {} finally { clearTimeout(to); }
   }
@@ -78,6 +79,17 @@ export function setBlink(id, on) { // blinkt per Timer (funktioniert mit Canvas)
   if (!on) return;
   blinkId = id; let k = 0; blinkT = setInterval(() => { S.tmp[id] = (k++ % 2) ? '#ffffff' : th().hi; refresh(id); }, 400);
 }
+export function ripple(m, ll, color) { // Abgabe-Effekt wie bei Seterra: durchsichtiger Ring wächst vom Landesmittelpunkt nach außen und verblasst
+  if (!m || !ll || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  if (m === S.mapOce && ll[1] < 0) ll = [ll[0], ll[1] + 360]; // Ozeanien-Karte läuft über die Datumsgrenze
+  const c = L.circleMarker(ll, { radius: 4, color, weight: 3, opacity: .9, fillColor: color, fillOpacity: .35, interactive: false }).addTo(m), t0 = performance.now();
+  const go = now => {
+    const k = Math.min(1, (now - t0) / RIPPLE.ms), e = 1 - (1 - k) * (1 - k); // läuft am Anfang schnell, am Ende langsam
+    c.setStyle({ opacity: .9 * (1 - k), fillOpacity: .35 * (1 - k) }); c.setRadius(4 + (RIPPLE.r - 4) * e);
+    if (k < 1) requestAnimationFrame(go); else m.removeLayer(c);
+  };
+  requestAnimationFrame(go);
+}
 export function flash(id) { S.tmp[id] = '#ff4b4b'; refresh(id); setTimeout(() => { delete S.tmp[id]; refresh(id); }, 450); }
 
 // ---------- Ebenen bauen ----------
@@ -104,7 +116,7 @@ function build(m, data, zones, conv) { // Ebenen werden EINMAL gebaut und späte
 }
 function mk(id, o) {
   // Zeichenfläche (Renderer) ZUERST anmelden, sonst fehlt ihr beim Laden die Größe und Leaflet bricht mit "reading 'min'" ab
-  const rend = L.canvas();
+  const rend = L.canvas({ padding: .4 }); // gezeichnet wird 40 % über den sichtbaren Rand hinaus, dadurch bleibt beim Verschieben nichts leer
   const m = L.map(id, Object.assign({ renderer: rend, zoomControl: false, attributionControl: false, zoomSnap: .25 }, o));
   m.addLayer(rend);
   return m;
@@ -119,20 +131,47 @@ export async function initMaps(step) {
   const oce = f => !wide(f) && fid(f) !== 'CHN';
   // Ozeanien liegt an der Datumsgrenze: verschobene Kopie, damit Fidschi, Tonga, Samoa, Polynesien sichtbar sind
   const sh = f => ({ type: 'Feature', properties: f.properties, geometry: shiftGeom(f.geometry), _c: [f._c[0], f._c[1] + 360], _dot: f._dot, _de: f._de, _b: [f._b[0] + 360, f._b[1], f._b[2] + 360, f._b[3]] });
-  await step('Karte wird gebaut: Weltkarte …');
+  await step(tr('Karte wird gebaut: Weltkarte …'));
   build(S.map, geo);
-  await step('Karte wird gebaut: Karibik …');
+  await step(tr('Karte wird gebaut: Karibik …'));
   build(S.mapCar, geo.filter(f => hit(f._b, -90, 5, -52, 32)), ZC, pxC);
-  await step('Karte wird gebaut: Ozeanien …');
+  await step(tr('Karte wird gebaut: Ozeanien …'));
   build(S.mapOce, geo.filter(f => oce(f) && hit(f._b, 115, -42, 240, 28)), ZO, pxO);
   build(S.mapOce, geo.filter(f => oce(f) && hit([f._b[0] + 360, f._b[1], f._b[2] + 360, f._b[3]], 115, -42, 240, 28)).map(sh));
+  initGrips();
 }
 
 // ---------- Größe und Ausschnitt ----------
-export function layoutInsets() { // Höhe der Felder passend zur Kartenhöhe; die Weltkarte bekommt darüber ihren Platz
-  const fh = document.querySelector('.map-frame').clientHeight;
-  S.insetH = Math.max(90, Math.min(230, Math.round(fh * .3)));
-  document.querySelectorAll('.inset-box').forEach(e => e.style.height = S.insetH + 'px');
+const clampN = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+export function layoutInsets() { // Standardhöhe nach Kartenhöhe; eine vom Spieler gezogene Größe bleibt erhalten
+  const fr = document.querySelector('.map-frame'), fh = fr.clientHeight, fw = fr.clientWidth, dh = clampN(Math.round(fh * .3), 90, 230);
+  S.insetH = 0;
+  document.querySelectorAll('.inset-box').forEach(e => {
+    const z = S.insetSize[e.dataset.box], h = z ? clampN(z.h, 80, Math.round(fh * .7)) : dh;
+    e.style.height = h + 'px'; S.insetH = Math.max(S.insetH, h); // die Weltkarte lässt unten so viel Platz wie das höchste Feld
+    if (z) { e.style.maxWidth = 'none'; e.style.minWidth = '0'; e.style.width = clampN(z.w, 120, Math.round(fw * .7)) + 'px'; }
+  });
+}
+let gripsReady = false;
+function initGrips() { // Griff an der oberen Ecke: das Feld wächst nach oben und zur Mitte, bleibt aber in seiner Ecke
+  if (gripsReady) return; gripsReady = true;
+  document.querySelectorAll('.inset-grip').forEach(g => {
+    const box = g.parentElement, k = box.dataset.box, dir = k === 'car' ? 1 : -1; // Karibik: Griff oben rechts, Ozeanien: oben links
+    const other = () => document.querySelector('.inset-box:not([data-box="' + k + '"])'), map = () => k === 'car' ? S.mapCar : S.mapOce;
+    g.addEventListener('pointerdown', e => {
+      e.preventDefault(); g.setPointerCapture(e.pointerId);
+      const x0 = e.clientX, y0 = e.clientY, w0 = box.offsetWidth, h0 = box.offsetHeight, fr = document.querySelector('.map-frame');
+      const move = ev => {
+        S.insetSize[k] = { w: clampN(w0 + dir * (ev.clientX - x0), 120, fr.clientWidth - other().offsetWidth - 4), h: clampN(h0 + (y0 - ev.clientY), 80, Math.round(fr.clientHeight * .7)) };
+        layoutInsets(); map().invalidateSize({ animate: false });
+      };
+      const up = () => {
+        ['pointermove', 'pointerup', 'pointercancel'].forEach((t, i) => g.removeEventListener(t, [move, up, up][i]));
+        const m = map(); m.setMinZoom(0); m.fitBounds(k === 'car' ? R_CAR_IN : R_OCE_IN, { animate: false }); m.setMinZoom(m.getZoom()); // Ausschnitt neu einpassen
+      };
+      g.addEventListener('pointermove', move); g.addEventListener('pointerup', up); g.addEventListener('pointercancel', up);
+    });
+  });
 }
 window.addEventListener('resize', () => { if (S.mapCar) { layoutInsets(); S.mapCar.invalidateSize(); S.mapOce.invalidateSize(); } });
 export function fit() {

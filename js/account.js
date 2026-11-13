@@ -1,5 +1,6 @@
 // Konto über Supabase (nur Funktionsaufrufe per fetch, kein Zusatzpaket). Siehe supabase.sql.
 import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
+import { tr } from './i18n.js';
 
 const SK = 'geora-session';
 let sess = null;
@@ -51,7 +52,7 @@ export function errText(e) {
     big: 'Fortschritt zu groß zum Speichern'
   };
   const c = (e && e.code) || '';
-  if (m[c]) return m[c];
-  if (c.startsWith('http-')) return 'Server-Fehler (' + c.slice(5) + ') – ist supabase.sql ausgeführt und config.js richtig ausgefüllt?';
-  return 'Keine Verbindung zum Server';
+  if (m[c]) return tr(m[c]);
+  if (c.startsWith('http-')) return tr('Server-Fehler') + ' (' + c.slice(5) + ') – ' + tr('ist supabase.sql ausgeführt und config.js richtig ausgefüllt?');
+  return tr('Keine Verbindung zum Server');
 }

@@ -1,7 +1,8 @@
 // Oberfläche: Klick-Verteiler, Einstellungen, Profil/Konto, Start
 import { $, S, th, switchScreen } from './state.js';
 import { OPTDEF } from './data.js';
-import { refreshAll } from './map.js';
+import { refreshAll, loadData } from './map.js';
+import { tr, applyLang } from './i18n.js';
 import { startGame, quitGame, submitGuess, tip, startReview, backToResult, renderPrompt, clicked, pauseGame, resumeGame, updateXP } from './game.js';
 import { hooks, getProfile, totalXP, roundsPlayed, saveOpts, afterLogin, afterLogout, MODES, DIFFS } from './storage.js';
 import { isConfigured, currentUser, register, login, logout, deleteAccount, errText } from './account.js';
@@ -16,10 +17,10 @@ function renderOpts() {
   document.querySelectorAll('.opts').forEach(c => {
     c.innerHTML = ''; c.style.display = 'block';
     OPTDEF.forEach(([k, title, ch]) => {
-      const h = document.createElement('div'); h.className = 'opt-title'; h.textContent = title; c.appendChild(h);
+      const h = document.createElement('div'); h.className = 'opt-title'; h.textContent = tr(title); c.appendChild(h);
       const g = document.createElement('div'); g.className = 'option-grid';
       ch.forEach(([v, label]) => {
-        const d = document.createElement('div'); d.className = 'option-card' + (S.opts[k] === v ? ' selected' : ''); d.textContent = label;
+        const d = document.createElement('div'); d.className = 'option-card' + (S.opts[k] === v ? ' selected' : ''); d.textContent = tr(label);
         d.onclick = () => { S.opts[k] = v; persist(); renderOpts(); applyOpts(); };
         g.appendChild(d);
       });
@@ -33,13 +34,13 @@ function applyProfileOpts() { // gespeicherte Einstellungen (auch aus der Cloud)
   const o = getProfile().opts; if (!o) return;
   OPTDEF.forEach(([k, , ch]) => { if (ch.some(([v]) => v === o[k])) S.opts[k] = o[k]; });
   if (o.lang === 'de' || o.lang === 'en') S.lang = o.lang;
-  markLang(); renderOpts(); applyOpts();
+  markLang(); applyLang(); renderOpts(); applyOpts();
 }
 
 // ---------- Einstellungen / Profil während des Spiels ----------
 function openOverlay(id) {
   if (S.inGame) pauseGame(); // Zeit pausiert
-  document.querySelectorAll('.back-label').forEach(b => { b.textContent = S.inGame ? '← Zurück zum Spiel' : '← Hauptmenü'; });
+  document.querySelectorAll('.back-label').forEach(b => { b.textContent = S.inGame ? tr('← Zurück zum Spiel') : tr('← Hauptmenü'); });
   renderOpts(); switchScreen(id);
 }
 function closeOverlay() {
@@ -58,12 +59,12 @@ function renderProfile() {
   if (!isConfigured()) h += '<div class="pf-box">☁️ Konten sind noch nicht eingerichtet (siehe README.md und config.js). Dein Fortschritt wird bis dahin nur auf diesem Gerät gespeichert.</div>';
   else if (S.user) h += '<div class="pf-box">👤 Angemeldet als <b>' + esc(S.user.name) + '</b><div id="sync-status" class="msg"></div><button class="btn-3d btn-red" data-act="logout" style="padding:8px 14px;font-size:.85rem">Abmelden</button> <button class="btn-3d" data-act="deleteAccount" style="padding:8px 14px;font-size:.85rem;background:#555;box-shadow:0 4px 0 #333">Konto löschen</button></div>';
   else h += '<div class="pf-box"><div class="opt-title" style="margin-top:0">Konto – Fortschritt auf allen Geräten</div><input id="acc-user" class="field" placeholder="Benutzername" autocomplete="username" autocapitalize="off" spellcheck="false"><input id="acc-pass" class="field" type="password" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="current-password"><div id="acc-msg" class="msg"></div><button class="btn-3d" data-act="login" style="padding:8px 14px;font-size:.85rem">Anmelden</button> <button class="btn-3d btn-blue" data-act="register" style="padding:8px 14px;font-size:.85rem">Registrieren</button><div style="font-size:.8rem;color:var(--sub);margin-top:8px">Ohne E-Mail: Wer sein Passwort vergisst, kann es nicht zurücksetzen. Bitte kein Passwort verwenden, das du woanders nutzt.</div></div>';
-  const best = Object.entries(p.best || {}).map(([k, [acc, secs]]) => { const [m, d] = k.split(':'); return row(esc(MODES[m] === 'click' ? 'Pin' : 'Eingabe') + ' · ' + ['Top 50', 'UN', '225'][d], acc + ' % · ' + fmt(secs)); }).join('');
-  const last = p.rounds.slice(-10).reverse().map(r => row(new Date(r[1] * 1000).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' · ' + (r[2] ? 'Eingabe' : 'Pin') + ' · ' + ['Top 50', 'UN', '225'][r[3]], r[4] + ' % · +' + r[5] + ' XP')).join('');
+  const best = Object.entries(p.best || {}).map(([k, [acc, secs]]) => { const [m, d] = k.split(':'); return row(esc(MODES[m] === 'click' ? 'Pin' : tr('Eingabe')) + ' · ' + ['Top 50', 'UN', '225'][d], acc + ' % · ' + fmt(secs)); }).join('');
+  const last = p.rounds.slice(-10).reverse().map(r => row(new Date(r[1] * 1000).toLocaleDateString(S.lang === 'en' ? 'en-GB' : 'de-DE', { day: '2-digit', month: '2-digit' }) + ' · ' + (r[2] ? tr('Eingabe') : 'Pin') + ' · ' + ['Top 50', 'UN', '225'][r[3]], r[4] + ' % · +' + r[5] + ' XP')).join('');
   h += '<div class="pf-box"><div class="opt-title" style="margin-top:0">Statistik</div>' + row('⚡ XP gesamt', totalXP()) + row('🎮 Runden', roundsPlayed()) + '</div>';
   if (best) h += '<div class="pf-box"><div class="opt-title" style="margin-top:0">Bestwerte (Genauigkeit · Zeit)</div>' + best + '</div>';
   if (last) h += '<div class="pf-box"><div class="opt-title" style="margin-top:0">Letzte Runden</div>' + last + '</div>';
-  box.innerHTML = h;
+  box.innerHTML = h; applyLang(box);
 }
 async function doAuth(kind) {
   const u = $('acc-user').value, pw = $('acc-pass').value, msg = $('acc-msg');
@@ -76,7 +77,7 @@ async function doAuth(kind) {
 }
 async function doLogout() { await logout(); S.user = null; afterLogout(); renderProfile(); }
 async function doDelete() {
-  if (!confirm('Konto und gespeicherten Fortschritt in der Cloud wirklich löschen? Das lokale Profil auf diesem Gerät bleibt als Gast-Profil erhalten.')) return;
+  if (!confirm(tr('Konto und gespeicherten Fortschritt in der Cloud wirklich löschen? Das lokale Profil auf diesem Gerät bleibt als Gast-Profil erhalten.'))) return;
   try { await deleteAccount(); S.user = null; afterLogout(); renderProfile(); } catch (e) { alert(errText(e)); }
 }
 
@@ -88,7 +89,7 @@ const ACTIONS = {
   closeOverlay,
   selectMode: (v, el) => { S.mode = v; pickCard(el); },
   selectDifficulty: (v, el) => { S.diff = v; pickCard(el); },
-  setLanguage: v => { S.lang = v; markLang(); persist(); renderPrompt(); },
+  setLanguage: v => { S.lang = v; markLang(); persist(); applyLang(); renderOpts(); renderProfile(); renderPrompt(); },
   startGame, quitGame, submitGuess, tip, startReview, backToResult,
   login: () => doAuth('login'), register: () => doAuth('register'), logout: doLogout, deleteAccount: doDelete
 };
@@ -108,5 +109,6 @@ export function boot() {
   $('type-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitGuess(); });
   const u = currentUser();
   if (isConfigured() && u) { S.user = u; renderProfile(); afterLogin(u.name).catch(console.error); }
+  applyLang(); S.geoLoad = loadData(); // Kartendaten schon im Hintergrund laden, während das Menü offen ist
   window.__georaBooted = true; $('boot-msg').style.display = 'none';
 }
