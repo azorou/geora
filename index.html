@@ -35,7 +35,7 @@
   <h1 class="hero-title">GEORA</h1>
   <p class="hero-subtitle">Erkunde die Welt, meistere Geografie &amp; lerne alle Länder.</p>
   <div id="boot-msg" style="display:none;color:#ffb74d;font-weight:800;max-width:420px;margin-bottom:16px">Geora konnte nicht starten. Bitte über GitHub Pages oder einen lokalen Server öffnen (nicht per Doppelklick auf die Datei) und alle Dateien samt Ordner <b>js</b> hochladen.</div>
-  <button class="btn-3d" style="width:280px" data-act="goto" data-to="mode-selection">Länder-Quiz</button>
+  <button class="btn-3d" style="width:280px" data-act="goto" data-to="mode-selection">Landkarten</button>
   <button class="btn-3d btn-blue" style="width:280px;margin-top:14px" data-act="openProfile">Profil &amp; Konto</button>
 </section>
 
@@ -68,12 +68,38 @@
       <div class="option-card selected" data-act="selectMode" data-v="click">Pin</div>
       <div class="option-card" data-act="selectMode" data-v="type">Eingabe</div>
     </div>
-    <div class="section-title">2. Schwierigkeitsgrad <button type="button" class="info" data-i="level" aria-label="Info">i</button></div>
+    <div class="section-title">2. Karte wählen <button type="button" class="info" data-i="cat" aria-label="Info">i</button></div>
     <div class="option-grid">
+      <div class="option-card selected" data-act="selectCat" data-v="world">Welt</div>
+      <div class="option-card" data-act="selectCat" data-v="cont">Kontinente</div>
+      <div class="option-card" data-act="selectCat" data-v="de">Bundesländer</div>
+      <div class="option-card" data-act="selectCat" data-v="us">US-Staaten</div>
+    </div>
+    <div id="sel-world">
+      <div class="section-title">3. Schwierigkeitsgrad <button type="button" class="info" data-i="level" aria-label="Info">i</button></div>
+      <div class="option-grid">
       <div class="option-card selected" data-act="selectDifficulty" data-v="easy">Top 50</div>
       <div class="option-card" data-act="selectDifficulty" data-v="un">UN-Staaten (195)</div>
       <div class="option-card" data-act="selectDifficulty" data-v="standard">Länder &amp; Territorien (225)</div>
+      </div>
     </div>
+    <div id="sel-cont" style="display:none">
+      <div class="section-title">3. Kontinent <button type="button" class="info" data-i="cont" aria-label="Info">i</button></div>
+      <div class="option-grid">
+      <div class="option-card selected" data-act="selectCont" data-v="eu">Europa</div>
+      <div class="option-card" data-act="selectCont" data-v="as">Asien</div>
+      <div class="option-card" data-act="selectCont" data-v="af">Afrika</div>
+      <div class="option-card" data-act="selectCont" data-v="na">Nord- &amp; Mittelamerika</div>
+      <div class="option-card" data-act="selectCont" data-v="sa">Südamerika</div>
+      <div class="option-card" data-act="selectCont" data-v="oc">Australien &amp; Ozeanien</div>
+      </div>
+      <div class="section-title">4. Umfang <button type="button" class="info" data-i="terr" aria-label="Info">i</button></div>
+      <div class="option-grid">
+      <div class="option-card selected" id="var-un" data-act="selectVariant" data-v="un">UN-Staaten</div>
+      <div class="option-card" id="var-all" data-act="selectVariant" data-v="all">Länder &amp; Territorien</div>
+      </div>
+    </div>
+    <div id="sel-reg" style="display:none;margin-top:14px;font-weight:800;color:var(--sub)"></div>
     <div style="margin-top:25px;text-align:center">
       <button class="btn-3d btn-gold" style="width:280px" data-act="startGame">JETZT SPIELEN</button>
     </div>

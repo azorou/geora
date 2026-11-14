@@ -3,9 +3,10 @@
 // ab 150 Runden werden die ältesten zu Summen (base) zusammengefasst; Bestwerte stehen in "best".
 import { isLoggedIn, getRemote, putRemote } from './account.js';
 import { tr } from './i18n.js';
+import { SCOPES } from './data.js';
 
 const KEY = 'geora-profile:', MAXR = 150;
-export const MODES = ['click', 'type'], DIFFS = ['easy', 'un', 'standard'];
+export const MODES = ['click', 'type'], DIFFS = SCOPES; // Umfang einer Runde wird als Nummer in dieser Liste gespeichert (data.js, nur hinten anhängen!)
 export const hooks = { onChange() {}, onStatus() {}, onSessionLost() {} };
 const empty = () => ({ v: 2, base: { xp: 0, n: 0 }, cut: 0, rounds: [], best: {}, opts: null, optsT: 0 });
 let activeKey = 'guest';

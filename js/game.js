@@ -1,7 +1,8 @@
 // Spielablauf: Runde, Klicks, Eingabe, Tipps, Punkte/XP, Auswertung
-import { $, S, th, fid, nameOf, switchScreen } from './state.js';
-import { TOP, UN195, EXT30, FLAGFB, SYN, ZOOM, ATT_SCORE, RIPPLE } from './data.js';
-import { parse, indexGeo, prep, simp, loadData, initMaps, fit, refresh, refreshAll, setBlink, flash, ripple, flyToBoundsInside } from './map.js';
+import { $, S, th, fid, nameOf, switchScreen, scopeId } from './state.js';
+import { TOP, UN195, EXT30, FLAGFB, SYN, ZOOM, ZREL, ATT_SCORE, RIPPLE, CONT, NEC, CONTDOT } from './data.js';
+import { REGION } from './regions.js';
+import { parse, indexGeo, prep, simp, loadData, ensureRegion, initMaps, fit, refresh, refreshAll, setBlink, flash, ripple, flyToBoundsInside } from './map.js';
 import { tr } from './i18n.js';
 import { recordRound, totalXP } from './storage.js';
 
@@ -35,12 +36,25 @@ export async function startGame() {
       await initMaps(step);
     } catch (e) { console.error(e); S.geo = null; S.geoLoad = null; $('target-prompt').textContent = tr('Fehler beim Kartenaufbau:') + ' ' + e.message + ' ' + tr('(Seite neu laden)'); return; }
   }
+  if (S.cat === 'de' || S.cat === 'us') { // Bundesländer / US-Staaten: Kartendaten beim ersten Mal laden
+    const err = await ensureRegion(S.cat); if (err) { $('target-prompt').textContent = err; return; }
+  }
   try { await step(tr('Karte wird eingepasst …')); fit(); resetDeck(); S.secs = 0; $('timer').textContent = '00:00'; runTimer(); nextRound(); }
   catch (e) { console.error(e); $('target-prompt').textContent = tr('Fehler beim Start:') + ' ' + e.message; }
 }
-function resetDeck() {
-  const L2 = a => [...new Set(a.map(c => S.idx[c]).filter(Boolean))], un = parse(UN195).map(x => x[0]), ex = parse(EXT30).map(x => x[0]);
-  const pool = S.diff === 'easy' ? L2(TOP) : S.diff === 'un' ? L2(un) : L2([...un, ...ex]);
+const codes = s => parse(s).map(x => x[0]);
+function contIds(k) { // Ids aller Länder eines Kontinents: Listen aus data.js (Länder und Gebiete), sonst das Natural-Earth-Feld CONTINENT
+  const ids = new Set(), listed = new Set();
+  Object.entries(CONT).forEach(([c, ks]) => { const f = S.idx[c]; if (!f) return; listed.add(fid(f)); if (ks.includes(k)) ids.add(fid(f)); });
+  S.geo.forEach(f => { if (!listed.has(fid(f)) && NEC[f.properties.CONTINENT] === k) ids.add(fid(f)); });
+  return ids;
+}
+function resetDeck() { // Aufgaben und Sichtbarkeit je nach Auswahl: Welt, Kontinent, Bundesländer, US-Staaten
+  const L2 = a => [...new Set(a.map(c => S.idx[c]).filter(Boolean))], un = codes(UN195), ex = codes(EXT30);
+  let pool; S.show = null; S.dotThr = 3.5;
+  if (S.cat === 'world') pool = S.diff === 'easy' ? L2(TOP) : S.diff === 'un' ? L2(un) : L2([...un, ...ex]);
+  else if (S.cat === 'cont') { const k = S.cont; pool = L2((S.variant === 'all' ? [...un, ...ex] : un).filter(c => (CONT[c] || []).includes(k))); S.show = contIds(k); S.dotThr = CONTDOT[k]; }
+  else { pool = S.reg[S.cat].feats; S.show = new Set(pool.map(fid)); S.dotThr = REGION[S.cat].thr; }
   S.valid = new Set(pool.map(fid)); S.deck = [...pool]; // jedes Land genau einmal
   S.solved = {}; S.tmp = {}; S.tipsBy = {}; S.done = 0; S.score = 0; S.tipsTotal = 0; S.total = S.deck.length; S.practice = false;
   setBlink(null, false); refreshAll(); counter();
@@ -63,10 +77,14 @@ function flagCode(f) {
   const p = f.properties; let c = p.ISO_A2_EH; if (!c || c === '-99') c = p.ISO_A2; if (!c || c === '-99') c = FLAGFB[f._code || fid(f)];
   return c && c !== '-99' ? c.toLowerCase() : null;
 }
-function showFlag() { // kleine Flagge in der Aufgabe (flagcdn.com)
-  const im = $('flag'), c = S.opts.flag && S.target ? flagCode(S.target) : null;
-  if (!c) { im.style.display = 'none'; return; }
-  im.src = 'https://flagcdn.com/w40/' + c + '.png'; im.srcset = 'https://flagcdn.com/w80/' + c + '.png 2x'; im.style.display = 'block';
+function flagChain(f) { // Quellen der Flagge der Reihe nach; für Bundesländer/US-Staaten steht die Liste in f._flag (regions.js)
+  if (f._flag) return f._flag;
+  const c = flagCode(f); return c ? [['https://flagcdn.com/w40/' + c + '.png', 'https://flagcdn.com/w80/' + c + '.png 2x']] : [];
+}
+function showFlag() { // kleine Flagge in der Aufgabe; lädt eine Quelle nicht, wird die nächste versucht, zuletzt wird die Flagge ausgeblendet
+  const im = $('flag'), ch = S.opts.flag && S.target ? flagChain(S.target) : []; let i = 0;
+  const set = () => { if (i >= ch.length) { im.style.display = 'none'; return; } im.src = ch[i][0]; im.srcset = ch[i][1] || ''; im.style.display = 'block'; };
+  im.onerror = () => { i++; set(); }; set();
 }
 const isLetter = c => /[\p{L}\p{N}]/u.test(c);
 function showLetters() { // z. B. "D e _ _ _ _ _ _ _ _"
@@ -91,9 +109,10 @@ function nextRound() {
   renderPrompt();
   if (S.mode === 'type') {
     $('type-input').value = ''; $('type-input').focus();
-    const z = ZOOM[S.opts.zoom];
+    const zk = S.opts.zoom, z = zk === 'off' ? 0 : S.cat === 'world' ? ZOOM[zk] : S.fitZ + ZREL[zk]; // außerhalb der Weltkarte: relativ zum Kartenausschnitt
     if (z) { // sanfter Zoom auf das größte Teilstück; oben bleibt Platz für das Aufgabenfeld
-      const b = S.target._lb, top = $('prompt-bar').offsetHeight + 40;
+      const b = S.target._lb.slice(), top = $('prompt-bar').offsetHeight + 40;
+      if (S.map === S.mapOce && b[2] < 0) { b[0] += 360; b[2] += 360; } // Ozeanien-Karte läuft über die Datumsgrenze
       S.map.stop(); flyToBoundsInside(S.map, [[b[1], b[0]], [b[3], b[2]]], { paddingTopLeft: [60, top], paddingBottomRight: [60, S.insetH + 30], maxZoom: z, duration: .6 });
     }
   }
@@ -104,7 +123,7 @@ function endRound() {
   clearInterval(S.timerI); S.over = true; S.target = null;
   ['hint', 'letters'].forEach(i => { $(i).textContent = ''; }); $('flag').style.display = 'none';
   const acc = Math.round(100 * S.score / Math.max(S.total, 1)), xp = acc; // 1 XP pro Prozent Genauigkeit
-  recordRound({ mode: S.mode, diff: S.diff, acc, xp, secs: S.secs, n: S.total, tips: S.tipsTotal });
+  recordRound({ mode: S.mode, diff: scopeId(), acc, xp, secs: S.secs, n: S.total, tips: S.tipsTotal });
   $('end-acc').textContent = acc + '%'; $('end-time').textContent = $('timer').textContent;
   $('end-xp').textContent = '+' + xp; $('end-tips').textContent = S.tipsTotal;
   updateXP(); $('end-modal').classList.add('active');
@@ -148,8 +167,10 @@ export function typoDist(a, b) { // Damerau-Levenshtein: Vertauschen zweier Buch
   return d[a.length][b.length];
 }
 let nameIdx = null, nameIdxGeo = null;
-function ownersOf(x) { // welche Länder tragen genau diesen Namen? (Cache pro Kartendaten)
-  if (nameIdxGeo !== S.geo) { nameIdxGeo = S.geo; nameIdx = new Map(); S.geo.forEach(f => namesOf(f).forEach(n => { const k = n1(n); if (k) (nameIdx.get(k) || nameIdx.set(k, new Set()).get(k)).add(fid(f)); })); }
+const scopeFeats = () => S.cat === 'de' || S.cat === 'us' ? S.reg[S.cat].feats : S.geo; // nur Namen aus der gespielten Karte zählen als "anderes Land"
+function ownersOf(x) { // welche Gebiete tragen genau diesen Namen? (Cache pro Kartendaten)
+  const fs = scopeFeats();
+  if (nameIdxGeo !== fs) { nameIdxGeo = fs; nameIdx = new Map(); fs.forEach(f => namesOf(f).forEach(n => { const k = n1(n); if (k) (nameIdx.get(k) || nameIdx.set(k, new Set()).get(k)).add(fid(f)); })); }
   return nameIdx.get(x);
 }
 // Tippfehler: höchstens 1 falscher Buchstabe ab 5 Zeichen, 2 ab 8 Zeichen. Ist der Text der Name eines ANDEREN Landes (z. B. Irak statt Iran), ist es eine echte falsche Antwort.

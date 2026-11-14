@@ -1,5 +1,6 @@
 // Karte: Daten laden, Länder/Zonen/Punkte zeichnen, Farben
-import { DATA, UN195, EXT30, FB, OCE, ZC, ZO, pxC, pxO, R_CAR_IN, R_OCE_IN, RIPPLE } from './data.js';
+import { DATA, UN195, EXT30, FB, OCE, ZC, ZO, pxC, pxO, R_CAR_IN, R_OCE_IN, RIPPLE, CONTVIEW } from './data.js';
+import { REGION, regionFeatures } from './regions.js';
 import { $, S, th, fid } from './state.js';
 import { tr } from './i18n.js';
 
@@ -44,12 +45,26 @@ export function simp(g, tol = .05) { // Linien ausdünnen (kaum sichtbar, spart 
   return g.type === 'Polygon' ? { type: 'Polygon', coordinates: poly(g.coordinates) } : { type: 'MultiPolygon', coordinates: g.coordinates.map(poly) };
 }
 
-export async function loadData() { // 1. lokale Datei countries.geojson, danach Internet-Quellen mit Zeitlimit
-  for (let i = 0; i < DATA.length; i++) {
-    $('target-prompt').textContent = tr('Karte wird geladen …') + ' (' + tr('Quelle') + ' ' + (i + 1) + '/' + DATA.length + ')';
+async function fetchGeo(list) { // 1. lokale Datei, danach Internet-Quellen mit Zeitlimit; liefert die Features oder null
+  for (let i = 0; i < list.length; i++) {
+    $('target-prompt').textContent = tr('Karte wird geladen …') + ' (' + tr('Quelle') + ' ' + (i + 1) + '/' + list.length + ')';
     const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), i === 0 ? 20000 : 45000);
-    try { const r = await fetch(DATA[i], { signal: ctl.signal }); if (!r.ok) continue; const j = await r.json(); return j.features.filter(f => fid(f) !== 'ATA'); } catch (e) {} finally { clearTimeout(to); }
+    try { const r = await fetch(list[i], { signal: ctl.signal }); if (!r.ok) continue; const j = await r.json(); if (j && j.features) return j.features; } catch (e) {} finally { clearTimeout(to); }
   }
+  return null;
+}
+export async function loadData() { const f = await fetchGeo(DATA); return f && f.filter(x => fid(x) !== 'ATA'); }
+// Bundesländer / US-Staaten: laden, über die Namen zuordnen, einmal auf die Weltkarte bauen. Gibt eine Fehlermeldung zurück oder null.
+export async function ensureRegion(kind) {
+  if (S.reg[kind]) return null;
+  const R = REGION[kind], raw = await fetchGeo(R.src);
+  if (!raw) return tr('Kartendaten konnten nicht geladen werden:') + ' ' + R.file + ' (README)';
+  const { feats, missing } = regionFeatures(kind, raw);
+  if (missing.length) return tr('In den Kartendaten fehlen:') + ' ' + missing.join(', ') + ' (' + R.file + ')';
+  let b = [90, 180, -90, -180];
+  feats.forEach(f => { f.geometry = simp(f.geometry, kind === 'us' ? .02 : .005); prep(f); S.idx[fid(f)] = f; b = [Math.min(b[0], f._b[1]), Math.min(b[1], f._b[0]), Math.max(b[2], f._b[3]), Math.max(b[3], f._b[2])]; });
+  build(S.mapWorld, feats);
+  S.reg[kind] = { feats, bounds: [[b[0], b[1]], [b[2], b[3]]] };
   return null;
 }
 
@@ -60,14 +75,18 @@ function fillOf(id) {
   if (S.mode === 'type' && S.target && id === fid(S.target)) return th().hi;
   return S.valid.has(id) ? th().land : th().off;
 }
-const polySt = id => { const sv = solvedColor(id); return { fillColor: fillOf(id), fillOpacity: 1, color: sv ? th().solvedLine : th().line, weight: sv ? .9 : .5 }; }; // gelöste Länder: dunklere Grenzen
-const dotSt = id => { if (!S.valid.has(id)) return { radius: 4, fillOpacity: 0, opacity: 0 }; const c = solvedColor(id) || (S.mode === 'type' && S.target && id === fid(S.target) ? th().hi : '#ffffff'); return { radius: 4, fillColor: c, fillOpacity: 1, color: '#0f3d22', weight: 1.3, opacity: 1 }; };
-const zoneSt = id => { const c = solvedColor(id), v = S.valid.has(id); return { color: th().zone, weight: 1.5, dashArray: '6 5', opacity: v ? 1 : .85, fill: true, fillColor: c || '#fff', fillOpacity: c && v ? .5 : .001 }; };
+// S.show: null = alle Länder zeichnen (Weltkarte); sonst nur diese Ids (Kontinent, Bundesländer ...), alle anderen Ebenen sind unsichtbar und nicht anklickbar
+const shown = id => !S.show || S.show.has(id), HIDE = { fill: false, stroke: false };
+const polySt = id => { if (!shown(id)) return HIDE; const sv = solvedColor(id); return { fill: true, stroke: true, fillColor: fillOf(id), fillOpacity: 1, color: sv ? th().solvedLine : th().line, weight: sv ? .9 : .5 }; }; // gelöste Länder: dunklere Grenzen
+const dotOn = (id, l) => shown(id) && S.valid.has(id) && (l.always || l.wdeg < S.dotThr); // Klick-Punkt nur für schmale Länder dieser Karte
+const dotSt = (id, l) => { if (!dotOn(id, l)) return { radius: 4, fill: false, stroke: false }; const c = solvedColor(id) || (S.mode === 'type' && S.target && id === fid(S.target) ? th().hi : '#ffffff'); return { radius: 4, fill: true, stroke: true, fillColor: c, fillOpacity: 1, color: '#0f3d22', weight: 1.3, opacity: 1 }; };
+const zoneSt = id => { if (!shown(id)) return HIDE; const c = solvedColor(id), v = S.valid.has(id); return { stroke: true, color: th().zone, weight: 1.5, dashArray: '6 5', opacity: v ? 1 : .85, fill: true, fillColor: c || '#fff', fillOpacity: c && v ? .5 : .001 }; };
 
 export function refresh(id) {
+  const vis = shown(id), v = S.valid.has(id);
   (S.layers[id] || []).forEach(l => {
-    if (l.zone || l.isDot) l.options.interactive = S.valid.has(id); // ungültige Zonen/Punkte blockieren keine Klicks
-    l.setStyle(l.zone ? zoneSt(id) : l.isDot ? dotSt(id) : polySt(id));
+    l.options.interactive = l.zone ? vis && v : l.isDot ? dotOn(id, l) : vis; // unsichtbare oder ungültige Ebenen blockieren keine Klicks
+    l.setStyle(l.zone ? zoneSt(id) : l.isDot ? dotSt(id, l) : polySt(id));
   });
 }
 export const refreshAll = () => Object.keys(S.layers).forEach(refresh);
@@ -121,7 +140,7 @@ function build(m, data, zones, conv) { // Ebenen werden EINMAL gebaut und späte
   }).addTo(m);
   data.forEach(f => {
     if (!f._dot) return;
-    const d = L.circleMarker(f._c, dotSt(fid(f))).addTo(m); d.isDot = true;
+    const d = L.circleMarker(f._c, { radius: 4 }).addTo(m); d.isDot = true; d.wdeg = f._b[2] - f._b[0]; d.always = OCE.includes(fid(f)); d.setStyle(dotSt(fid(f), d));
     (S.layers[fid(f)] = S.layers[fid(f)] || []).push(d);
     d.on('click', e => { L.DomEvent.stopPropagation(e); S.onClick(f, d); });
   });
@@ -134,7 +153,7 @@ function mk(id, o) {
   return m;
 }
 export async function initMaps(step) {
-  S.map = mk('map', { minZoom: 1, maxBounds: [[-85, -180], [85, 180]], maxBoundsViscosity: 1 });
+  S.map = S.mapWorld = mk('map', { minZoom: 1, maxBounds: [[-85, -180], [85, 180]], maxBoundsViscosity: 1 });
   S.mapCar = mk('map-car', { minZoom: 1, maxBounds: [[3, -90], [34, -52]], maxBoundsViscosity: 1 });
   S.mapOce = mk('map-oce', { minZoom: 1, maxBounds: [[-45, 120], [32, 245]], maxBoundsViscosity: 1 });
   const geo = S.geo;
@@ -156,6 +175,7 @@ export async function initMaps(step) {
 // ---------- Größe und Ausschnitt ----------
 const clampN = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export function layoutInsets() { // Standardhöhe nach Kartenhöhe; eine vom Spieler gezogene Größe bleibt erhalten
+  if (S.cat !== 'world') { S.insetH = 0; return; } // die kleinen Karten gibt es nur bei der Weltkarte
   const fr = document.querySelector('.map-frame'), fh = fr.clientHeight, fw = fr.clientWidth, dh = clampN(Math.round(fh * .3), 90, 230);
   S.insetH = 0;
   document.querySelectorAll('.inset-box').forEach(e => {
@@ -185,12 +205,21 @@ function initGrips() { // Griff an der oberen Ecke: das Feld wächst nach oben u
     });
   });
 }
-window.addEventListener('resize', () => { if (S.mapCar) { layoutInsets(); S.mapCar.invalidateSize(); S.mapOce.invalidateSize(); } });
-export function fit() {
+window.addEventListener('resize', () => { if (S.mapCar) { layoutInsets(); [S.mapWorld, S.mapCar, S.mapOce].forEach(m => m.invalidateSize()); } });
+const WORLD = [[-85, -180], [85, 180]];
+const padB = b => { const dy = (b[1][0] - b[0][0]) * .35, dx = (b[1][1] - b[0][1]) * .35; return [[Math.max(-85, b[0][0] - dy), Math.max(-180, b[0][1] - dx)], [Math.min(85, b[1][0] + dy), Math.min(180, b[1][1] + dx)]]; }; // Rand zum Verschieben
+export function fit() { // Hauptkarte und Ausschnitt passend zur Auswahl (Welt, Kontinent, Bundesländer, US-Staaten)
+  const fr = document.querySelector('.map-frame'), world = S.cat === 'world', oc = S.cat === 'cont' && S.cont === 'oc';
+  fr.dataset.scope = world ? 'world' : oc ? 'oc' : 'other'; // steuert per CSS, welche Felder sichtbar sind
+  S.map = oc ? S.mapOce : S.mapWorld; // Ozeanien: die Karte mit Datumsgrenze füllt das ganze Feld
   layoutInsets();
-  [S.map, S.mapCar, S.mapOce].forEach(m => { m.invalidateSize(); m.setMinZoom(0); });
-  S.map.fitBounds([[-56, -170], [78, 180]], { animate: false, paddingBottomRight: [0, S.insetH + 6] }); S.map.setMinZoom(S.map.getZoom());
-  S.mapCar.fitBounds(R_CAR_IN, { animate: false });
-  S.mapOce.fitBounds(R_OCE_IN, { animate: false });
-  S.mapCar.setMinZoom(S.mapCar.getZoom()); S.mapOce.setMinZoom(S.mapOce.getZoom()); // nicht weiter heraus als der Ausschnitt
+  [S.mapWorld, S.mapCar, S.mapOce].forEach(m => { m.invalidateSize(); m.setMinZoom(0); });
+  const m = S.map;
+  if (world) {
+    m.setMaxBounds(WORLD); m.fitBounds([[-56, -170], [78, 180]], { animate: false, paddingBottomRight: [0, S.insetH + 6] }); m.setMinZoom(m.getZoom());
+    S.mapCar.fitBounds(R_CAR_IN, { animate: false }); S.mapOce.fitBounds(R_OCE_IN, { animate: false });
+    S.mapCar.setMinZoom(S.mapCar.getZoom()); S.mapOce.setMinZoom(S.mapOce.getZoom()); // nicht weiter heraus als der Ausschnitt
+  } else if (oc) { m.fitBounds(R_OCE_IN, { animate: false }); m.setMinZoom(m.getZoom()); }
+  else { const b = S.cat === 'cont' ? CONTVIEW[S.cont] : S.reg[S.cat].bounds; m.setMaxBounds(WORLD); m.fitBounds(b, { animate: false }); m.setMinZoom(m.getZoom()); m.setMaxBounds(padB(b)); }
+  S.fitZ = m.getZoom();
 }

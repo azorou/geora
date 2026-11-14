@@ -92,3 +92,9 @@ body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:f
 .didyou{flex-basis:100%;text-align:center;font-weight:800;color:var(--gold);font-size:.95rem}
 .didyou:empty{display:none}
 .btn-3d.off{opacity:.45}
+
+/* Karten-Umfang: kleine Felder nur bei der Welt; Ozeanien füllt als Kontinent das ganze Feld */
+.map-frame[data-scope="other"] .inset-box,.map-frame[data-scope="oc"] .inset-car{display:none}
+.map-frame[data-scope="oc"] #map{visibility:hidden}
+.map-frame[data-scope="oc"] .inset-oce{left:0;top:0;right:0;bottom:0;width:100%!important;height:100%!important;max-width:none!important;min-width:0!important;border:0;border-radius:0;box-shadow:none}
+.map-frame[data-scope="oc"] .inset-grip{display:none}

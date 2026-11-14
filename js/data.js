@@ -36,3 +36,25 @@ export const ATT_SCORE = [1, 0.75, 0.5, 0.25];
 
 // Abgabe-Effekt: Ring wächst vom Landesmittelpunkt nach außen und verblasst (r = Pixel, ms = Dauer)
 export const RIPPLE = { ok: '#58cc02', bad: '#ff4b4b', r: 56, ms: 650 };
+
+// ---------- Karten und Umfänge ----------
+// Kontinente: jedes Land steht in der Liste seines Kontinents (Russland und die Türkei in zwei Listen). Gebiete stehen mit in der Liste.
+const CONTL = {
+  eu: 'ALB AND AUT BLR BEL BIH BGR HRV CYP CZE DNK EST FIN FRA DEU GRC HUN ISL IRL ITA LVA LIE LTU LUX MLT MDA MCO MNE NLD MKD NOR POL PRT ROU RUS SMR SRB SVK SVN ESP SWE CHE UKR GBR VAT TUR KOS TRN CYN',
+  as: 'AFG ARM AZE BHR BGD BTN BRN KHM CHN GEO IND IDN IRQ IRN ISR JPN JOR KAZ KWT KGZ LAO LBN MYS MDV MNG MMR NPL PRK OMN PAK PHL QAT SAU SGP KOR LKA SYR TJK THA TLS TKM ARE UZB VNM YEM PSE RUS TUR ABH OSS TWN',
+  af: 'DZA AGO BEN BWA BFA BDI CMR CPV CAF TCD COM COD COG CIV DJI EGY GNQ ERI SWZ ETH GAB GMB GHA GIN GNB KEN LSO LBR LBY MDG MWI MLI MRT MUS MAR MOZ NAM NER NGA RWA STP SEN SYC SLE SOM ZAF SSD SDN TZA TGO TUN UGA ZMB ZWE ESH SOL',
+  na: 'ATG BHS BRB BLZ CAN CRI CUB DMA DOM SLV GRD GTM HTI HND JAM MEX NIC PAN KNA LCA VCT TTO USA AIA ABW BES VGB CYM CUW GRL GLP MTQ MSR PRI TCA VIR',
+  sa: 'ARG BOL BRA CHL COL ECU GUY PRY PER SUR URY VEN',
+  oc: 'AUS FJI KIR MHL FSM NRU NZL PLW PNG WSM SLB TON TUV VUT ASM COK PYF GUM NCL NIU MNP PCN TKL WLF'
+};
+export const CONTS = ['eu', 'as', 'af', 'na', 'sa', 'oc'];
+export const CONTNAME = { eu: 'Europa', as: 'Asien', af: 'Afrika', na: 'Nord- & Mittelamerika', sa: 'Südamerika', oc: 'Australien & Ozeanien' };
+export const CONT = {}; // Land-Code -> Liste der Kontinente
+CONTS.forEach(k => CONTL[k].split(' ').forEach(c => { (CONT[c] = CONT[c] || []).push(k); }));
+export const NEC = { Europe: 'eu', Asia: 'as', Africa: 'af', 'North America': 'na', 'South America': 'sa', Oceania: 'oc' }; // Natural-Earth-Feld CONTINENT (für Gebiete außerhalb der Listen)
+// Ausschnitt je Kontinent (Süd, West, Nord, Ost); Ozeanien nutzt die Karte mit Datumsgrenze (R_OCE_IN)
+export const CONTVIEW = { eu: [[34, -31], [71.5, 45]], as: [[-11, 26], [76, 150]], af: [[-36, -20], [38, 53]], na: [[6, -170], [72, -50]], sa: [[-56, -82], [13, -34]] };
+export const CONTDOT = { eu: .9, as: 1.9, af: 1.7, na: 1.4, sa: 1.4, oc: 3.5 }; // Länder schmaler als so viele Grad bekommen einen Klick-Punkt
+export const ZREL = { soft: 1.5, mid: 2.5, strong: 3.5 }; // Zoom im Eingabemodus außerhalb der Weltkarte: so viele Stufen über dem Kartenausschnitt
+export const SCOPES = ['easy', 'un', 'standard', ...CONTS.flatMap(k => [k + '-un', k + '-all']), 'de', 'us']; // Umfang einer Runde; die Reihenfolge ist Teil der gespeicherten Daten, nur hinten anhängen!
+export const contCount = (k, all) => [...UN195.split('|'), ...(all ? EXT30.split('|') : [])].filter(x => (CONT[x.split(':')[0]] || []).includes(k)).length; // Länder je Kontinent (für die Auswahl)
