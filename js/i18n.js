@@ -64,9 +64,9 @@ export function applyLang(root = document.body) { // festen Text (und Platzhalte
   document.title = en ? 'Geora - The geography quiz' : 'Geora - Das Geografie-Quiz';
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let n = w.nextNode(); n; n = w.nextNode()) {
-        const dk = 'k' + at.replace('-', ''); // gültiger dataset-Name (ohne Bindestrich), merkt sich den deutschen Originaltext
-    const k = el.dataset[dk] || el.getAttribute(at);
-    if (EN[k]) { el.dataset[dk] = k; el.setAttribute(at, en ? EN[k] : k); }
+    const cur = n.nodeValue.trim(), k = n._k || cur; // _k merkt sich den deutschen Originaltext
+    if (!EN[k]) continue;
+    n._k = k; n.nodeValue = n.nodeValue.replace(cur, en ? EN[k] : k);
   }
   ['placeholder', 'title', 'aria-label'].forEach(at => root.querySelectorAll('[' + at + ']').forEach(el => { // Platzhalter, Tooltips und Beschriftungen
     const dk = 'k' + at.replace('-', ''); // gültiger dataset-Name (ohne Bindestrich), merkt sich den deutschen Originaltext

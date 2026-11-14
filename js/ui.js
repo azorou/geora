@@ -127,4 +127,5 @@ export function boot() {
   if (isConfigured() && u) { S.user = u; renderProfile(); afterLogin(u.name).catch(console.error); }
   applyLang(); updateSel(); S.geoLoad = loadData(); // Kartendaten schon im Hintergrund laden, während das Menü offen ist
   window.__georaBooted = true; $('boot-msg').style.display = 'none';
+  if (window.GEORA_BUILD) $('build').textContent = 'Version ' + window.GEORA_BUILD;
 }
