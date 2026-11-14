@@ -68,8 +68,9 @@ export function applyLang(root = document.body) { // festen Text (und Platzhalte
     if (!EN[k]) continue;
     n._k = k; n.nodeValue = n.nodeValue.replace(cur, en ? EN[k] : k);
   }
-  ['placeholder', 'title', 'aria-label'].forEach(at => root.querySelectorAll('[' + at + ']').forEach(el => { // Platzhalter und Tooltips
-    const k = el.dataset['k' + at] || el.getAttribute(at);
-    if (EN[k]) { el.dataset['k' + at] = k; el.setAttribute(at, en ? EN[k] : k); }
+  ['placeholder', 'title', 'aria-label'].forEach(at => root.querySelectorAll('[' + at + ']').forEach(el => { // Platzhalter, Tooltips und Beschriftungen
+    const dk = 'k' + at.replace('-', ''); // gültiger dataset-Name (ohne Bindestrich), merkt sich den deutschen Originaltext
+    const k = el.dataset[dk] || el.getAttribute(at);
+    if (EN[k]) { el.dataset[dk] = k; el.setAttribute(at, en ? EN[k] : k); }
   }));
 }
