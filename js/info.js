@@ -24,7 +24,7 @@ export const INFO = {
   pct: ['Durchschnitt der Punkte aller beantworteten Länder. Am Ende ist das deine Genauigkeit.', 'Average score of all countries answered so far. At the end this is your accuracy.'],
   review: ['Die Farbe eines Landes zeigt, beim wievielten Versuch du es gefunden hast. Ein Klick auf ein Land zeigt Name und Versuche.',
            'A country colour shows on which attempt you found it. Click a country to see its name and attempts.'],
-  xp: ['Für jedes Prozent Genauigkeit einer Runde gibt es 1 XP.', 'You earn 1 XP for every percent of accuracy in a round.'],
+  xp: ['Pro Land: Pin bis 1 XP, Eingabe bis 2 XP. Jeder weitere Versuch (auch Tipps) zieht 25 % davon ab. Alles wird addiert und am Ende abgerundet.', 'Per country: Pin up to 1 XP, Typing up to 2 XP. Each further attempt (tips too) deducts 25 % of it. Everything is added up and rounded down at the end.'],
   best: ['Beste Runde je Modus und Schwierigkeit: höchste Genauigkeit, bei Gleichstand die kürzeste Zeit.', 'Best round per mode and difficulty: highest accuracy, shortest time if tied.'],
   account: ['Mit Konto wird dein Fortschritt gespeichert und auf allen Geräten abgeglichen. Es gibt keine E-Mail, daher auch kein Zurücksetzen des Passworts.',
             'With an account your progress is saved and synced across devices. There is no e-mail, so a password cannot be reset.']

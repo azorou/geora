@@ -4,7 +4,7 @@ import { TOP, UN195, EXT30, FLAGFB, SYN, ZOOM, ZREL, ATT_SCORE, RIPPLE, CONT, NE
 import { REGION } from './regions.js';
 import { parse, indexGeo, prep, simp, gridFor, vertexCount, loadData, ensureRegion, initMaps, fit, refresh, refreshAll, setBlink, flash, ripple, flyToBoundsInside } from './map.js';
 import { tr } from './i18n.js';
-import { recordRound, totalXP } from './storage.js';
+import { recordRound, totalXP, bestOf } from './storage.js';
 
 const step = async t => { $('target-prompt').textContent = t; await new Promise(r => setTimeout(r, 30)); };
 export const updateXP = () => { $('xp').textContent = totalXP(); };
@@ -16,7 +16,12 @@ export const pauseGame = () => clearInterval(S.timerI);
 export const resumeGame = () => { if (S.inGame && !S.over && !S.reviewing) runTimer(); };
 
 // ---------- Start / Ende ----------
-export async function startGame() {
+export async function startGame() { // nicht doppelt starten (zweiter Tipp auf "Jetzt spielen" während des Ladens)
+  if (S.starting) return; S.starting = true;
+  try { await startRun(); } finally { S.starting = false; }
+}
+async function startRun() {
+  clearTimeout(S.nextT);
   $('end-modal').classList.remove('active');
   $('game-stats').style.display = 'flex'; S.inGame = true; S.over = false; S.reviewing = false; document.body.classList.add('ingame');
   $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex';
@@ -56,14 +61,14 @@ function resetDeck() { // Aufgaben und Sichtbarkeit je nach Auswahl: Welt, Konti
   else if (S.cat === 'cont') { const k = S.cont; pool = L2((S.variant === 'all' ? [...un, ...ex] : un).filter(c => (CONT[c] || []).includes(k))); S.show = contIds(k); S.dotThr = CONTDOT[k]; }
   else { pool = S.reg[S.cat].feats; S.show = new Set(pool.map(fid)); S.dotThr = REGION[S.cat].thr; }
   S.valid = new Set(pool.map(fid)); S.deck = [...pool]; // jedes Land genau einmal
-  S.solved = {}; S.tmp = {}; S.tipsBy = {}; S.done = 0; S.score = 0; S.tipsTotal = 0; S.total = S.deck.length; S.practice = false;
+  S.solved = {}; S.tmp = {}; S.tipsBy = {}; S.wrong = {}; S.done = 0; S.score = 0; S.tipsTotal = 0; S.total = S.deck.length; S.practice = false;
   setBlink(null, false); refreshAll(); counter();
 }
 const counter = () => { // Durchlauf-Prozent = Durchschnitt der bisher beantworteten Länder (am Ende gleich der Genauigkeit)
   $('counter').textContent = S.done + ' / ' + S.total; $('pct').textContent = (S.done ? Math.round(100 * S.score / S.done) : '–') + ' %';
 };
 export function quitGame() {
-  clearInterval(S.timerI); setBlink(null, false); $('flag').style.display = 'none'; $('end-modal').classList.remove('active'); $('didyou').textContent = '';
+  clearTimeout(S.nextT); clearInterval(S.timerI); /* ein schon geplanter nächster Schritt darf nach dem Verlassen nichts mehr auslösen */ setBlink(null, false); $('flag').style.display = 'none'; $('end-modal').classList.remove('active'); $('didyou').textContent = '';
   $('game-stats').style.display = 'none'; document.body.classList.remove('ingame'); S.inGame = false; S.reviewing = false; S.target = null;
   $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex'; switchScreen('main-menu');
 }
@@ -102,7 +107,8 @@ export function renderPrompt() { // Aufgabentext, Versuche, Tipps und Flagge neu
 
 // ---------- Runden ----------
 function nextRound() {
-  S.locked = false; S.tries = 0; S.tips = 0; S.hintN = 0; S.practice = false; $('didyou').textContent = '';
+  if (!S.inGame) return;
+  S.locked = false; S.tries = 0; S.tips = 0; S.hintN = 0; S.practice = false; S.wrong = {}; $('didyou').textContent = '';
   if (!S.deck.length) return endRound();
   S.target = S.deck.splice(Math.random() * S.deck.length | 0, 1)[0];
   refresh(fid(S.target));
@@ -122,15 +128,18 @@ const scoreOf = n => n ? ATT_SCORE[n - 1] : 0;
 function endRound() {
   clearInterval(S.timerI); S.over = true; S.target = null;
   ['hint', 'letters'].forEach(i => { $(i).textContent = ''; }); $('flag').style.display = 'none';
-  const acc = Math.round(100 * S.score / Math.max(S.total, 1)), xp = acc; // 1 XP pro Prozent Genauigkeit
-  recordRound({ mode: S.mode, diff: scopeId(), acc, xp, secs: S.secs, n: S.total, tips: S.tipsTotal });
+  // XP: Pin 1, Eingabe 2 je Land im 1. Versuch; jeder weitere Versuch (auch Tipps) zieht 25 % davon ab. Alle Länder werden addiert, am Ende wird abgerundet.
+  const acc = Math.round(100 * S.score / Math.max(S.total, 1)), xp = Math.floor((S.mode === 'type' ? 2 : 1) * S.score), sc = scopeId(), prev = bestOf(S.mode, sc);
+  recordRound({ mode: S.mode, diff: sc, acc, xp, secs: S.secs, n: S.total, tips: S.tipsTotal });
+  const nb = bestOf(S.mode, sc), neu = !prev || nb[0] !== prev[0] || nb[1] !== prev[1];
   $('end-acc').textContent = acc + '%'; $('end-time').textContent = $('timer').textContent;
   $('end-xp').textContent = '+' + xp; $('end-tips').textContent = S.tipsTotal;
+  $('end-best').textContent = neu ? tr('Neuer Bestwert!') : tr('Bestwert') + ': ' + nb[0] + ' % · ' + String(nb[1] / 60 | 0).padStart(2, '0') + ':' + String(nb[1] % 60).padStart(2, '0'); $('end-best').className = neu ? 'new' : '';
   updateXP(); $('end-modal').classList.add('active');
 }
 function finish(n) { // n = Versuche (1–4), 0 = nicht gewusst
   const id = fid(S.target); S.solved[id] = n; S.tipsBy[id] = S.tips; S.score += scoreOf(n); setBlink(id, false);
-  S.done++; counter(); refresh(id); S.locked = true; $('hint').textContent = ''; $('letters').textContent = ''; setTimeout(nextRound, 400);
+  S.done++; counter(); refresh(id); S.locked = true; $('hint').textContent = ''; $('letters').textContent = ''; clearTimeout(S.nextT); S.nextT = setTimeout(nextRound, 400);
 }
 function startPractice() { S.practice = true; setBlink(fid(S.target), true); renderPrompt(); }
 
@@ -147,11 +156,13 @@ export function clicked(f, l) {
   if (!S.target || S.locked || S.over || S.reviewing || S.mode !== 'click') return;
   if (!S.valid.has(id) || S.solved[id] !== undefined) return; // gehört nicht zur Auswahl oder wurde schon abgegeben: kein Versuch, kein Abzug, kein Effekt
   const tid = fid(S.target);
-  const ok = id === tid; ripple(l._map, f._c, ok ? RIPPLE.ok : RIPPLE.bad); // Effekt auf der Karte, auf der geklickt wurde
+  const ok = id === tid;
+  if (!ok && !S.practice && S.wrong[id]) { flash(id); return; } // dasselbe falsche Land noch einmal: kein weiterer Abzug
+  ripple(l._map, f._c, ok ? RIPPLE.ok : RIPPLE.bad); // Effekt auf der Karte, auf der geklickt wurde
   if (S.practice) { if (ok) finish(0); else flash(id); return; }
   S.tries++;
   if (ok) finish(S.tries);
-  else { flash(id); if (S.tries >= 4) startPractice(); else hint(); }
+  else { S.wrong[id] = true; flash(id); if (S.tries >= 4) startPractice(); else hint(); }
 }
 
 // ---------- Eingabe-Modus ----------

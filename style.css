@@ -138,3 +138,12 @@ body.ingame #build{display:none}
 .g-mono small{font:700 .72rem 'Nunito',sans-serif;letter-spacing:0;color:var(--sub)}
 .g-ver{display:flex;align-items:baseline;gap:10px;margin:10px 0;padding:12px 16px;border-radius:14px;background:#2d8a4e22;border:1px solid #2d8a4e66}
 .g-ver span{color:var(--sub);font-weight:800;font-size:.8rem;text-transform:uppercase}.g-ver b{font-size:1.5rem}.g-ver small{color:var(--sub);font-weight:700}
+
+/* Bestwerte bei der Auswahl und im Ergebnisfenster */
+#best-box{margin:22px auto 0;max-width:420px;padding:12px 16px;border-radius:16px;background:var(--card);border:2px solid var(--line)}
+.best-t{font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:6px}
+.best-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;font-weight:800}
+.best-row+.best-row{border-top:1px solid var(--line)}
+.best-row b{color:var(--gold);font-variant-numeric:tabular-nums}
+#end-best{margin:10px 0 0;text-align:center;font-weight:800;color:var(--sub)}
+#end-best.new{color:var(--gold);font-size:1.1rem}

@@ -90,9 +90,14 @@ const zoneSt = id => { if (!shown(id)) return HIDE; const c = solvedColor(id), v
 export function refresh(id) {
   const vis = shown(id), v = S.valid.has(id);
   (S.layers[id] || []).forEach(l => {
-    if (l.isLine) { l.setStyle(lineSt(id)); return; } // Grenzlinie: nur Stil, nicht anklickbar
-    l.options.interactive = l.zone ? vis && v : l.isDot ? dotOn(id, l) : vis; // unsichtbare oder ungültige Ebenen blockieren keine Klicks
-    l.setStyle(l.zone ? zoneSt(id) : l.isDot ? dotSt(id, l) : polySt(id));
+    // Karte ohne Ansicht (z. B. die kleinen Felder beim Start eines Kontinents): Leaflet kann Punkte dort nicht umstylen und bricht mit "reading 'subtract'" ab.
+    // Übersprungen; fit() lädt die Karte beim nächsten Weltstart und resetDeck() färbt dann alles um.
+    if (!l._map || !l._map._loaded) return;
+    try {
+      if (l.isLine) { l.setStyle(lineSt(id)); return; } // Grenzlinie: nur Stil, nicht anklickbar
+      l.options.interactive = l.zone ? vis && v : l.isDot ? dotOn(id, l) : vis; // unsichtbare oder ungültige Ebenen blockieren keine Klicks
+      l.setStyle(l.zone ? zoneSt(id) : l.isDot ? dotSt(id, l) : polySt(id));
+    } catch (e) { console.warn('Ebene nicht umgefärbt:', id, e.message); } // eine Ebene darf nie das ganze Umfärben abbrechen
   });
 }
 export const refreshAll = () => Object.keys(S.layers).forEach(refresh);
@@ -130,11 +135,24 @@ export function ripple(m, ll, color) { // Abgabe-Effekt wie bei Seterra: durchsi
 export function flash(id) { S.tmp[id] = '#ff4b4b'; refresh(id); setTimeout(() => { delete S.tmp[id]; refresh(id); }, 450); }
 
 // ---------- Ebenen bauen ----------
+// Klick-Punkt sicher in die Zone legen: Liegt der Landesmittelpunkt knapp am Rand oder außerhalb, wandert der Punkt zum nächsten Punkt IM Inneren (mind. 40 % des größten Randabstands der Zone).
+const mY = la => Math.log(Math.tan(Math.PI / 4 + la * Math.PI / 360)) * 180 / Math.PI, unY = y => (2 * Math.atan(Math.exp(y * Math.PI / 180)) - Math.PI / 2) * 180 / Math.PI;
+export function dotSpot(poly, ll) { // poly: Zone als [[lat, lng], ...]; ll: Wunschposition [lat, lng]; Rechnung in der Mercator-Ebene
+  const P = poly.map(c => [c[1], mY(c[0])]), p = [ll[1], mY(ll[0])], n = P.length;
+  const inside = (x, y) => { let c = false; for (let i = 0, j = n - 1; i < n; j = i++) if ((P[i][1] > y) !== (P[j][1] > y) && x < (P[j][0] - P[i][0]) * (y - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; };
+  const edge = (x, y) => { let d = Infinity; for (let i = 0, j = n - 1; i < n; j = i++) { const ax = P[j][0], ay = P[j][1], dx = P[i][0] - ax, dy = P[i][1] - ay, t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy || 1))); d = Math.min(d, Math.hypot(x - ax - t * dx, y - ay - t * dy)); } return d; };
+  const xs = P.map(c => c[0]), ys = P.map(c => c[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), N = 40, cand = []; let best = 0;
+  for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) { const x = x0 + (x1 - x0) * i / N, y = y0 + (y1 - y0) * j / N; if (!inside(x, y)) continue; const d = edge(x, y); cand.push([x, y, d]); if (d > best) best = d; }
+  const need = best * .4;
+  if (!best || (inside(p[0], p[1]) && edge(p[0], p[1]) >= need)) return ll; // schon sicher drin
+  let bp = null, bd = Infinity; cand.forEach(([x, y, d]) => { if (d < need) return; const q = Math.hypot(x - p[0], y - p[1]); if (q < bd) { bd = q; bp = [x, y]; } });
+  return bp ? [unY(bp[1]), bp[0]] : ll;
+}
 function addZones(m, Z, conv) { // gestrichelte Zonen, unter dem Land gezeichnet; große zuerst
   const area = p => Math.abs(p.reduce((a, c, i) => { const d = p[(i + 1) % p.length]; return a + c[0] * d[1] - d[0] * c[1]; }, 0)) / 2;
   Object.entries(Z).sort((a, b) => area(b[1]) - area(a[1])).forEach(([c, p]) => {
     const f = S.idx[c]; if (!f) return;
-    const id = fid(f), z = L.polygon(p.map(conv), zoneSt(id)).addTo(m); z.zone = true;
+    const id = fid(f), pl = p.map(conv), z = L.polygon(pl, zoneSt(id)).addTo(m); z.zone = true; (m._zp = m._zp || {})[id] = pl; // Zone merken (für die Lage der Klick-Punkte)
     (S.layers[id] = S.layers[id] || []).push(z); z.on('click', e => { L.DomEvent.stopPropagation(e); S.onClick(f, z); });
   });
 }
@@ -148,7 +166,7 @@ function build(m, data, zones, conv) { // Ebenen werden EINMAL gebaut und späte
   L.geoJSON(data, { smoothFactor: 0, interactive: false, style: f => lineSt(fid(f)), onEachFeature: (f, l) => { l.isLine = true; reg(f, l); } }).addTo(m); // Grenzlinien zuletzt: liegen über allen Flächen
   data.forEach(f => {
     if (!f._dot) return;
-    const d = L.circleMarker(f._c, { radius: 4 }).addTo(m); d.isDot = true; d.wdeg = f._b[2] - f._b[0]; d.always = OCE.includes(fid(f)); d.setStyle(dotSt(fid(f), d));
+    const zp = m._zp && m._zp[fid(f)], d = L.circleMarker(zp ? dotSpot(zp, f._c) : f._c, { radius: 4 }).addTo(m); d.isDot = true; /* mit Zone: Punkt liegt sicher darin */ d.wdeg = f._b[2] - f._b[0]; d.always = OCE.includes(fid(f)); d.setStyle(dotSt(fid(f), d));
     (S.layers[fid(f)] = S.layers[fid(f)] || []).push(d);
     d.on('click', e => { L.DomEvent.stopPropagation(e); S.onClick(f, d); });
   });

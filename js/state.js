@@ -11,7 +11,7 @@ export const S = {
   opts: { zoom: 'soft', flag: false, theme: 'classic' },
   user: null,
   geo: null, idx: {}, map: null, mapCar: null, mapOce: null, insetH: 150, insetSize: { car: null, oce: null }, geoLoad: null,
-  layers: {}, solved: {}, tmp: {}, valid: new Set(), tipsBy: {},
+  layers: {}, solved: {}, tmp: {}, valid: new Set(), tipsBy: {}, wrong: {}, nextT: null, starting: false,
   deck: [], target: null, tries: 0, tips: 0, tipsTotal: 0, hintN: 0, done: 0, total: 0, score: 0,
   practice: false, locked: false, inGame: false, reviewing: false, over: false, timerI: null, secs: 0,
   onClick: null // wird vom Spiel gesetzt (Klick auf Land, Punkt oder Zone)

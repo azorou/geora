@@ -1,16 +1,17 @@
 // Oberfläche: Klick-Verteiler, Einstellungen, Profil/Konto, Start
-import { $, S, th, switchScreen } from './state.js';
+import { $, S, th, switchScreen, scopeId } from './state.js';
 import { OPTDEF, SCOPES, CONTNAME, contCount } from './data.js';
 import { refreshAll, loadData } from './map.js';
 import { tr, applyLang } from './i18n.js';
 import { initInfo, infoBtn } from './info.js';
 import { renderGuide } from './guide.js';
 import { startGame, quitGame, submitGuess, tip, startReview, backToResult, renderPrompt, clicked, pauseGame, resumeGame, updateXP } from './game.js';
-import { hooks, getProfile, totalXP, roundsPlayed, saveOpts, afterLogin, afterLogout, MODES, DIFFS } from './storage.js';
+import { hooks, getProfile, totalXP, roundsPlayed, saveOpts, afterLogin, afterLogout, bestOf, MODES, DIFFS } from './storage.js';
 import { isConfigured, currentUser, register, login, logout, deleteAccount, errText } from './account.js';
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const persist = () => saveOpts({ ...S.opts, lang: S.lang });
+const fmt = s => String(s / 60 | 0).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
 const SEL = { selectMode: () => S.mode, selectCat: () => S.cat, selectCont: () => S.cont, selectVariant: () => S.variant, selectDifficulty: () => S.diff };
 function updateSel() { // Auswahl-Bildschirm: passende Gruppen zeigen, Auswahl markieren, Anzahlen eintragen
   $('sel-world').style.display = S.cat === 'world' ? '' : 'none'; $('sel-cont').style.display = S.cat === 'cont' ? '' : 'none';
@@ -20,6 +21,8 @@ function updateSel() { // Auswahl-Bildschirm: passende Gruppen zeigen, Auswahl m
   $('var-un').textContent = tr('UN-Staaten') + ' (' + un + ')'; $('var-all').textContent = tr('Länder & Territorien') + ' (' + all + ')';
   $('var-all').style.display = all > un ? '' : 'none'; if (all === un) S.variant = 'un'; // Kontinente ohne Gebiete: nur eine Option
   document.querySelectorAll('#mode-selection .option-card[data-act]').forEach(e => e.classList.toggle('selected', e.dataset.v === SEL[e.dataset.act]()));
+  const row = (m, name) => { const b = bestOf(m, scopeId()); return '<div class="best-row"><span>' + name + '</span><b>' + (b ? b[0] + ' % · ' + fmt(b[1]) : '–') + '</b></div>'; }; // Bestwerte der aktuellen Auswahl, je Modus
+  $('best-box').innerHTML = '<div class="best-t">' + tr('Dein Bestwert in dieser Auswahl') + infoBtn('best') + '</div>' + row('click', 'Pin') + row('type', tr('Eingabe'));
 }
 const scopeName = d => { // Umfang einer gespeicherten Runde als Text
   const id = SCOPES[d]; if (!id) return '?';
@@ -68,7 +71,6 @@ function closeOverlay() {
 }
 
 // ---------- Profil und Konto ----------
-const fmt = s => String(s / 60 | 0).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
 const row = (a, b) => '<div class="pf-row"><span>' + a + '</span><span>' + b + '</span></div>';
 function renderProfile() {
   const box = $('profile-body'), p = getProfile(); if (!box) return;
@@ -100,7 +102,7 @@ async function doDelete() {
 
 // ---------- Klick-Verteiler: <button data-act="name" data-v="wert"> ----------
 const ACTIONS = {
-  goto: v => switchScreen(v),
+  goto: v => { switchScreen(v); if (v === 'mode-selection') updateSel(); }, // Bestwerte sind danach aktuell
   openSettings: () => openOverlay('settings-screen'),
   openGuide: () => { renderGuide(); openOverlay('guide-screen'); },
   guideGo: v => { const d = $('g-' + v); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } },
@@ -120,7 +122,7 @@ function dispatch(e) {
 
 export function boot() {
   S.onClick = clicked;
-  hooks.onChange = () => { applyProfileOpts(); updateXP(); renderProfile(); };
+  hooks.onChange = () => { applyProfileOpts(); updateXP(); renderProfile(); updateSel(); };
   hooks.onStatus = (t, c) => { const el = $('sync-status'); if (el) { el.textContent = t; el.className = 'msg ' + c; } };
   hooks.onSessionLost = () => { S.user = null; afterLogout(); renderProfile(); };
   if (!getProfile().opts) { try { const o = JSON.parse(localStorage.getItem('geora-opts') || 'null'); if (o) getProfile().opts = o; } catch (e) {} } // Einstellungen aus der alten Einzeldatei-Version

@@ -54,6 +54,7 @@ export function recordRound({ mode, diff, acc, xp, secs, n, tips }) {
   if (betterB(b, profile.best[k])) profile.best[k] = b;
   fold(profile); save(); pushCloud();
 }
+export const bestOf = (mode, diff) => profile.best[MODES.indexOf(mode) + ':' + DIFFS.indexOf(diff)] || null; // [Genauigkeit, Sekunden] oder null
 export function saveOpts(o) { profile.opts = { ...o }; profile.optsT = Date.now(); save(); pushCloud(); }
 
 let pushTimer = null, syncing = false, again = false;

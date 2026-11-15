@@ -56,10 +56,10 @@ const CH = [
     ['att'],
     ['ul', [
       ['**Nicht gewusst**: Nach 4 Fehlern blinkt das Land (Pin) bzw. der Name wird gezeigt (Eingabe). Du musst es nachholen; es zählt 0 %.', '**Not known**: after 4 misses the country blinks (Pin) or its name is shown (Typing). You must redo it; it counts 0 %.'],
-      ['**Klicks, die nicht zählen**: Ein Klick auf ein Land, das nicht zur Auswahl gehört (z. B. graue Gebiete) oder schon abgegeben wurde, kostet keinen Versuch.', '**Clicks that do not count**: clicking a country that is not part of your selection (e.g. grey territories) or has already been answered costs no attempt.'],
+      ['**Klicks, die nicht zählen**: Ein Klick auf ein Land, das nicht zur Auswahl gehört (z. B. graue Gebiete) oder schon abgegeben wurde, kostet keinen Versuch. Auch dasselbe falsche Land mehrfach anzuklicken kostet nur einmal einen Versuch.', '**Clicks that do not count**: clicking a country that is not part of your selection (e.g. grey territories) or has already been answered costs no attempt. Clicking the same wrong country several times costs only one attempt.'],
       ['**Tipps** verbrauchen einen Versuch (siehe Spielmodi).', '**Tips** use one attempt (see game modes).'],
       ['**Genauigkeit**: Durchschnitt der Punkte aller Länder. Während des Spiels zeigt der Prozentwert oben den Durchschnitt der bisher beantworteten Länder.', '**Accuracy**: average points of all countries. During the game the percentage at the top shows the average of the countries answered so far.'],
-      ['**XP**: 1 XP pro Prozent Genauigkeit einer Runde.', '**XP**: 1 XP per percent of accuracy in a round.'],
+      ['**XP**: Pro Land gibt es im Pin-Modus bis zu **1 XP**, im Eingabemodus bis zu **2 XP**. Jeder weitere Versuch (auch ein Tipp) zieht 25 % davon ab, nicht gewusst gibt 0. Am Ende der Runde wird alles addiert und abgerundet.', '**XP**: per country you get up to **1 XP** in Pin mode and up to **2 XP** in Typing mode. Each further attempt (tips too) deducts 25 % of it, not known gives 0. At the end of the round everything is added up and rounded down.'],
       ['**Abgabe-Effekt**: Ein Ring wächst vom Land aus, grün bei richtig, rot bei falsch.', '**Answer effect**: a ring grows out from the country, green for right, red for wrong.'],
       ['**Gelöste Länder** haben dunklere, kräftigere Grenzen, **abgegebene Punkte** sind größer und haben einen kräftigen Rand.', '**Solved countries** have darker, bolder borders; **answered dots** are larger with a bold outline.']
     ]]
@@ -91,7 +91,7 @@ const CH = [
   { id: 'profile', t: ['Profil und Konto', 'Profile and account'], b: [
     ['ul', [
       ['**Profil**: XP gesamt, gespielte Runden, Bestwerte und die letzten Runden.', '**Profile**: total XP, rounds played, best results and recent rounds.'],
-      ['**Bestwerte**: beste Runde je Modus und Umfang; zählt die höchste Genauigkeit, bei Gleichstand die kürzeste Zeit.', '**Best results**: best round per mode and scope; highest accuracy counts, shortest time if tied.'],
+      ['**Bestwerte**: beste Runde je Modus und Umfang; zählt die höchste Genauigkeit, bei Gleichstand die kürzeste Zeit. Du siehst sie auch bei der Auswahl vor dem Start und nach jeder Runde.', '**Best results**: best round per mode and scope; highest accuracy counts, shortest time if tied. You also see them in the selection before you start and after every round.'],
       ['**Konto** (optional): Benutzername und Passwort (6 bis 72 Zeichen). Dein Fortschritt wird auf allen Geräten abgeglichen, ohne doppelte Zählung. Fortschritt als Gast wandert beim Anmelden ins Konto.', '**Account** (optional): username and password (6 to 72 characters). Your progress is synced across devices without double counting. Progress as a guest moves into the account when you sign in.'],
       ['Es gibt **keine E-Mail**, daher auch kein Zurücksetzen des Passworts. Nutze kein Passwort, das du woanders verwendest.', 'There is **no e-mail**, so a password cannot be reset. Do not use a password you use elsewhere.']
     ]]
