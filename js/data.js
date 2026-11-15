@@ -20,9 +20,9 @@ export const R_CAR_IN = [[9, -84.3], [28.9, -57.9]], R_OCE_IN = [[-39, 126.8], [
 
 // Farbmodi: Meer, Land, Land außerhalb des Modus, Grenzen, Grenzen gelöster Länder, Hervorhebung, Zonen, Farben für 1.–4. Versuch
 export const THEMES = {
-  classic: { sea: '#a5d0dc', land: '#1e8449', off: '#8dbcc6', line: '#d6efe0', solvedLine: '#0f3d22', hi: '#b44cff', zone: '#ffffff', att: ['#ffffff', '#ffeb3b', '#ff9800', '#ff4b4b'] },
-  night:   { sea: '#0a1624', land: '#2f4f73', off: '#15283b', line: '#5c7ea6', solvedLine: '#0a1624', hi: '#00e5ff', zone: '#9fb6d3', att: ['#ffffff', '#fff176', '#ffb74d', '#ef5350'] },
-  sand:    { sea: '#cfe6ee', land: '#cdb98b', off: '#e4ddc6', line: '#fbf6e8', solvedLine: '#5b4a24', hi: '#d81b60', zone: '#ffffff', att: ['#ffffff', '#fff59d', '#ffb74d', '#e53935'] }
+  classic: { sea: '#a5d0dc', land: '#1e8449', off: '#8dbcc6', line: '#d6efe0', solvedLine: '#0f3d22', hi: '#b44cff', zone: '#ffffff', ring: '#0b1017', att: ['#ffffff', '#ffeb3b', '#ff9800', '#ff4b4b'] },
+  night:   { sea: '#0a1624', land: '#2f4f73', off: '#15283b', line: '#5c7ea6', solvedLine: '#0a1624', hi: '#00e5ff', zone: '#9fb6d3', ring: '#ffffff', att: ['#ffffff', '#fff176', '#ffb74d', '#ef5350'] },
+  sand:    { sea: '#cfe6ee', land: '#cdb98b', off: '#e4ddc6', line: '#fbf6e8', solvedLine: '#5b4a24', hi: '#d81b60', zone: '#ffffff', ring: '#2b2112', att: ['#ffffff', '#fff59d', '#ffb74d', '#e53935'] }
 };
 export const ZOOM = { soft: 3, mid: 4, strong: 5 }; // maximale Zoomstufe im Eingabemodus
 export const OPTDEF = [

@@ -6,7 +6,7 @@ const EN = {
   // Seite (index.html)
   'Abbrechen': 'Cancel', 'Einstellungen': 'Settings',
   'Erkunde die Welt, meistere Geografie & lerne alle Länder.': 'Explore the world, master geography & learn every country.',
-  'Landkarten': 'Maps', 'Profil & Konto': 'Profile & account',
+  'Landkarten': 'Maps', 'Handbuch': 'Guide', 'Profil & Konto': 'Profile & account',
   '← Hauptmenü': '← Main menu', '← Zurück zum Spiel': '← Back to game',
   'Sprache / Language': 'Language', 'Spieloptionen': 'Game options', 'Profil': 'Profile',
   '1. Spielmodus wählen': '1. Choose game mode', 'Eingabe': 'Typing', '2. Karte wählen': '2. Choose map', '3. Schwierigkeitsgrad': '3. Difficulty', '3. Kontinent': '3. Continent', '4. Umfang': '4. Scope',

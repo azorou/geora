@@ -37,7 +37,7 @@
   <div id="boot-msg" style="display:none;color:#ffb74d;font-weight:800;max-width:420px;margin-bottom:16px">Geora konnte nicht starten. Bitte über GitHub Pages oder einen lokalen Server öffnen (nicht per Doppelklick auf die Datei) und alle Dateien samt Ordner <b>js</b> hochladen.<pre id="boot-err" style="margin:10px 0 0;font:12px/1.4 monospace;font-weight:400;white-space:pre-wrap;text-align:left;color:#ffe0b2"></pre></div>
   <button class="btn-3d" style="width:280px" data-act="goto" data-to="mode-selection">Landkarten</button>
   <button class="btn-3d btn-blue" style="width:280px;margin-top:14px" data-act="openProfile">Profil &amp; Konto</button>
-  <div id="build" style="margin-top:22px;font-size:.72rem;opacity:.45"></div>
+  <button class="btn-3d btn-gold" style="width:280px;margin-top:14px" data-act="openGuide">Handbuch</button>
 </section>
 
 <section id="settings-screen" class="screen">
@@ -53,6 +53,12 @@
   </div>
 </section>
 
+<section id="guide-screen" class="screen">
+  <div class="config-container g-wrap">
+    <button class="btn-3d btn-blue back-label" style="padding:6px 14px;font-size:.85rem" data-act="closeOverlay">← Hauptmenü</button>
+    <div id="guide-body"></div>
+  </div>
+</section>
 <section id="profile-screen" class="screen">
   <div class="config-container">
     <button class="btn-3d btn-blue back-label" style="padding:6px 14px;font-size:.85rem" data-act="closeOverlay">← Hauptmenü</button>
@@ -146,17 +152,18 @@
     </div>
   </div>
 </section>
+<div id="build"></div>
 <script>
 // Start der App. Alle Skripte tragen eine Versionsnummer (V): nach einem Update werden so immer die neuen Dateien geladen statt veralteter aus dem Zwischenspeicher des Browsers.
-// V bei jedem Update ändern. Neue Dateien in js/ müssen in "files" eingetragen werden. Bei einem Startfehler zeigt die orange Meldung den echten Fehler und die Version.
+// V (Version) und D (Datum) bei jedem Update ändern, Schema Hauptversion.Update (1.6, 1.7, ...). Neue Dateien in js/ müssen in "files" eingetragen werden. Bei einem Startfehler zeigt die orange Meldung den echten Fehler und die Version.
 (function () {
-  var V = '20261116a', box = document.getElementById('boot-msg'), out = document.getElementById('boot-err');
-  window.GEORA_BUILD = V; out.textContent = 'Version ' + V + '\n';
+  var V = '1.6', D = '15.11.2026', box = document.getElementById('boot-msg'), out = document.getElementById('boot-err');
+  window.GEORA_BUILD = V; window.GEORA_DATE = D; out.textContent = 'Version ' + V + ' (' + D + ')\n';
   function fail(t) { if (window.__georaBooted) return; box.style.display = 'block'; if (out.textContent.indexOf(t) < 0) out.textContent += t + '\n'; }
   window.addEventListener('error', function (e) { fail((e.message || 'Fehler') + (e.filename ? ' (' + e.filename.split('/').slice(-2).join('/') + ':' + e.lineno + ')' : '')); });
   window.addEventListener('unhandledrejection', function (e) { fail(String((e.reason && e.reason.message) || e.reason)); });
   setTimeout(function () { fail('Der Start dauert länger als 3 Sekunden.'); }, 3000);
-  var files = ['main', 'ui', 'game', 'map', 'data', 'state', 'storage', 'account', 'i18n', 'info', 'regions'], im = { imports: { './config.js': './config.js?v=' + V } };
+  var files = ['main', 'ui', 'game', 'map', 'data', 'state', 'storage', 'account', 'i18n', 'info', 'regions', 'guide'], im = { imports: { './config.js': './config.js?v=' + V } };
   files.forEach(function (f) { im.imports['./js/' + f + '.js'] = './js/' + f + '.js?v=' + V; });
   var m = document.createElement('script'); m.type = 'importmap'; m.textContent = JSON.stringify(im); document.head.appendChild(m);
   var s = document.createElement('script'); s.type = 'module'; s.src = 'js/main.js?v=' + V;

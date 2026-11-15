@@ -4,6 +4,7 @@ import { OPTDEF, SCOPES, CONTNAME, contCount } from './data.js';
 import { refreshAll, loadData } from './map.js';
 import { tr, applyLang } from './i18n.js';
 import { initInfo, infoBtn } from './info.js';
+import { renderGuide } from './guide.js';
 import { startGame, quitGame, submitGuess, tip, startReview, backToResult, renderPrompt, clicked, pauseGame, resumeGame, updateXP } from './game.js';
 import { hooks, getProfile, totalXP, roundsPlayed, saveOpts, afterLogin, afterLogout, MODES, DIFFS } from './storage.js';
 import { isConfigured, currentUser, register, login, logout, deleteAccount, errText } from './account.js';
@@ -101,11 +102,14 @@ async function doDelete() {
 const ACTIONS = {
   goto: v => switchScreen(v),
   openSettings: () => openOverlay('settings-screen'),
+  openGuide: () => { renderGuide(); openOverlay('guide-screen'); },
+  guideGo: v => { const d = $('g-' + v); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } },
+  guideAll: () => { const ds = [...document.querySelectorAll('#guide-body .g-ch')], open = ds.some(d => !d.open); ds.forEach(d => { d.open = open; }); },
   openProfile: () => { renderProfile(); openOverlay('profile-screen'); },
   closeOverlay,
   selectMode: v => { S.mode = v; updateSel(); }, selectDifficulty: v => { S.diff = v; updateSel(); },
   selectCat: v => { S.cat = v; updateSel(); }, selectCont: v => { S.cont = v; updateSel(); }, selectVariant: v => { S.variant = v; updateSel(); },
-  setLanguage: v => { S.lang = v; markLang(); persist(); applyLang(); updateSel(); renderOpts(); renderProfile(); renderPrompt(); },
+  setLanguage: v => { S.lang = v; markLang(); persist(); applyLang(); updateSel(); renderOpts(); renderProfile(); renderGuide(); renderPrompt(); },
   startGame, quitGame, submitGuess, tip, startReview, backToResult,
   login: () => doAuth('login'), register: () => doAuth('register'), logout: doLogout, deleteAccount: doDelete
 };
@@ -127,5 +131,5 @@ export function boot() {
   if (isConfigured() && u) { S.user = u; renderProfile(); afterLogin(u.name).catch(console.error); }
   applyLang(); updateSel(); S.geoLoad = loadData(); // Kartendaten schon im Hintergrund laden, während das Menü offen ist
   window.__georaBooted = true; $('boot-msg').style.display = 'none';
-  if (window.GEORA_BUILD) $('build').textContent = 'Version ' + window.GEORA_BUILD;
+  if (window.GEORA_BUILD) $('build').textContent = 'v' + window.GEORA_BUILD + ' · ' + (window.GEORA_DATE || '');
 }

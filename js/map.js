@@ -31,16 +31,14 @@ export function prep(f) { // Mittelpunkt/Box des größten Teilstücks + Entsche
 }
 const shiftGeom = g => { const m = c => typeof c[0] === 'number' ? [c[0] + 360, c[1]] : c.map(m); return { type: g.type, coordinates: m(g.coordinates) }; };
 
-export function simp(g, tol = .05) { // Linien ausdünnen (kaum sichtbar, spart viel Rechenzeit)
-  const ring = r => {
-    if (r.length < 12) return r;
-    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
-    r.forEach(c => { x0 = Math.min(x0, c[0]); x1 = Math.max(x1, c[0]); y0 = Math.min(y0, c[1]); y1 = Math.max(y1, c[1]); });
-    if (x1 - x0 < 1 && y1 - y0 < 1) return r; // winzige Inseln unverändert lassen
-    const o = [r[0]]; let l = r[0];
-    for (let i = 1; i < r.length - 1; i++) if (Math.abs(r[i][0] - l[0]) + Math.abs(r[i][1] - l[1]) >= tol) { o.push(r[i]); l = r[i]; }
-    o.push(r[r.length - 1]); return o.length >= 4 ? o : r;
-  };
+// Genauigkeit der Grenzen: Gleiche Punkte werden bei allen Ländern gleich auf ein Raster gelegt (Länder teilen sich Grenzpunkte). Dadurch bleiben gemeinsame Grenzen deckungsgleich;
+// das frühere Ausdünnen je Land hat Lücken und Überlappungen erzeugt. Bei normal feinen Daten (wenige Punkte) bleibt alles unverändert (Raster 0).
+export function vertexCount(feats) { let n = 0; const w = a => typeof a[0] === 'number' ? n++ : a.forEach(w); feats.forEach(f => f.geometry && w(f.geometry.coordinates)); return n; }
+export const gridFor = n => n > 600000 ? .03 : n > 300000 ? .015 : n > 150000 ? .008 : 0; // je feiner die Daten, desto gröber das Raster (Grad)
+export function simp(g, grid = 0) {
+  if (!grid) return g;
+  const q = v => Math.round(v / grid) * grid;
+  const ring = r => { const o = []; r.forEach(c => { const p = [q(c[0]), q(c[1])], l = o[o.length - 1]; if (!l || l[0] !== p[0] || l[1] !== p[1]) o.push(p); }); return o.length >= 4 ? o : r; };
   const poly = p => p.map(ring);
   return g.type === 'Polygon' ? { type: 'Polygon', coordinates: poly(g.coordinates) } : { type: 'MultiPolygon', coordinates: g.coordinates.map(poly) };
 }
@@ -62,7 +60,7 @@ export async function ensureRegion(kind) {
   const { feats, missing } = regionFeatures(kind, raw);
   if (missing.length) return tr('In den Kartendaten fehlen:') + ' ' + missing.join(', ') + ' (' + R.file + ')';
   let b = [90, 180, -90, -180];
-  feats.forEach(f => { f.geometry = simp(f.geometry, kind === 'us' ? .02 : .005); prep(f); S.idx[fid(f)] = f; b = [Math.min(b[0], f._b[1]), Math.min(b[1], f._b[0]), Math.max(b[2], f._b[3]), Math.max(b[3], f._b[2])]; });
+  feats.forEach(f => { prep(f); S.idx[fid(f)] = f; b = [Math.min(b[0], f._b[1]), Math.min(b[1], f._b[0]), Math.max(b[2], f._b[3]), Math.max(b[3], f._b[2])]; });
   build(S.mapWorld, feats);
   S.reg[kind] = { feats, bounds: [[b[0], b[1]], [b[2], b[3]]] };
   return null;
@@ -77,14 +75,22 @@ function fillOf(id) {
 }
 // S.show: null = alle Länder zeichnen (Weltkarte); sonst nur diese Ids (Kontinent, Bundesländer ...), alle anderen Ebenen sind unsichtbar und nicht anklickbar
 const shown = id => !S.show || S.show.has(id), HIDE = { fill: false, stroke: false };
-const polySt = id => { if (!shown(id)) return HIDE; const sv = solvedColor(id); return { fill: true, stroke: true, fillColor: fillOf(id), fillOpacity: 1, color: sv ? th().solvedLine : th().line, weight: sv ? .9 : .5 }; }; // gelöste Länder: dunklere Grenzen
+// Fläche: ein Hauch Rand in Füllfarbe schließt feine Lücken zwischen Nachbarn. Die sichtbare Grenzlinie ist eine eigene Ebene (lineSt) über allen Flächen, so wird keine Linie vom Nachbarn halb überdeckt.
+const polySt = id => { if (!shown(id)) return HIDE; const c = fillOf(id); return { fill: true, stroke: true, fillColor: c, fillOpacity: 1, color: c, weight: .7, opacity: 1 }; };
+const lineSt = id => { if (!shown(id)) return HIDE; const sv = solvedColor(id); return { fill: false, stroke: true, color: sv ? th().solvedLine : th().line, weight: sv ? 1.2 : .8, opacity: 1 }; }; // gelöste Länder: dunklere, kräftigere Grenzen
 const dotOn = (id, l) => shown(id) && S.valid.has(id) && (l.always || l.wdeg < S.dotThr); // Klick-Punkt nur für schmale Länder dieser Karte
-const dotSt = (id, l) => { if (!dotOn(id, l)) return { radius: 4, fill: false, stroke: false }; const c = solvedColor(id) || (S.mode === 'type' && S.target && id === fid(S.target) ? th().hi : '#ffffff'); return { radius: 4, fill: true, stroke: true, fillColor: c, fillOpacity: 1, color: '#0f3d22', weight: 1.3, opacity: 1 }; };
-const zoneSt = id => { if (!shown(id)) return HIDE; const c = solvedColor(id), v = S.valid.has(id); return { stroke: true, color: th().zone, weight: 1.5, dashArray: '6 5', opacity: v ? 1 : .85, fill: true, fillColor: c || '#fff', fillOpacity: c && v ? .5 : .001 }; };
+const dotSt = (id, l) => { // abgegebene Punkte: größer, kräftiger Rand, Füllung in der Farbe des Versuchs
+  if (!dotOn(id, l)) return { radius: 4, fill: false, stroke: false };
+  const c = solvedColor(id) || (S.mode === 'type' && S.target && id === fid(S.target) ? th().hi : '#ffffff');
+  return S.solved[id] !== undefined ? { radius: 7, fill: true, stroke: true, fillColor: c, fillOpacity: 1, color: th().ring, weight: 2.5, opacity: 1 }
+    : { radius: 4, fill: true, stroke: true, fillColor: c, fillOpacity: 1, color: '#0f3d22', weight: 1.3, opacity: 1 };
+};
+const zoneSt = id => { if (!shown(id)) return HIDE; const c = solvedColor(id), v = S.valid.has(id); return { stroke: true, color: th().zone, weight: c && v ? 2.4 : 1.5, dashArray: '6 5', opacity: v ? 1 : .85, fill: true, fillColor: c || '#fff', fillOpacity: c && v ? .65 : .001 }; };
 
 export function refresh(id) {
   const vis = shown(id), v = S.valid.has(id);
   (S.layers[id] || []).forEach(l => {
+    if (l.isLine) { l.setStyle(lineSt(id)); return; } // Grenzlinie: nur Stil, nicht anklickbar
     l.options.interactive = l.zone ? vis && v : l.isDot ? dotOn(id, l) : vis; // unsichtbare oder ungültige Ebenen blockieren keine Klicks
     l.setStyle(l.zone ? zoneSt(id) : l.isDot ? dotSt(id, l) : polySt(id));
   });
@@ -134,10 +140,12 @@ function addZones(m, Z, conv) { // gestrichelte Zonen, unter dem Land gezeichnet
 }
 function build(m, data, zones, conv) { // Ebenen werden EINMAL gebaut und später nur umgefärbt
   if (zones) addZones(m, zones, conv);
-  L.geoJSON(data, {
-    style: f => polySt(fid(f)),
-    onEachFeature: (f, l) => { (S.layers[fid(f)] = S.layers[fid(f)] || []).push(l); l.on('click', e => { L.DomEvent.stopPropagation(e); S.onClick(f, l); }); }
+  const reg = (f, l) => (S.layers[fid(f)] = S.layers[fid(f)] || []).push(l);
+  L.geoJSON(data, { // Flächen; smoothFactor 0 = Leaflet vereinfacht die Linien nicht noch einmal je Land (das verschob gemeinsame Grenzen)
+    smoothFactor: 0, style: f => polySt(fid(f)),
+    onEachFeature: (f, l) => { reg(f, l); l.on('click', e => { L.DomEvent.stopPropagation(e); S.onClick(f, l); }); }
   }).addTo(m);
+  L.geoJSON(data, { smoothFactor: 0, interactive: false, style: f => lineSt(fid(f)), onEachFeature: (f, l) => { l.isLine = true; reg(f, l); } }).addTo(m); // Grenzlinien zuletzt: liegen über allen Flächen
   data.forEach(f => {
     if (!f._dot) return;
     const d = L.circleMarker(f._c, { radius: 4 }).addTo(m); d.isDot = true; d.wdeg = f._b[2] - f._b[0]; d.always = OCE.includes(fid(f)); d.setStyle(dotSt(fid(f), d));
@@ -182,6 +190,7 @@ export function layoutInsets() { // Standardhöhe nach Kartenhöhe; eine vom Spi
     const z = S.insetSize[e.dataset.box], h = z ? clampN(z.h, 80, Math.round(fh * .7)) : dh;
     e.style.height = h + 'px'; S.insetH = Math.max(S.insetH, h); // die Weltkarte lässt unten so viel Platz wie das höchste Feld
     if (z) { e.style.maxWidth = 'none'; e.style.minWidth = '0'; e.style.width = clampN(z.w, 120, Math.round(fw * .7)) + 'px'; }
+    else { e.style.width = ''; e.style.maxWidth = ''; e.style.minWidth = ''; } // Standardbreite aus dem Stylesheet
   });
 }
 let gripsReady = false;

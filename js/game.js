@@ -2,7 +2,7 @@
 import { $, S, th, fid, nameOf, switchScreen, scopeId } from './state.js';
 import { TOP, UN195, EXT30, FLAGFB, SYN, ZOOM, ZREL, ATT_SCORE, RIPPLE, CONT, NEC, CONTDOT } from './data.js';
 import { REGION } from './regions.js';
-import { parse, indexGeo, prep, simp, loadData, ensureRegion, initMaps, fit, refresh, refreshAll, setBlink, flash, ripple, flyToBoundsInside } from './map.js';
+import { parse, indexGeo, prep, simp, gridFor, vertexCount, loadData, ensureRegion, initMaps, fit, refresh, refreshAll, setBlink, flash, ripple, flyToBoundsInside } from './map.js';
 import { tr } from './i18n.js';
 import { recordRound, totalXP } from './storage.js';
 
@@ -31,7 +31,7 @@ export async function startGame() {
     if (!data) { S.geoLoad = null; $('target-prompt').textContent = tr('Kartendaten konnten nicht geladen werden. Bitte im normalen Browser öffnen (z. B. über GitHub Pages), nicht in einem Vorschau-Fenster.'); return; }
     try {
       await step(tr('Karte wird vorbereitet …'));
-      data.forEach(f => { if (f.geometry && /Polygon/.test(f.geometry.type)) f.geometry = simp(f.geometry); });
+      const grid = gridFor(vertexCount(data)); data.forEach(f => { if (f.geometry && /Polygon/.test(f.geometry.type)) f.geometry = simp(f.geometry, grid); });
       S.geo = data; indexGeo(); S.geo.forEach(prep);
       await initMaps(step);
     } catch (e) { console.error(e); S.geo = null; S.geoLoad = null; $('target-prompt').textContent = tr('Fehler beim Kartenaufbau:') + ' ' + e.message + ' ' + tr('(Seite neu laden)'); return; }
@@ -39,7 +39,7 @@ export async function startGame() {
   if (S.cat === 'de' || S.cat === 'us') { // Bundesländer / US-Staaten: Kartendaten beim ersten Mal laden
     const err = await ensureRegion(S.cat); if (err) { $('target-prompt').textContent = err; return; }
   }
-  try { await step(tr('Karte wird eingepasst …')); fit(); resetDeck(); S.secs = 0; $('timer').textContent = '00:00'; runTimer(); nextRound(); }
+  try { await step(tr('Karte wird eingepasst …')); S.insetSize = { car: null, oce: null }; fit(); /* jeder Durchlauf: Größe und Zoom der kleinen Felder zurücksetzen */ resetDeck(); S.secs = 0; $('timer').textContent = '00:00'; runTimer(); nextRound(); }
   catch (e) { console.error(e); $('target-prompt').textContent = tr('Fehler beim Start:') + ' ' + e.message; }
 }
 const codes = s => parse(s).map(x => x[0]);
@@ -145,6 +145,7 @@ export function clicked(f, l) {
     l._tt = setTimeout(() => l.unbindTooltip(), 1800);
   }
   if (!S.target || S.locked || S.over || S.reviewing || S.mode !== 'click') return;
+  if (!S.valid.has(id) || S.solved[id] !== undefined) return; // gehört nicht zur Auswahl oder wurde schon abgegeben: kein Versuch, kein Abzug, kein Effekt
   const tid = fid(S.target);
   const ok = id === tid; ripple(l._map, f._c, ok ? RIPPLE.ok : RIPPLE.bad); // Effekt auf der Karte, auf der geklickt wurde
   if (S.practice) { if (ok) finish(0); else flash(id); return; }
