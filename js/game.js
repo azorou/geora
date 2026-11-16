@@ -1,9 +1,12 @@
 // Spielablauf: Runde, Klicks, Eingabe, Tipps, Punkte/XP, Auswertung
 import { $, S, th, fid, nameOf, switchScreen, scopeId } from './state.js';
-import { TOP, UN195, EXT30, FLAGFB, SYN, ZOOM, ZREL, ATT_SCORE, RIPPLE, CONT, NEC, CONTDOT } from './data.js';
+import { TOP, UN195, EXT30, FLAGFB, SYN, ZOOM, ZREL, ATT_SCORE, RIPPLE, CONT, NEC, CONTDOT, CONTVIEW } from './data.js';
 import { REGION } from './regions.js';
-import { parse, indexGeo, prep, simp, gridFor, vertexCount, loadData, ensureRegion, initMaps, fit, refresh, refreshAll, setBlink, flash, ripple, flyToBoundsInside } from './map.js';
+import { parse, indexGeo, prep, simp, gridFor, vertexCount, loadData, ensureRegion, initMaps, fit, refresh, refreshAll, setBlink, flash, ripple, flyToBoundsInside, inView } from './map.js';
 import { tr } from './i18n.js';
+import { CAP } from './capitals.js';
+import { play } from './sound.js';
+import { fireworks } from './fireworks.js';
 import { recordRound, totalXP, bestOf } from './storage.js';
 
 const step = async t => { $('target-prompt').textContent = t; await new Promise(r => setTimeout(r, 30)); };
@@ -20,8 +23,13 @@ export async function startGame() { // nicht doppelt starten (zweiter Tipp auf "
   if (S.starting) return; S.starting = true;
   try { await startRun(); } finally { S.starting = false; }
 }
+/* Färbungen der letzten Runde sofort entfernen: beim Verlassen und gleich beim Start, nicht erst nach dem Laden der nächsten Runde */
+function clearBoard() {
+  S.solved = {}; S.tmp = {}; S.tipsBy = {}; S.wrong = {}; S.hover = null; setBlink(null, false);
+  if (Object.keys(S.layers).length) refreshAll();
+}
 async function startRun() {
-  clearTimeout(S.nextT);
+  clearTimeout(S.nextT); clearBoard();
   $('end-modal').classList.remove('active');
   $('game-stats').style.display = 'flex'; S.inGame = true; S.over = false; S.reviewing = false; document.body.classList.add('ingame');
   $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex';
@@ -38,6 +46,7 @@ async function startRun() {
       await step(tr('Karte wird vorbereitet …'));
       const grid = gridFor(vertexCount(data)); data.forEach(f => { if (f.geometry && /Polygon/.test(f.geometry.type)) f.geometry = simp(f.geometry, grid); });
       S.geo = data; indexGeo(); S.geo.forEach(prep);
+      Object.entries(CAP).forEach(([c, v]) => { if (S.idx[c]) S.idx[c]._cap = v; });
       await initMaps(step);
     } catch (e) { console.error(e); S.geo = null; S.geoLoad = null; $('target-prompt').textContent = tr('Fehler beim Kartenaufbau:') + ' ' + e.message + ' ' + tr('(Seite neu laden)'); return; }
   }
@@ -54,11 +63,18 @@ function contIds(k) { // Ids aller Länder eines Kontinents: Listen aus data.js 
   S.geo.forEach(f => { if (!listed.has(fid(f)) && NEC[f.properties.CONTINENT] === k) ids.add(fid(f)); });
   return ids;
 }
+/* Kontinent plus alle Länder im Kartenausschnitt: gefragt wird nur der Kontinent, alles andere erscheint ausgegraut */
+function contShow(k) {
+  const ids = contIds(k);
+  if (k === 'oc') { Object.keys(S.layers).forEach(id => { if (S.layers[id].some(l => l._map === S.mapOce)) ids.add(id); }); return ids; }
+  S.geo.forEach(f => { if (inView(f, CONTVIEW[k])) ids.add(fid(f)); });
+  return ids;
+}
 function resetDeck() { // Aufgaben und Sichtbarkeit je nach Auswahl: Welt, Kontinent, Bundesländer, US-Staaten
   const L2 = a => [...new Set(a.map(c => S.idx[c]).filter(Boolean))], un = codes(UN195), ex = codes(EXT30);
   let pool; S.show = null; S.dotThr = 3.5;
   if (S.cat === 'world') pool = S.diff === 'easy' ? L2(TOP) : S.diff === 'un' ? L2(un) : L2([...un, ...ex]);
-  else if (S.cat === 'cont') { const k = S.cont; pool = L2((S.variant === 'all' ? [...un, ...ex] : un).filter(c => (CONT[c] || []).includes(k))); S.show = contIds(k); S.dotThr = CONTDOT[k]; }
+  else if (S.cat === 'cont') { const k = S.cont; pool = L2((S.variant === 'all' ? [...un, ...ex] : un).filter(c => (CONT[c] || []).includes(k))); S.show = contShow(k); S.dotThr = CONTDOT[k]; }
   else { pool = S.reg[S.cat].feats; S.show = new Set(pool.map(fid)); S.dotThr = REGION[S.cat].thr; }
   S.valid = new Set(pool.map(fid)); S.deck = [...pool]; // jedes Land genau einmal
   S.solved = {}; S.tmp = {}; S.tipsBy = {}; S.wrong = {}; S.done = 0; S.score = 0; S.tipsTotal = 0; S.total = S.deck.length; S.practice = false;
@@ -68,7 +84,7 @@ const counter = () => { // Durchlauf-Prozent = Durchschnitt der bisher beantwort
   $('counter').textContent = S.done + ' / ' + S.total; $('pct').textContent = (S.done ? Math.round(100 * S.score / S.done) : '–') + ' %';
 };
 export function quitGame() {
-  clearTimeout(S.nextT); clearInterval(S.timerI); /* ein schon geplanter nächster Schritt darf nach dem Verlassen nichts mehr auslösen */ setBlink(null, false); $('flag').style.display = 'none'; $('end-modal').classList.remove('active'); $('didyou').textContent = '';
+  clearTimeout(S.nextT); clearInterval(S.timerI); /* ein schon geplanter nächster Schritt darf nach dem Verlassen nichts mehr auslösen */ setBlink(null, false); clearBoard(); $('flag').style.display = 'none'; $('capital').textContent = ''; $('end-modal').classList.remove('active'); $('didyou').textContent = '';
   $('game-stats').style.display = 'none'; document.body.classList.remove('ingame'); S.inGame = false; S.reviewing = false; S.target = null;
   $('review-bar').style.display = 'none'; $('prompt-bar').style.display = 'flex'; switchScreen('main-menu');
 }
@@ -86,6 +102,23 @@ function flagChain(f) { // Quellen der Flagge der Reihe nach; für Bundesländer
   if (f._flag) return f._flag;
   const c = flagCode(f); return c ? [['https://flagcdn.com/w40/' + c + '.png', 'https://flagcdn.com/w80/' + c + '.png 2x']] : [];
 }
+/* Hauptstadt des gesuchten Landes unter der Aufgabe (Option), auch im Eingabemodus als Hilfe wie die Flagge */
+function showCapital() {
+  const c = S.opts.capital && S.target && S.target._cap ? S.target._cap[S.lang === 'en' ? 0 : 1] : '';
+  $('capital').textContent = c ? tr('Hauptstadt') + ': ' + c : '';
+}
+/* Flagge groß im Fenster mit unscharfem Hintergrund. Der Name steht nur im Titel, wenn er in der Aufgabe sowieso zu sehen ist (Pin-Modus, Abschreiben). */
+const bigUrl = u => u.replace('/w40/', '/w640/').replace('/w80/', '/w640/').replace('width=60', 'width=640').replace('width=120', 'width=640');
+export function openFlag() {
+  if (!S.target) return;
+  const ch = flagChain(S.target); if (!ch.length) return;
+  const im = $('fp-img'); let i = 0;
+  $('fp-title').textContent = S.mode === 'click' || S.practice ? tr('Flagge von') + ' ' + nameOf(S.target) : tr('Flagge');
+  const set = () => { if (i >= ch.length) { im.removeAttribute('src'); $('fp-msg').textContent = tr('Flagge nicht verfügbar'); return; } $('fp-msg').textContent = ''; im.src = bigUrl(ch[i][0]); };
+  im.onerror = () => { i++; set(); }; set();
+  $('flag-pop').classList.add('show');
+}
+export function closeFlag() { $('flag-pop').classList.remove('show'); }
 function showFlag() { // kleine Flagge in der Aufgabe; lädt eine Quelle nicht, wird die nächste versucht, zuletzt wird die Flagge ausgeblendet
   const im = $('flag'), ch = S.opts.flag && S.target ? flagChain(S.target) : []; let i = 0;
   const set = () => { if (i >= ch.length) { im.style.display = 'none'; return; } im.src = ch[i][0]; im.srcset = ch[i][1] || ''; im.style.display = 'block'; };
@@ -102,7 +135,7 @@ export function renderPrompt() { // Aufgabentext, Versuche, Tipps und Flagge neu
   $('target-prompt').textContent = S.practice
     ? (S.mode === 'type' ? tr('Schreibe ab: ') + nameOf(S.target) : tr('Klicke auf das blinkende Land!'))
     : S.mode === 'type' ? tr('Welches Land ist hervorgehoben?') : tr('Finde: ') + nameOf(S.target);
-  hint(); showLetters(); showFlag();
+  hint(); showLetters(); showFlag(); showCapital();
 }
 
 // ---------- Runden ----------
@@ -135,13 +168,14 @@ function endRound() {
   $('end-acc').textContent = acc + '%'; $('end-time').textContent = $('timer').textContent;
   $('end-xp').textContent = '+' + xp; $('end-tips').textContent = S.tipsTotal;
   $('end-best').textContent = neu ? tr('Neuer Bestwert!') : tr('Bestwert') + ': ' + nb[0] + ' % · ' + String(nb[1] / 60 | 0).padStart(2, '0') + ':' + String(nb[1] % 60).padStart(2, '0'); $('end-best').className = neu ? 'new' : '';
+  play(acc >= 90 ? 'good' : 'end'); if (acc >= 100) fireworks();
   updateXP(); $('end-modal').classList.add('active');
 }
 function finish(n) { // n = Versuche (1–4), 0 = nicht gewusst
-  const id = fid(S.target); S.solved[id] = n; S.tipsBy[id] = S.tips; S.score += scoreOf(n); setBlink(id, false);
+  const id = fid(S.target); S.solved[id] = n; S.tipsBy[id] = S.tips; S.score += scoreOf(n); setBlink(id, false); if (n > 0) play('ok');
   S.done++; counter(); refresh(id); S.locked = true; $('hint').textContent = ''; $('letters').textContent = ''; clearTimeout(S.nextT); S.nextT = setTimeout(nextRound, 400);
 }
-function startPractice() { S.practice = true; setBlink(fid(S.target), true); renderPrompt(); }
+function startPractice() { S.practice = true; setBlink(fid(S.target), true); play('miss'); renderPrompt(); }
 
 export function clicked(f, l) {
   const id = fid(f);

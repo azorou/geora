@@ -116,9 +116,10 @@
 
 <section id="game-screen" class="screen">
   <div id="prompt-bar" class="game-prompt-bar">
-    <img id="flag" class="flag" alt="" style="display:none" onerror="this.style.display='none'">
+    <img id="flag" class="flag" alt="" style="display:none" data-act="openFlag" title="Flagge vergrößern" onerror="this.style.display='none'">
     <div id="target-prompt" class="prompt-text"></div>
     <div id="hint" class="hint-text"></div><button type="button" class="info" data-i="dots" aria-label="Info">i</button>
+    <div id="capital" class="capital-line"></div>
     <div id="letters" class="letters"></div>
     <div id="type-wrap" class="type-input-container" style="display:none">
       <input type="text" id="type-input" class="type-input" placeholder="Land eingeben..." autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -154,18 +155,25 @@
     </div>
   </div>
 </section>
+<div id="flag-pop" data-act="closeFlag">
+  <div class="fp-card" data-act="keep" role="dialog" aria-modal="true" aria-labelledby="fp-title">
+    <div class="fp-head"><div id="fp-title"></div><button type="button" class="fp-x" data-act="closeFlag" aria-label="Schließen">✕</button></div>
+    <img id="fp-img" alt="">
+    <div id="fp-msg"></div>
+  </div>
+</div>
 <div id="build"></div>
 <script>
 // Start der App. Alle Skripte tragen eine Versionsnummer (V): nach einem Update werden so immer die neuen Dateien geladen statt veralteter aus dem Zwischenspeicher des Browsers.
 // V (Version) und D (Datum) bei jedem Update ändern, Schema Hauptversion.Update (1.6, 1.7, ...). Neue Dateien in js/ müssen in "files" eingetragen werden. Bei einem Startfehler zeigt die orange Meldung den echten Fehler und die Version.
 (function () {
-  var V = '1.7', D = '15.11.2026', box = document.getElementById('boot-msg'), out = document.getElementById('boot-err');
+  var V = '1.8', D = '15.11.2026', box = document.getElementById('boot-msg'), out = document.getElementById('boot-err');
   window.GEORA_BUILD = V; window.GEORA_DATE = D; out.textContent = 'Version ' + V + ' (' + D + ')\n';
   function fail(t) { if (window.__georaBooted) return; box.style.display = 'block'; if (out.textContent.indexOf(t) < 0) out.textContent += t + '\n'; }
   window.addEventListener('error', function (e) { fail((e.message || 'Fehler') + (e.filename ? ' (' + e.filename.split('/').slice(-2).join('/') + ':' + e.lineno + ')' : '')); });
   window.addEventListener('unhandledrejection', function (e) { fail(String((e.reason && e.reason.message) || e.reason)); });
   setTimeout(function () { fail('Der Start dauert länger als 3 Sekunden.'); }, 3000);
-  var files = ['main', 'ui', 'game', 'map', 'data', 'state', 'storage', 'account', 'i18n', 'info', 'regions', 'guide'], im = { imports: { './config.js': './config.js?v=' + V } };
+  var files = ['main', 'ui', 'game', 'map', 'data', 'state', 'storage', 'account', 'i18n', 'info', 'regions', 'guide', 'capitals', 'sound', 'fireworks'], im = { imports: { './config.js': './config.js?v=' + V } };
   files.forEach(function (f) { im.imports['./js/' + f + '.js'] = './js/' + f + '.js?v=' + V; });
   var m = document.createElement('script'); m.type = 'importmap'; m.textContent = JSON.stringify(im); document.head.appendChild(m);
   var s = document.createElement('script'); s.type = 'module'; s.src = 'js/main.js?v=' + V;

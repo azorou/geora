@@ -16,6 +16,8 @@ export const INFO = {
   lang: ['Sprache der Oberfläche und der Ländernamen.', 'Language of the interface and of the country names.'],
   zoom: ['Im Eingabemodus zoomt die Karte auf das gesuchte Land. Die Stufe bestimmt, wie nah.', 'In typing mode the map zooms to the country. The level sets how close.'],
   flag: ['Zeigt eine kleine Flagge des gesuchten Landes in der Aufgabe.', 'Shows a small flag of the country in the task.'],
+  capital: ['Zeigt die Hauptstadt des gesuchten Landes (Bundeslands, Staats) unter der Aufgabe, auch im Eingabemodus als Hilfe.', 'Shows the capital of the country (state) below the task, also in typing mode as a hint.'],
+  sound: ['Töne bei richtig und nicht gewusst und am Rundenende: anders ab 90 %, bei 100 % mit Feuerwerk.', 'Sounds for right and not known and at the end of a round: different from 90 %, with fireworks at 100 %.'],
   theme: ['Farben der Karte: Klassisch, Nacht oder Sand.', 'Map colours: Classic, Night or Sand.'],
   tip: ['Deckt Buchstaben auf (1, dann 2 weitere, dann 3 …), nie das ganze Wort. Jeder Tipp kostet einen Versuch und damit 25 % der Punkte. Beim letzten Versuch ist kein Tipp möglich.',
         'Reveals letters (1, then 2 more, then 3 …), never the whole word. Each tip uses one attempt and so costs 25 % of the points. No tip is possible on the last attempt.'],

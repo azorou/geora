@@ -17,9 +17,11 @@ export const US50 = [
   ['UT', 'Utah'], ['VT', 'Vermont'], ['VA', 'Virginia'], ['WA', 'Washington'], ['WV', 'West Virginia', 'West Virginia', ['Westvirginia']], ['WI', 'Wisconsin'], ['WY', 'Wyoming']
 ].map(([k, de, en, alt]) => [k, de, en || de, alt || []]);
 
+const DE_CAP = { BW: ['Stuttgart'], BY: ['Munich', 'München'], BE: ['Berlin'], BB: ['Potsdam'], HB: ['Bremen'], HH: ['Hamburg'], HE: ['Wiesbaden'], MV: ['Schwerin'], NI: ['Hanover', 'Hannover'], NW: ['Düsseldorf'], RP: ['Mainz'], SL: ['Saarbrücken'], SN: ['Dresden'], ST: ['Magdeburg'], SH: ['Kiel'], TH: ['Erfurt'] };
+const US_CAP = { AL: 'Montgomery', AK: 'Juneau', AZ: 'Phoenix', AR: 'Little Rock', CA: 'Sacramento', CO: 'Denver', CT: 'Hartford', DE: 'Dover', FL: 'Tallahassee', GA: 'Atlanta', HI: 'Honolulu', ID: 'Boise', IL: 'Springfield', IN: 'Indianapolis', IA: 'Des Moines', KS: 'Topeka', KY: 'Frankfort', LA: 'Baton Rouge', ME: 'Augusta', MD: 'Annapolis', MA: 'Boston', MI: 'Lansing', MN: 'Saint Paul', MS: 'Jackson', MO: 'Jefferson City', MT: 'Helena', NE: 'Lincoln', NV: 'Carson City', NH: 'Concord', NJ: 'Trenton', NM: 'Santa Fe', NY: 'Albany', NC: 'Raleigh', ND: 'Bismarck', OH: 'Columbus', OK: 'Oklahoma City', OR: 'Salem', PA: 'Harrisburg', RI: 'Providence', SC: 'Columbia', SD: 'Pierre', TN: 'Nashville', TX: 'Austin', UT: 'Salt Lake City', VT: 'Montpelier', VA: 'Richmond', WA: 'Olympia', WV: 'Charleston', WI: 'Madison', WY: 'Cheyenne' };
 export const REGION = { // je Karte: Liste, Id-Vorsilbe, Kartendaten (lokale Datei zuerst, danach Internet), Schwelle für Klick-Punkte (Grad)
-  de: { list: DE16, pre: 'DE-', thr: .35, src: ['de-states.geojson', 'https://cdn.jsdelivr.net/gh/isellsoap/deutschlandGeoJSON@main/2_bundeslaender/4_niedrig.geo.json', 'https://raw.githubusercontent.com/isellsoap/deutschlandGeoJSON/main/2_bundeslaender/4_niedrig.geo.json'], flag: 'de-', file: 'de-states.geojson' },
-  us: { list: US50, pre: 'US-', thr: 1.2, src: ['us-states.geojson', 'https://cdn.jsdelivr.net/gh/PublicaMundi/MappingAPI@master/data/geojson/us-states.json', 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json'], flag: 'us-', file: 'us-states.geojson' }
+  de: { list: DE16, pre: 'DE-', cap: DE_CAP, thr: .35, src: ['de-states.geojson', 'https://cdn.jsdelivr.net/gh/isellsoap/deutschlandGeoJSON@main/2_bundeslaender/4_niedrig.geo.json', 'https://raw.githubusercontent.com/isellsoap/deutschlandGeoJSON/main/2_bundeslaender/4_niedrig.geo.json'], flag: 'de-', file: 'de-states.geojson' },
+  us: { list: US50, pre: 'US-', cap: Object.fromEntries(Object.entries(US_CAP).map(([k, v]) => [k, [v]])), thr: 1.2, src: ['us-states.geojson', 'https://cdn.jsdelivr.net/gh/PublicaMundi/MappingAPI@master/data/geojson/us-states.json', 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json'], flag: 'us-', file: 'us-states.geojson' }
 };
 
 const norm = t => String(t == null ? '' : t).toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
@@ -58,7 +60,7 @@ export function regionFeatures(kind, features) {
     const k = matchRegion(kind, f.properties); if (!k || seen.has(k)) return; seen.add(k);
     const [, de, en, alt] = R.list.find(r => r[0] === k), id = R.pre + k;
     let g = f.geometry; if (kind === 'us' && US_MOVE[k]) g = moveGeom(g, US_MOVE[k], k);
-    out[k] = { type: 'Feature', properties: { ADM0_A3: id, NAME: en, NAME_LONG: en, NAME_DE: de, POP_EST: 1 }, geometry: g, _de: de, _code: id, _flag: flagChain(kind, k, en) };
+    out[k] = { type: 'Feature', properties: { ADM0_A3: id, NAME: en, NAME_LONG: en, NAME_DE: de, POP_EST: 1 }, geometry: g, _de: de, _code: id, _flag: flagChain(kind, k, en), _cap: (c => c.length > 1 ? c : [c[0], c[0]])(R.cap[k]) };
     SYN[id] = [k, ...alt]; // auch das Kürzel und weitere Schreibweisen werden als Antwort akzeptiert
   });
   const feats = R.list.map(r => out[r[0]]).filter(Boolean), missing = R.list.filter(r => !out[r[0]]).map(r => r[1]);

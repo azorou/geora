@@ -6,9 +6,9 @@ export const switchScreen = id => { document.querySelectorAll('.screen').forEach
 
 export const S = {
   lang: 'de', mode: 'click', diff: 'easy', cat: 'world', cont: 'eu', variant: 'un', // cat: world | cont | de | us
-  show: null, dotThr: 3.5, reg: {}, mapWorld: null, fitZ: 2, // show: null = alles zeichnen, sonst Menge der gezeichneten Ids
+  show: null, hover: null, dotThr: 3.5, reg: {}, mapWorld: null, fitZ: 2, // show: null = alles zeichnen, sonst Menge der gezeichneten Ids
 
-  opts: { zoom: 'soft', flag: false, theme: 'classic' },
+  opts: { zoom: 'soft', flag: false, capital: false, sound: true, theme: 'classic' },
   user: null,
   geo: null, idx: {}, map: null, mapCar: null, mapOce: null, insetH: 150, insetSize: { car: null, oce: null }, geoLoad: null,
   layers: {}, solved: {}, tmp: {}, valid: new Set(), tipsBy: {}, wrong: {}, nextT: null, starting: false,

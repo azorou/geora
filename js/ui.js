@@ -4,8 +4,9 @@ import { OPTDEF, SCOPES, CONTNAME, contCount } from './data.js';
 import { refreshAll, loadData } from './map.js';
 import { tr, applyLang } from './i18n.js';
 import { initInfo, infoBtn } from './info.js';
+import { initSound } from './sound.js';
 import { renderGuide } from './guide.js';
-import { startGame, quitGame, submitGuess, tip, startReview, backToResult, renderPrompt, clicked, pauseGame, resumeGame, updateXP } from './game.js';
+import { startGame, quitGame, submitGuess, tip, startReview, backToResult, renderPrompt, clicked, pauseGame, resumeGame, updateXP, openFlag, closeFlag } from './game.js';
 import { hooks, getProfile, totalXP, roundsPlayed, saveOpts, afterLogin, afterLogout, bestOf, MODES, DIFFS } from './storage.js';
 import { isConfigured, currentUser, register, login, logout, deleteAccount, errText } from './account.js';
 
@@ -104,6 +105,7 @@ async function doDelete() {
 const ACTIONS = {
   goto: v => { switchScreen(v); if (v === 'mode-selection') updateSel(); }, // Bestwerte sind danach aktuell
   openSettings: () => openOverlay('settings-screen'),
+  openFlag: () => openFlag(), closeFlag: () => closeFlag(), keep: () => {},
   openGuide: () => { renderGuide(); openOverlay('guide-screen'); },
   guideGo: v => { const d = $('g-' + v); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } },
   guideAll: () => { const ds = [...document.querySelectorAll('#guide-body .g-ch')], open = ds.some(d => !d.open); ds.forEach(d => { d.open = open; }); },
@@ -127,7 +129,7 @@ export function boot() {
   hooks.onSessionLost = () => { S.user = null; afterLogout(); renderProfile(); };
   if (!getProfile().opts) { try { const o = JSON.parse(localStorage.getItem('geora-opts') || 'null'); if (o) getProfile().opts = o; } catch (e) {} } // Einstellungen aus der alten Einzeldatei-Version
   applyProfileOpts(); renderOpts(); applyTheme(); updateXP(); renderProfile();
-  initInfo(); document.addEventListener('click', dispatch);
+  initInfo(); initSound(); document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFlag(); }); document.addEventListener('click', dispatch);
   $('type-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitGuess(); });
   const u = currentUser();
   if (isConfigured() && u) { S.user = u; renderProfile(); afterLogin(u.name).catch(console.error); }

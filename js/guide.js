@@ -45,7 +45,7 @@ const CH = [
     ['tbl', [[['Umfang', 'Scope'], ['Inhalt', 'Contents']], [['Top 50', 'Top 50'], ['die 50 bekanntesten Länder', 'the 50 best-known countries']], [['UN-Staaten (195)', 'UN states (195)'], ['alle anerkannten Staaten', 'all recognised states']], [['Länder & Territorien (225)', 'Countries & territories (225)'], ['dazu 30 weitere Gebiete', 'plus 30 more territories']]]],
     ['p', ['Zur Weltkarte gehören zwei **kleine Felder**: links die Karibik, rechts Ozeanien. Dort liegen viele Inselstaaten, die auf der großen Karte kaum zu treffen wären.', 'The world map comes with two **small maps**: the Caribbean on the left, Oceania on the right. They hold many island states that would be hard to hit on the large map.']],
     ['h', ['Kontinente', 'Continents']],
-    ['p', ['Es wird nur der gewählte Kontinent gezeigt und abgefragt, ohne kleine Felder. Zur Wahl stehen **UN-Staaten** und **Länder & Territorien**. Gebiete erscheinen im Umfang „UN-Staaten“ grau und werden nicht gefragt.', 'Only the chosen continent is shown and quizzed, without small maps. You can choose **UN states** or **countries & territories**. In the “UN states” scope territories appear grey and are not asked.']],
+    ['p', ['Es wird nur der gewählte Kontinent abgefragt, ohne kleine Felder. Länder im Kartenausschnitt, die nicht dazugehören, erscheinen ausgegraut. Zur Wahl stehen **UN-Staaten** und **Länder & Territorien**. Gebiete erscheinen im Umfang „UN-Staaten“ grau und werden nicht gefragt.', 'Only the chosen continent is quizzed, without small maps. Countries inside the map area that do not belong to it appear greyed out. You can choose **UN states** or **countries & territories**. In the “UN states” scope territories appear grey and are not asked.']],
     ['cont'],
     ['note', ['Russland und die Türkei zählen zu Europa und zu Asien. Ozeanien nutzt die Karte mit Datumsgrenze im ganzen Feld.', 'Russia and Turkey count for both Europe and Asia. Oceania uses the map across the date line, filling the whole area.']],
     ['h', ['Bundesländer und US-Staaten', 'German states and US states']],
@@ -61,12 +61,14 @@ const CH = [
       ['**Genauigkeit**: Durchschnitt der Punkte aller Länder. Während des Spiels zeigt der Prozentwert oben den Durchschnitt der bisher beantworteten Länder.', '**Accuracy**: average points of all countries. During the game the percentage at the top shows the average of the countries answered so far.'],
       ['**XP**: Pro Land gibt es im Pin-Modus bis zu **1 XP**, im Eingabemodus bis zu **2 XP**. Jeder weitere Versuch (auch ein Tipp) zieht 25 % davon ab, nicht gewusst gibt 0. Am Ende der Runde wird alles addiert und abgerundet.', '**XP**: per country you get up to **1 XP** in Pin mode and up to **2 XP** in Typing mode. Each further attempt (tips too) deducts 25 % of it, not known gives 0. At the end of the round everything is added up and rounded down.'],
       ['**Abgabe-Effekt**: Ein Ring wächst vom Land aus, grün bei richtig, rot bei falsch.', '**Answer effect**: a ring grows out from the country, green for right, red for wrong.'],
+      ['**Töne** (Einstellung): einer für richtig, einer für nicht gewusst und am Rundenende drei Varianten: normal, ab 90 % und bei 100 % dazu ein **Feuerwerk**.', '**Sounds** (setting): one for right, one for not known, and three variants at the end of a round: normal, from 90 %, and at 100 % with **fireworks** on top.'],
       ['**Gelöste Länder** haben dunklere, kräftigere Grenzen, **abgegebene Punkte** sind größer und haben einen kräftigen Rand.', '**Solved countries** have darker, bolder borders; **answered dots** are larger with a bold outline.']
     ]]
   ] },
   { id: 'map', t: ['Die Karte bedienen', 'Using the map'], b: [
     ['ul', [
       ['**Zoomen und Verschieben**: Mausrad oder zwei Finger zum Zoomen, ziehen zum Verschieben. Die Karte bleibt innerhalb ihrer Grenzen.', '**Zoom and pan**: mouse wheel or two fingers to zoom, drag to pan. The map stays within its bounds.'],
+      ['**Darüberfahren** (PC, Pin-Modus): Das Land unter der Maus färbt sich lila, wie das blinkende Land nach dem 4. Versuch.', '**Hovering** (PC, Pin mode): the country under the mouse turns purple, like the blinking country after the 4th attempt.'],
       ['**Kleine Felder** (nur Weltkarte): Karibik links, Ozeanien rechts. Jedes lässt sich einzeln zoomen und verschieben.', '**Small maps** (world map only): Caribbean on the left, Oceania on the right. Each can be zoomed and panned on its own.'],
       ['**Größe ändern**: Am Griff in der oberen Ecke ziehen (links oben rechts, rechts oben links). Das Feld bleibt in seiner Ecke. Bei jedem neuen Durchlauf werden Größe und Zoom zurückgesetzt.', '**Resize**: drag the handle at the top corner (top right for the left map, top left for the right map). The map stays in its corner. Size and zoom are reset with every new run.'],
       ['**Info-Knöpfe (i)**: Am PC darüberfahren, am Handy antippen: eine kurze Erklärung erscheint.', '**Info buttons (i)**: hover on a PC, tap on a phone: a short explanation appears.'],
@@ -77,7 +79,9 @@ const CH = [
     ['tbl', [[['Einstellung', 'Setting'], ['Wirkung', 'Effect']],
       [['Sprache', 'Language'], ['Deutsch oder English (UK): Oberfläche, Länder- und Gebietsnamen.', 'German or English (UK): interface, country and area names.']],
       [['Zoom im Eingabemodus', 'Zoom in typing mode'], ['Aus, Sanft, Mittel, Stark: wie nah die Karte auf das gesuchte Land zoomt.', 'Off, Gentle, Medium, Strong: how close the map zooms to the country.']],
-      [['Flagge in der Aufgabe', 'Flag in the task'], ['Zeigt eine kleine Flagge des gesuchten Landes, Bundeslands oder Staats.', 'Shows a small flag of the country, state or area.']],
+      [['Flagge in der Aufgabe', 'Flag in the task'], ['Zeigt eine kleine Flagge des gesuchten Landes, Bundeslands oder Staats. Ein Klick darauf öffnet sie groß in einem Fenster.', 'Shows a small flag of the country, state or area. Clicking it opens a large version in a window.']],
+      [['Hauptstadt in der Aufgabe', 'Capital in the task'], ['Zeigt die Hauptstadt des gesuchten Landes, Bundeslands oder Staats, auch im Eingabemodus als Hilfe.', 'Shows the capital of the country, state or area, also in typing mode as a hint.']],
+      [['Töne', 'Sounds'], ['An oder Aus: Töne bei richtig, nicht gewusst und am Rundenende; bei 100 % mit Feuerwerk.', 'On or off: sounds for right, not known and at the end of a round; with fireworks at 100 %.']],
       [['Farbmodus', 'Colour mode'], ['Klassisch, Nacht oder Sand: Farben von Karte, Linien und Versuchen.', 'Classic, Night or Sand: colours of map, lines and attempts.']]]],
     ['p', ['Die Einstellungen erreichst du im Hauptmenü und im laufenden Spiel. Sie werden gespeichert und mit einem Konto auf deine Geräte übertragen.', 'You can open the settings in the main menu and during a game. They are saved and, with an account, carried over to your devices.']]
   ] },

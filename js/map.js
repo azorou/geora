@@ -68,9 +68,16 @@ export async function ensureRegion(kind) {
 
 // ---------- Farben ----------
 const solvedColor = id => S.tmp[id] || (S.solved[id] !== undefined ? th().att[(S.solved[id] || 4) - 1] : null); // solved: 1–4 = Versuch, 0 = nicht gewusst
+/* Pin-Modus: Land unter der Maus lila (wie das blinkende Land nach dem 4. Versuch); nur für offene, anklickbare Länder */
+const hoverOk = id => S.hover === id && S.inGame && S.mode === 'click' && S.target && !S.locked && !S.practice && !S.reviewing && !S.over && S.valid.has(id) && S.solved[id] === undefined;
+export function hover(id) { const old = S.hover; if (old === id) return; S.hover = id; if (old) refresh(old); if (id) refresh(id); }
+const hov = (l, id) => l.on('mouseover', () => hover(id)).on('mouseout', () => hover(null));
+/* Ländergrenzen schneiden den Ausschnitt v = [[Süd, West], [Nord, Ost]]; b = [West, Süd, Ost, Nord], sh = Verschiebung der Länge (Ozeanien) */
+export const inView = (f, v, sh = 0) => f._b[0] + sh <= v[1][1] && f._b[2] + sh >= v[0][1] && f._b[1] <= v[1][0] && f._b[3] >= v[0][0];
 function fillOf(id) {
   const c = solvedColor(id); if (c) return c;
   if (S.mode === 'type' && S.target && id === fid(S.target)) return th().hi;
+  if (hoverOk(id)) return th().hi;
   return S.valid.has(id) ? th().land : th().off;
 }
 // S.show: null = alle Länder zeichnen (Weltkarte); sonst nur diese Ids (Kontinent, Bundesländer ...), alle anderen Ebenen sind unsichtbar und nicht anklickbar
@@ -79,13 +86,14 @@ const shown = id => !S.show || S.show.has(id), HIDE = { fill: false, stroke: fal
 const polySt = id => { if (!shown(id)) return HIDE; const c = fillOf(id); return { fill: true, stroke: true, fillColor: c, fillOpacity: 1, color: c, weight: .7, opacity: 1 }; };
 const lineSt = id => { if (!shown(id)) return HIDE; const sv = solvedColor(id); return { fill: false, stroke: true, color: sv ? th().solvedLine : th().line, weight: sv ? 1.2 : .8, opacity: 1 }; }; // gelöste Länder: dunklere, kräftigere Grenzen
 const dotOn = (id, l) => shown(id) && S.valid.has(id) && (l.always || l.wdeg < S.dotThr); // Klick-Punkt nur für schmale Länder dieser Karte
-const dotSt = (id, l) => { // abgegebene Punkte: größer, kräftiger Rand, Füllung in der Farbe des Versuchs
+/* Punkte: zuerst groß (gut zu treffen), nach der Abgabe kleiner, mit kräftigem Rand in der Farbe des Versuchs */
+const dotSt = (id, l) => {
   if (!dotOn(id, l)) return { radius: 4, fill: false, stroke: false };
-  const c = solvedColor(id) || (S.mode === 'type' && S.target && id === fid(S.target) ? th().hi : '#ffffff');
-  return S.solved[id] !== undefined ? { radius: 7, fill: true, stroke: true, fillColor: c, fillOpacity: 1, color: th().ring, weight: 2.5, opacity: 1 }
-    : { radius: 4, fill: true, stroke: true, fillColor: c, fillOpacity: 1, color: '#0f3d22', weight: 1.3, opacity: 1 };
+  const c = solvedColor(id) || ((S.mode === 'type' && S.target && id === fid(S.target)) || hoverOk(id) ? th().hi : '#ffffff');
+  return S.solved[id] !== undefined ? { radius: 4.5, fill: true, stroke: true, fillColor: c, fillOpacity: 1, color: th().ring, weight: 2, opacity: 1 }
+    : { radius: 7, fill: true, stroke: true, fillColor: c, fillOpacity: 1, color: '#0f3d22', weight: 1.6, opacity: 1 };
 };
-const zoneSt = id => { if (!shown(id)) return HIDE; const c = solvedColor(id), v = S.valid.has(id); return { stroke: true, color: th().zone, weight: c && v ? 2.4 : 1.5, dashArray: '6 5', opacity: v ? 1 : .85, fill: true, fillColor: c || '#fff', fillOpacity: c && v ? .65 : .001 }; };
+const zoneSt = id => { if (!shown(id)) return HIDE; const c = solvedColor(id), v = S.valid.has(id), hv = hoverOk(id); return { stroke: true, color: th().zone, weight: c && v ? 2.4 : 1.5, dashArray: '6 5', opacity: v ? 1 : .85, fill: true, fillColor: c || (hv ? th().hi : '#fff'), fillOpacity: c && v ? .65 : hv ? .5 : .001 }; };
 
 export function refresh(id) {
   const vis = shown(id), v = S.valid.has(id);
@@ -153,7 +161,7 @@ function addZones(m, Z, conv) { // gestrichelte Zonen, unter dem Land gezeichnet
   Object.entries(Z).sort((a, b) => area(b[1]) - area(a[1])).forEach(([c, p]) => {
     const f = S.idx[c]; if (!f) return;
     const id = fid(f), pl = p.map(conv), z = L.polygon(pl, zoneSt(id)).addTo(m); z.zone = true; (m._zp = m._zp || {})[id] = pl; // Zone merken (für die Lage der Klick-Punkte)
-    (S.layers[id] = S.layers[id] || []).push(z); z.on('click', e => { L.DomEvent.stopPropagation(e); S.onClick(f, z); });
+    (S.layers[id] = S.layers[id] || []).push(z); z.on('click', e => { L.DomEvent.stopPropagation(e); S.onClick(f, z); }); hov(z, id);
   });
 }
 function build(m, data, zones, conv) { // Ebenen werden EINMAL gebaut und später nur umgefärbt
@@ -161,14 +169,14 @@ function build(m, data, zones, conv) { // Ebenen werden EINMAL gebaut und späte
   const reg = (f, l) => (S.layers[fid(f)] = S.layers[fid(f)] || []).push(l);
   L.geoJSON(data, { // Flächen; smoothFactor 0 = Leaflet vereinfacht die Linien nicht noch einmal je Land (das verschob gemeinsame Grenzen)
     smoothFactor: 0, style: f => polySt(fid(f)),
-    onEachFeature: (f, l) => { reg(f, l); l.on('click', e => { L.DomEvent.stopPropagation(e); S.onClick(f, l); }); }
+    onEachFeature: (f, l) => { reg(f, l); l.on('click', e => { L.DomEvent.stopPropagation(e); S.onClick(f, l); }); hov(l, fid(f)); }
   }).addTo(m);
   L.geoJSON(data, { smoothFactor: 0, interactive: false, style: f => lineSt(fid(f)), onEachFeature: (f, l) => { l.isLine = true; reg(f, l); } }).addTo(m); // Grenzlinien zuletzt: liegen über allen Flächen
   data.forEach(f => {
     if (!f._dot) return;
     const zp = m._zp && m._zp[fid(f)], d = L.circleMarker(zp ? dotSpot(zp, f._c) : f._c, { radius: 4 }).addTo(m); d.isDot = true; /* mit Zone: Punkt liegt sicher darin */ d.wdeg = f._b[2] - f._b[0]; d.always = OCE.includes(fid(f)); d.setStyle(dotSt(fid(f), d));
     (S.layers[fid(f)] = S.layers[fid(f)] || []).push(d);
-    d.on('click', e => { L.DomEvent.stopPropagation(e); S.onClick(f, d); });
+    d.on('click', e => { L.DomEvent.stopPropagation(e); S.onClick(f, d); }); hov(d, fid(f));
   });
 }
 function mk(id, o) {
@@ -233,8 +241,8 @@ function initGrips() { // Griff an der oberen Ecke: das Feld wächst nach oben u
   });
 }
 window.addEventListener('resize', () => { if (S.mapCar) { layoutInsets(); [S.mapWorld, S.mapCar, S.mapOce].forEach(m => m.invalidateSize()); } });
-const WORLD = [[-85, -180], [85, 180]];
-const padB = b => { const dy = (b[1][0] - b[0][0]) * .35, dx = (b[1][1] - b[0][1]) * .35; return [[Math.max(-85, b[0][0] - dy), Math.max(-180, b[0][1] - dx)], [Math.min(85, b[1][0] + dy), Math.min(180, b[1][1] + dx)]]; }; // Rand zum Verschieben
+const WORLD = [[-85, -180], [85, 180]], WORLD_VIEW = [[-58, -180], [84, 180]]; /* WORLD_VIEW: nur der wichtige Ausschnitt (ohne Antarktis und leeres Polarmeer) */
+const padB = b => { const dy = (b[1][0] - b[0][0]) * .06, dx = (b[1][1] - b[0][1]) * .06; return [[Math.max(-85, b[0][0] - dy), Math.max(-180, b[0][1] - dx)], [Math.min(85, b[1][0] + dy), Math.min(180, b[1][1] + dx)]]; }; // Rand zum Verschieben
 export function fit() { // Hauptkarte und Ausschnitt passend zur Auswahl (Welt, Kontinent, Bundesländer, US-Staaten)
   const fr = document.querySelector('.map-frame'), world = S.cat === 'world', oc = S.cat === 'cont' && S.cont === 'oc';
   fr.dataset.scope = world ? 'world' : oc ? 'oc' : 'other'; // steuert per CSS, welche Felder sichtbar sind
@@ -243,7 +251,7 @@ export function fit() { // Hauptkarte und Ausschnitt passend zur Auswahl (Welt, 
   [S.mapWorld, S.mapCar, S.mapOce].forEach(m => { m.invalidateSize(); m.setMinZoom(0); });
   const m = S.map;
   if (world) {
-    m.setMaxBounds(WORLD); m.fitBounds([[-56, -170], [78, 180]], { animate: false, paddingBottomRight: [0, S.insetH + 6] }); m.setMinZoom(m.getZoom());
+    m.setMaxBounds(WORLD); m.fitBounds([[-56, -170], [78, 180]], { animate: false, paddingBottomRight: [0, S.insetH + 6] }); m.setMinZoom(m.getZoom()); m.setMaxBounds(WORLD_VIEW);
     S.mapCar.fitBounds(R_CAR_IN, { animate: false }); S.mapOce.fitBounds(R_OCE_IN, { animate: false });
     S.mapCar.setMinZoom(S.mapCar.getZoom()); S.mapOce.setMinZoom(S.mapOce.getZoom()); // nicht weiter heraus als der Ausschnitt
   } else if (oc) { m.fitBounds(R_OCE_IN, { animate: false }); m.setMinZoom(m.getZoom()); }

@@ -28,6 +28,8 @@ export const ZOOM = { soft: 3, mid: 4, strong: 5 }; // maximale Zoomstufe im Ein
 export const OPTDEF = [
   ['zoom', 'Zoom im Eingabemodus', [['off', 'Aus'], ['soft', 'Sanft'], ['mid', 'Mittel'], ['strong', 'Stark']], 'zoom'],
   ['flag', 'Flagge in der Aufgabe', [[false, 'Aus'], [true, 'An']], 'flag'],
+  ['capital', 'Hauptstadt in der Aufgabe', [[false, 'Aus'], [true, 'An']], 'capital'],
+  ['sound', 'Töne', [[true, 'An'], [false, 'Aus']], 'sound'],
   ['theme', 'Farbmodus', [['classic', 'Klassisch'], ['night', 'Nacht'], ['sand', 'Sand']], 'theme']
 ];
 
@@ -53,7 +55,7 @@ export const CONT = {}; // Land-Code -> Liste der Kontinente
 CONTS.forEach(k => CONTL[k].split(' ').forEach(c => { (CONT[c] = CONT[c] || []).push(k); }));
 export const NEC = { Europe: 'eu', Asia: 'as', Africa: 'af', 'North America': 'na', 'South America': 'sa', Oceania: 'oc' }; // Natural-Earth-Feld CONTINENT (für Gebiete außerhalb der Listen)
 // Ausschnitt je Kontinent (Süd, West, Nord, Ost); Ozeanien nutzt die Karte mit Datumsgrenze (R_OCE_IN)
-export const CONTVIEW = { eu: [[34, -31], [71.5, 45]], as: [[-11, 26], [76, 150]], af: [[-36, -20], [38, 53]], na: [[6, -170], [72, -50]], sa: [[-56, -82], [13, -34]] };
+export const CONTVIEW = { eu: [[34, -27], [71.5, 45]], as: [[-11, 26], [76, 150]], af: [[-36, -27], [38, 60]], na: [[6, -170], [72, -50]], sa: [[-56, -82], [13, -34]] };
 export const CONTDOT = { eu: .9, as: 1.9, af: 1.7, na: 1.4, sa: 1.4, oc: 3.5 }; // Länder schmaler als so viele Grad bekommen einen Klick-Punkt
 export const ZREL = { soft: 1.5, mid: 2.5, strong: 3.5 }; // Zoom im Eingabemodus außerhalb der Weltkarte: so viele Stufen über dem Kartenausschnitt
 export const SCOPES = ['easy', 'un', 'standard', ...CONTS.flatMap(k => [k + '-un', k + '-all']), 'de', 'us']; // Umfang einer Runde; die Reihenfolge ist Teil der gespeicherten Daten, nur hinten anhängen!
